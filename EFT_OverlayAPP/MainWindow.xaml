@@ -1,0 +1,155 @@
+﻿<Window x:Class="EFT_OverlayAPP.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:EFT_OverlayAPP"
+        mc:Ignorable="d"
+        Title="Overlay"
+        AllowsTransparency="True"
+        Background="Transparent"
+        WindowStyle="None"
+        WindowState="Maximized"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize"
+        Topmost="True"
+        d:DesignWidth="1920"
+        d:DesignHeight="1080">
+    <Window.Resources>
+        <Style x:Key="Clock" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="42"/>
+            <Setter Property="Foreground" Value="#B6C1C7"/>
+            <Setter Property="FontFamily" Value="pack://application:,,,/Fonts/#Bender"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="Clock2" TargetType="TextBlock" BasedOn="{StaticResource Clock}">
+            <Setter Property="Margin" Value="13.853,0,0,0"/>
+        </Style>
+        <Style x:Key="TB34" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="34"/>
+            <Setter Property="Foreground" Value="#B6C1C7"/>
+            <Setter Property="FontFamily" Value="pack://application:,,,/Fonts/#Bender"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="20,10,5,10"/>
+        </Style>
+        <Style x:Key="TB28" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="28"/>
+            <Setter Property="Foreground" Value="#B6C1C7"/>
+            <Setter Property="FontFamily" Value="pack://application:,,,/Fonts/#Bender"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="5,10,10.5,10"/>
+        </Style>
+        <Style x:Key="SPGrid" TargetType="StackPanel">
+            <Setter Property="Orientation" Value="Horizontal" />
+            <Setter Property="Background" Value="#55000000" />
+            <Setter Property="Margin" Value="0,5,5,0"/>
+            <Setter Property="Height" Value="65.5"/>
+        </Style>
+        <Style x:Key="GD1" TargetType="Grid">
+            <Setter Property="Background" Value="#55000000" />
+            <Setter Property="Margin" Value="0,5,0,0"/>
+            <Setter Property="Height" Value="65.5"/>
+            <Setter Property="Width" Value="186"/>
+        </Style>
+    </Window.Resources>
+    <Grid>
+        <Border Background="#55000000"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Width="186"
+                Height="73.5"
+                Margin="0,5,5,0">
+            <TextBlock Style="{StaticResource Clock}"
+                       x:Name="TimerTextBlock"
+                       Text="8:88:88"
+                       Margin="22,0,0,0">
+            </TextBlock>
+        </Border>
+        <Grid HorizontalAlignment="Right" VerticalAlignment="Top" Margin="100,83.5,5,100">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="4*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Row="0" Grid.Column="0" Style="{StaticResource SPGrid}" Margin="0,0,5,0">
+                <TextBlock Text="EXFIL01" Style="{StaticResource TB34}"/>
+                <TextBlock Text="Courtyard" Style="{StaticResource TB28}"/>
+            </StackPanel>
+            <StackPanel Grid.Row="1" Grid.Column="0" Style="{StaticResource SPGrid}">
+                <TextBlock Text="EXFIL02" Grid.Row="1" Style="{StaticResource TB34}"/>
+                <TextBlock Text="Primorsky Ave Taxi V-Ex" Style="{StaticResource TB28}"/>
+            </StackPanel>
+            <StackPanel Grid.Row="2" Grid.Column="0" Style="{StaticResource SPGrid}">
+                <TextBlock Text="EXFIL03" Style="{StaticResource TB34}"/>
+                <TextBlock Text="Collapsed Crane" Style="{StaticResource TB28}"/>
+            </StackPanel>
+            <StackPanel Grid.Row="3" Grid.Column="0" Style="{StaticResource SPGrid}">
+                <TextBlock Text="EXFIL04" Style="{StaticResource TB34}"/>
+                <TextBlock Text="Klimov Street" Style="{StaticResource TB28}"/>
+            </StackPanel>
+            <StackPanel Grid.Row="4" Grid.Column="0" Style="{StaticResource SPGrid}">
+                <TextBlock Text="EXFIL05" Style="{StaticResource TB34}"/>
+                <TextBlock Text="Pinewood Basement (Co-Op)" Style="{StaticResource TB28}"/>
+            </StackPanel>
+            <StackPanel Grid.Row="5" Grid.Column="0" Style="{StaticResource SPGrid}">
+                <TextBlock Text="EXFIL06" Style="{StaticResource TB34}"/>
+                <TextBlock Text="Expo Checkpoint" Style="{StaticResource TB28}"/>
+            </StackPanel>
+            <StackPanel Grid.Row="6" Grid.Column="0" Style="{StaticResource SPGrid}">
+                <TextBlock Text="TRANSIT02" Foreground="#ba0c07" Style="{StaticResource TB34}"/>
+                <TextBlock Text="Transit to Ground Zero" Style="{StaticResource TB28}"/>
+            </StackPanel>
+            <StackPanel Grid.Row="7" Grid.Column="0" Style="{StaticResource SPGrid}">
+                <TextBlock Text="TRANSIT01" Foreground="#ba0c07" Style="{StaticResource TB34}"/>
+                <TextBlock Text="Transit to Interchange" Style="{StaticResource TB28}"/>
+            </StackPanel>
+            <StackPanel Grid.Row="8" Grid.Column="0" Style="{StaticResource SPGrid}">
+                <TextBlock Text="TRANSIT03" Foreground="#ba0c07" Style="{StaticResource TB34}"/>
+                <TextBlock Text="Transit to The Lab" Style="{StaticResource TB28}"/>
+            </StackPanel>
+            <Grid Grid.Row="0" Grid.Column="2" Style="{StaticResource GD1}" Margin="0,0,0,0">
+                <TextBlock Text="??:??:??"  Style="{StaticResource Clock2}" />
+            </Grid>
+            <Grid Grid.Row="1" Grid.Column="2" Style="{StaticResource GD1}">
+                <TextBlock Text="??:??:??"  Style="{StaticResource Clock2}" />
+            </Grid>
+            <Grid Grid.Row="2" Grid.Column="2" Style="{StaticResource GD1}">
+                <TextBlock Text="??:??:??"  Style="{StaticResource Clock2}" />
+            </Grid>
+            <Grid Grid.Row="3" Grid.Column="2" Style="{StaticResource GD1}">
+                <TextBlock Text="??:??:??"  Style="{StaticResource Clock2}" />
+            </Grid>
+            <Grid Grid.Row="4" Grid.Column="2" Style="{StaticResource GD1}">
+                <TextBlock Text="??:??:??"  Style="{StaticResource Clock2}" />
+            </Grid>
+            <Grid Grid.Row="5" Grid.Column="2" Style="{StaticResource GD1}">
+                <TextBlock Text="??:??:??"  Style="{StaticResource Clock2}" />
+            </Grid>
+            <Grid Grid.Row="6" Grid.Column="2" Style="{StaticResource GD1}">
+                <TextBlock Text="0:00:33"  Style="{StaticResource Clock2}" Margin="22,0,0,0" FontSize="41"/>
+            </Grid>
+            <Grid Grid.Row="7" Grid.Column="2" Style="{StaticResource GD1}">
+                <TextBlock Text="0:00:33"  Style="{StaticResource Clock2}" Margin="22,0,0,0" FontSize="41"/>
+            </Grid>
+            <Grid Grid.Row="8" Grid.Column="2" Style="{StaticResource GD1}">
+                <TextBlock Text="0:00:33"  Style="{StaticResource Clock2}" Margin="22,0,0,0" FontSize="41"/>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

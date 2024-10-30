@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Fonts\Jovanny Lemonad - Bender-Black.otf" />
+    <None Remove="Fonts\Jovanny Lemonad - Bender-BlackItalic.otf" />
+    <None Remove="Fonts\Jovanny Lemonad - Bender-Bold.otf" />
+    <None Remove="Fonts\Jovanny Lemonad - Bender-BoldItalic.otf" />
+    <None Remove="Fonts\Jovanny Lemonad - Bender-Italic.otf" />
+    <None Remove="Fonts\Jovanny Lemonad - Bender-Light.otf" />
+    <None Remove="Fonts\Jovanny Lemonad - Bender-LightItalic.otf" />
+    <None Remove="Fonts\Jovanny Lemonad - Bender.otf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2849.39" />
+    <PackageReference Include="System.Drawing.Common" Version="8.0.10" />
+    <PackageReference Include="Tesseract" Version="5.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Fonts\Jovanny Lemonad - Bender-BlackItalic.otf" />
+    <Resource Include="Fonts\Jovanny Lemonad - Bender-Bold.otf" />
+    <Resource Include="Fonts\Jovanny Lemonad - Bender-BoldItalic.otf" />
+    <Resource Include="Fonts\Jovanny Lemonad - Bender-Italic.otf" />
+    <Resource Include="Fonts\Jovanny Lemonad - Bender-Light.otf" />
+    <Resource Include="Fonts\Jovanny Lemonad - Bender-LightItalic.otf" />
+    <Resource Include="Fonts\Jovanny Lemonad - Bender.otf" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,16 @@
+﻿<Window x:Class="EFT_OverlayAPP.WebViewWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        Title="WebViewWindow"
+        WindowStyle="None"
+        AllowsTransparency="False"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        ResizeMode="NoResize"
+        >
+    <Grid>
+        <wv2:WebView2 x:Name="BrowserControl" />
+    </Grid>
+</Window>
