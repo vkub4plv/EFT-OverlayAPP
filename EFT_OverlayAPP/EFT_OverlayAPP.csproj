@@ -18,22 +18,44 @@
     <None Remove="Fonts\Jovanny Lemonad - Bender-Light.otf" />
     <None Remove="Fonts\Jovanny Lemonad - Bender-LightItalic.otf" />
     <None Remove="Fonts\Jovanny Lemonad - Bender.otf" />
+    <None Remove="tessdata\eng.traineddata" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="tessdata\eng.traineddata">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2849.39" />
     <PackageReference Include="System.Drawing.Common" Version="8.0.10" />
     <PackageReference Include="Tesseract" Version="5.2.0" />
+    <PackageReference Include="Tesseract.Drawing" Version="5.2.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Fonts\Jovanny Lemonad - Bender-BlackItalic.otf" />
-    <Resource Include="Fonts\Jovanny Lemonad - Bender-Bold.otf" />
-    <Resource Include="Fonts\Jovanny Lemonad - Bender-BoldItalic.otf" />
-    <Resource Include="Fonts\Jovanny Lemonad - Bender-Italic.otf" />
-    <Resource Include="Fonts\Jovanny Lemonad - Bender-Light.otf" />
-    <Resource Include="Fonts\Jovanny Lemonad - Bender-LightItalic.otf" />
-    <Resource Include="Fonts\Jovanny Lemonad - Bender.otf" />
+    <Resource Include="Fonts\Jovanny Lemonad - Bender-BlackItalic.otf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Fonts\Jovanny Lemonad - Bender-Bold.otf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Fonts\Jovanny Lemonad - Bender-BoldItalic.otf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Fonts\Jovanny Lemonad - Bender-Italic.otf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Fonts\Jovanny Lemonad - Bender-Light.otf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Fonts\Jovanny Lemonad - Bender-LightItalic.otf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Fonts\Jovanny Lemonad - Bender.otf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
 </Project>
