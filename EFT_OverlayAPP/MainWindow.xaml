@@ -57,6 +57,20 @@
             <Setter Property="Height" Value="65.5"/>
             <Setter Property="Width" Value="186"/>
         </Style>
+        <DataTemplate x:Key="ExfilTransitTemplate">
+            <StackPanel Orientation="Horizontal" Background="#55000000" Margin="0,5,5,0" Height="65.5">
+                <TextBlock Style="{StaticResource TB34}" Foreground="{Binding Color}">
+                    <TextBlock.Text>
+                        <MultiBinding StringFormat="{}{0}{1:D2}">
+                            <Binding Path="Type" />
+                            <Binding Path="Index" />
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
+                <TextBlock Text="{Binding Name}" Style="{StaticResource TB28}" />
+                <TextBlock Text="{Binding TimeString}" Style="{StaticResource Clock2}" Margin="13.853,0,0,0" />
+            </StackPanel>
+        </DataTemplate>
     </Window.Resources>
     <Grid>
         <Border Background="#55000000"
@@ -151,5 +165,13 @@
                 <TextBlock Text="0:00:33"  Style="{StaticResource Clock2}" Margin="22,0,0,0" FontSize="41"/>
             </Grid>
         </Grid>
+        <ItemsControl x:Name="ExfilTransitItemsControl"
+                      ItemsSource="{Binding ExfilTransitEntries}"
+                      ItemTemplate="{StaticResource ExfilTransitTemplate}"
+                      Margin="100,83.5,5,100"
+                      HorizontalAlignment="Right"
+                      VerticalAlignment="Top">
+            <!-- Optional: Define ItemsPanel if you want to customize the layout -->
+        </ItemsControl>
     </Grid>
 </Window>
