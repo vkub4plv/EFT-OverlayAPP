@@ -85,7 +85,7 @@
                        Margin="22,0,0,0">
             </TextBlock>
         </Border>
-        <Grid HorizontalAlignment="Right" VerticalAlignment="Top" Margin="100,83.5,5,100">
+        <Grid HorizontalAlignment="Right" VerticalAlignment="Top" Margin="100,83.5,5,100" Visibility="Hidden">
             <Grid.RowDefinitions>
                 <RowDefinition Height="1*"/>
                 <RowDefinition Height="1*"/>
