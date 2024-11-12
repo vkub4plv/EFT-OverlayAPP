@@ -486,6 +486,7 @@ namespace EFT_OverlayAPP
                                     {
                                         word = word.Trim().ToUpper();
                                         // Modify the condition to check if the word starts with EXFIL or TRANSIT
+                                        MessageBox.Show($"{word}");
                                         if (word.StartsWith("EXFIL") || (word.StartsWith("TRANSIT") && word.Length > 7 ))
                                         {
                                             // Get the bounding box of the word
@@ -547,20 +548,48 @@ namespace EFT_OverlayAPP
                 // Crop the entry from the original image
                 Bitmap entryImage = CropImage(originalImage, rect);
 
-                // Preprocess the entry image
-                Bitmap preprocessedEntryImage = PreprocessEntryImage(entryImage);
+                // Split the entry image into left 72% and right 28%
+                var (leftImage, rightImage) = SplitImage(entryImage);
 
-                // Save the entry image for debugging
-                preprocessedEntryImage.Save($"entry_{rect.X}_{rect.Y}.png", System.Drawing.Imaging.ImageFormat.Png);
+                // Save the split images for debugging
+                leftImage.Save($"entry_left_{rect.X}_{rect.Y}.png", System.Drawing.Imaging.ImageFormat.Png);
+                rightImage.Save($"entry_right_{rect.X}_{rect.Y}.png", System.Drawing.Imaging.ImageFormat.Png);
 
-                // Perform OCR on the entry image
-                string entryText = PerformOCROnEntry(preprocessedEntryImage);
+                // Preprocess the left image (if you want to perform OCR on it)
+                Bitmap preprocessedLeftImage = PreprocessEntryImage(leftImage);
+
+                // Save the left image for debugging
+                preprocessedLeftImage.Save($"entry_{rect.X}_{rect.Y}.png", System.Drawing.Imaging.ImageFormat.Png);
+
+                // Perform OCR on the left image
+                string entryText = PerformOCROnEntry(preprocessedLeftImage);
 
                 entryTexts.Add(entryText);
             }
 
             return entryTexts;
         }
+
+        private (Bitmap leftImage, Bitmap rightImage) SplitImage(Bitmap image)
+        {
+            int width = image.Width;
+            int height = image.Height;
+
+            // Calculate the width for the left and right images
+            int leftWidth = (int)(width * 0.72);
+            int rightWidth = width - leftWidth;
+
+            // Create rectangles for the left and right images
+            Rectangle leftRect = new Rectangle(0, 0, leftWidth, height);
+            Rectangle rightRect = new Rectangle(leftWidth, 0, rightWidth, height);
+
+            // Crop the left and right images
+            Bitmap leftImage = image.Clone(leftRect, image.PixelFormat);
+            Bitmap rightImage = image.Clone(rightRect, image.PixelFormat);
+
+            return (leftImage, rightImage);
+        }
+
 
         private Bitmap CropImage(Bitmap image, Rectangle rect)
         {
@@ -636,14 +665,17 @@ namespace EFT_OverlayAPP
             text = text.Replace("TRANS1T", "TRANSIT");
             text = text.Replace("TRANSIT-", "TRANSIT");
             text = text.Replace("TRRANSIT", "TRANSIT");
+            text = text.Replace("TRANS'IT", "TRANSIT");
 
             // Handle cases like "EXFILO3" or "EXFIL03"
             text = Regex.Replace(text, @"EXFILO(\d+)", "EXFIL$1");
             text = Regex.Replace(text, @"EXFIL0(\d+)", "EXFIL$1");
+            text = Regex.Replace(text, @"EXFIL@(\d+)", "EXFIL$1");
 
             // Handle cases like "TRANSITO3" or "TRANSIT03"
             text = Regex.Replace(text, @"TRANSITO(\d+)", "TRANSIT$1");
             text = Regex.Replace(text, @"TRANSIT0(\d+)", "TRANSIT$1");
+            text = Regex.Replace(text, @"TRANSIT@(\d+)", "TRANSIT$1");
 
             // Remove unwanted characters
             text = Regex.Replace(text, @"[^A-Za-z0-9:\?\s-]", "");
