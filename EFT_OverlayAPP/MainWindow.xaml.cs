@@ -200,10 +200,6 @@ namespace EFT_OverlayAPP
                 // Preprocess the image
                 Bitmap preprocessedImage = PreprocessImage(raidTimerScreenshot);
 
-                // Save images for debugging
-                raidTimerScreenshot.Save("raid_timer_screenshot.png", System.Drawing.Imaging.ImageFormat.Png);
-                preprocessedImage.Save("preprocessed_raid_timer.png", System.Drawing.Imaging.ImageFormat.Png);
-
                 // Perform OCR asynchronously
                 string ocrText = await Task.Run(() => PerformOCROnRaidTimer(preprocessedImage));
 
@@ -360,22 +356,18 @@ namespace EFT_OverlayAPP
             // Convert to grayscale
             Grayscale grayscaleFilter = Grayscale.CommonAlgorithms.BT709;
             Bitmap grayImage = grayscaleFilter.Apply(image);
-            grayImage.Save("1_screenshot.png", System.Drawing.Imaging.ImageFormat.Png);
 
             // Apply adaptive thresholding
             OtsuThreshold thresholdFilter = new OtsuThreshold();
             thresholdFilter.ApplyInPlace(grayImage);
-            grayImage.Save("2_screenshot.png", System.Drawing.Imaging.ImageFormat.Png);
 
             // Resize the image to improve OCR accuracy
             ResizeBilinear resizeFilter = new ResizeBilinear(grayImage.Width * 3, grayImage.Height * 3);
             Bitmap resizedImage = resizeFilter.Apply(grayImage);
-            resizedImage.Save("3_screenshot.png", System.Drawing.Imaging.ImageFormat.Png);
 
             // Apply median filter to reduce noise
             Median medianFilter = new Median();
             Bitmap filteredImage = medianFilter.Apply(resizedImage);
-            filteredImage.Save("4_screenshot.png", System.Drawing.Imaging.ImageFormat.Png);
 
             return filteredImage;
         }
