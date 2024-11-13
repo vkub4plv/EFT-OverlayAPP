@@ -1,27 +1,32 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Tesseract;
+using AForge.Imaging.Filters;
+using System.Text.RegularExpressions;
 
 namespace EFT_OverlayAPP
 {
     public partial class MainWindow : Window
     {
-        // First hotkey
-        private const int HOTKEY_ID = 9000; // Any number >= 0
-        private HwndSource source;
-
         private WebViewWindow webViewWindow;
         private IntPtr hwnd;
 
         private DispatcherTimer timer;
         private TimeSpan remainingTime;
+
+        // Hotkey ID for Raid Timer OCR
+        private const int HOTKEY_ID_RAID_TIMER = 9001; // Unique ID for Raid Timer OCR hotkey
+        private HwndSource source;
 
         public MainWindow()
         {
@@ -46,8 +51,10 @@ namespace EFT_OverlayAPP
             webViewWindow = new WebViewWindow(this);
             webViewWindow.Show();
 
-            // If you removed the PositionWebViewWindow method, you can comment out this line
-            // PositionWebViewWindow();
+            // Register the global hotkeys
+            source = HwndSource.FromHwnd(hwnd);
+            source.AddHook(HwndHook);
+            RegisterHotKeys();
         }
 
         private void MainWindow_Closed(object sender, EventArgs e)
@@ -57,9 +64,11 @@ namespace EFT_OverlayAPP
                 webViewWindow.Close();
                 webViewWindow = null;
             }
-        }
 
-        // You can remove or comment out the PositionWebViewWindow method and any overrides that call it
+            // Unregister the hotkeys
+            source.RemoveHook(HwndHook);
+            UnregisterHotKeys();
+        }
 
         // P/Invoke declarations
         private const int GWL_EXSTYLE = -20;
@@ -72,18 +81,59 @@ namespace EFT_OverlayAPP
         [DllImport("user32.dll", EntryPoint = "SetWindowLong")]
         private static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
 
-        // Hotkey Dll import
+        // Hotkey registration P/Invoke
         [DllImport("user32.dll")]
         private static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
 
         [DllImport("user32.dll")]
         private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
+        // Hotkey constants
+        private const uint MOD_ALT = 0x0001;
+        private const uint MOD_CONTROL = 0x0002;
+        private const uint MOD_SHIFT = 0x0004;
+        private const uint MOD_WIN = 0x0008;
+        private const int WM_HOTKEY = 0x0312;
+
+        // Method to register the global hotkeys
+        private void RegisterHotKeys()
+        {
+            // Hotkey for Raid Timer OCR (e.g., Ctrl + Shift + T)
+            uint modifiersTimer = MOD_CONTROL | MOD_SHIFT;
+            uint virtualKeyTimer = (uint)KeyInterop.VirtualKeyFromKey(Key.T);
+
+            if (!RegisterHotKey(hwnd, HOTKEY_ID_RAID_TIMER, modifiersTimer, virtualKeyTimer))
+            {
+                MessageBox.Show("Failed to register hotkey for Raid Timer OCR.");
+            }
+        }
+
+        private void UnregisterHotKeys()
+        {
+            UnregisterHotKey(hwnd, HOTKEY_ID_RAID_TIMER);
+        }
+
+        // Window message hook to capture hotkey presses
+        private IntPtr HwndHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            if (msg == WM_HOTKEY)
+            {
+                int id = wParam.ToInt32();
+                if (id == HOTKEY_ID_RAID_TIMER)
+                {
+                    // Handle hotkey press for Raid Timer OCR
+                    CaptureAndProcessRaidTimer();
+                    handled = true;
+                }
+            }
+            return IntPtr.Zero;
+        }
+
         // Your existing timer methods
         private void InitializeTimer()
         {
-            // Set the countdown duration (e.g., 50 minutes)
-            remainingTime = TimeSpan.FromMinutes(50);
+            // Initialize the timer with zero remaining time
+            remainingTime = TimeSpan.Zero;
 
             // Initialize and configure the timer
             timer = new DispatcherTimer();
@@ -91,7 +141,6 @@ namespace EFT_OverlayAPP
             timer.Tick += Timer_Tick;
 
             // Start the timer
-            UpdateTimerText();
             timer.Start();
         }
 
@@ -101,14 +150,12 @@ namespace EFT_OverlayAPP
             if (remainingTime > TimeSpan.Zero)
             {
                 remainingTime = remainingTime.Add(TimeSpan.FromSeconds(-1));
-                UpdateTimerText();
             }
             else
             {
-                // Time's up! Stop the timer
-                timer.Stop();
-                TimerTextBlock.Text = "Time's up!";
+                remainingTime = TimeSpan.Zero;
             }
+            UpdateTimerText();
         }
 
         // Update the TextBlock with the remaining time
@@ -117,76 +164,59 @@ namespace EFT_OverlayAPP
             TimerTextBlock.Text = remainingTime.ToString(@"h\:mm\:ss");
             if (remainingTime <= TimeSpan.FromMinutes(10))
             {
-                TimerTextBlock.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(212, 45, 54));
+                TimerTextBlock.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(212, 45, 54)); // Red color
             }
             else
             {
-                TimerTextBlock.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(182, 193, 199));
+                TimerTextBlock.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(182, 193, 199)); // Your preferred color
             }
         }
 
-        // Keyboard hotkey
-        protected override void OnSourceInitialized(EventArgs e)
+        // Method to capture and process the Raid Timer
+        private async void CaptureAndProcessRaidTimer()
         {
-            base.OnSourceInitialized(e);
-
-            var helper = new WindowInteropHelper(this);
-            source = HwndSource.FromHwnd(helper.Handle);
-            source.AddHook(HwndHook);
-
-            RegisterHotKey();
-        }
-
-        private void RegisterHotKey()
-        {
-            var helper = new WindowInteropHelper(this);
-            // Modifier keys codes: Alt = 1, Ctrl = 2, Shift = 4, Win = 8
-            // Here, we're setting Ctrl + Shift + S as the hotkey
-            if (!RegisterHotKey(helper.Handle, HOTKEY_ID, 6, (uint)KeyInterop.VirtualKeyFromKey(Key.S)))
+            try
             {
-                MessageBox.Show("Failed to register hotkey.");
-            }
-        }
-
-        private void UnregisterHotKey()
-        {
-            var helper = new WindowInteropHelper(this);
-            UnregisterHotKey(helper.Handle, HOTKEY_ID);
-        }
-
-        private IntPtr HwndHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
-        {
-            const int WM_HOTKEY = 0x0312;
-
-            if (msg == WM_HOTKEY)
-            {
-                int id = wParam.ToInt32();
-                if (id == HOTKEY_ID)
+                // Hide the overlay windows
+                this.Hide();
+                if (webViewWindow != null)
                 {
-                    // Handle hotkey press
-                    CaptureAndProcessScreenshot();
-                    handled = true;
+                    webViewWindow.Hide();
                 }
+
+                // Give the system time to refresh the screen without the overlay
+                await Task.Delay(500); // Adjust the delay as needed
+
+                // Capture the area with the Raid Timer
+                Bitmap raidTimerScreenshot = CaptureRaidTimerArea();
+
+                // Show the overlay windows again
+                this.Show();
+                if (webViewWindow != null)
+                {
+                    webViewWindow.Show();
+                }
+
+                // Preprocess the image
+                Bitmap preprocessedImage = PreprocessImage(raidTimerScreenshot);
+
+                // Perform OCR asynchronously
+                string ocrText = await Task.Run(() => PerformOCROnRaidTimer(preprocessedImage));
+
+                // Update the timer based on extracted text
+                UpdateRaidTimer(ocrText);
             }
-            return IntPtr.Zero;
-        }
-
-        protected override void OnClosed(EventArgs e)
-        {
-            source.RemoveHook(HwndHook);
-            UnregisterHotKey();
-            base.OnClosed(e);
-        }
-
-        // Capturing a screenshot
-        private Bitmap CaptureScreenArea(Rectangle area)
-        {
-            Bitmap bitmap = new Bitmap(area.Width, area.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-            using (Graphics g = Graphics.FromImage(bitmap))
+            catch (Exception ex)
             {
-                g.CopyFromScreen(area.Left, area.Top, 0, 0, area.Size, CopyPixelOperation.SourceCopy);
+                // Ensure the windows are shown in case of an exception
+                this.Show();
+                if (webViewWindow != null)
+                {
+                    webViewWindow.Show();
+                }
+
+                MessageBox.Show("Error during raid timer OCR: " + ex.Message);
             }
-            return bitmap;
         }
 
         private double GetDpiScaleFactor()
@@ -201,103 +231,58 @@ namespace EFT_OverlayAPP
             return dpiX; // Assuming uniform scaling
         }
 
-        // Usage of the screenshot
-        private async void CaptureAndProcessScreenshot()
+        // Method to capture a portion of the screen for the Raid Timer
+        private Bitmap CaptureRaidTimerArea()
         {
-            try
+            double dpiScale = GetDpiScaleFactor();
+
+            // Define the area to capture (adjust these values)
+            int width = (int)(185 * dpiScale); // Adjust width as needed
+            int height = (int)(70 * dpiScale); // Adjust height as needed
+            int left = (int)(2370 * dpiScale); // Adjust left as needed
+            int top = (int)(7 * dpiScale); // Adjust top as needed
+
+            Rectangle captureArea = new Rectangle(left, top, width, height);
+            Bitmap bitmap = new Bitmap(captureArea.Width, captureArea.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            using (Graphics g = Graphics.FromImage(bitmap))
             {
-                // Hide the overlay windows
-                this.Hide();
-                if (webViewWindow != null)
-                {
-                    webViewWindow.Hide();
-                }
-
-                // Give the system time to refresh the screen without the overlay
-                await Task.Delay(500); // Adjust the delay as needed
-
-                // Define the area to capture (top-right corner)
-                // For example, capture a rectangle that's 200x100 pixels from the top-right corner
-                double dpiScale=GetDpiScaleFactor();
-
-                int width = (int)(185 * dpiScale);
-                int height = (int)(70 * dpiScale);
-                int left = (int)(2370 * dpiScale);
-                int top = (int)(7 * dpiScale);
-
-                Rectangle captureArea = new Rectangle(left, top, width, height);
-                Bitmap screenshot = CaptureScreenArea(captureArea);
-
-                // Use preprocessing
-                Bitmap preprocessedImage = PreprocessImage(screenshot);
-
-                // Show the overlay windows again
-                this.Show();
-                if (webViewWindow != null)
-                {
-                    webViewWindow.Show();
-                }
-
-                // Perform OCR asynchronously
-                string extractedText = await Task.Run(() => PerformOCR(preprocessedImage));
-
-                // Update the timer based on extracted text
-                UpdateTimerFromExtractedText(extractedText);
+                g.CopyFromScreen(captureArea.Left, captureArea.Top, 0, 0, captureArea.Size, CopyPixelOperation.SourceCopy);
             }
-            catch (Exception ex)
-            {
-                // Ensure the windows are shown in case of an exception
-                this.Show();
-                if (webViewWindow != null)
-                {
-                    webViewWindow.Show();
-                }
-
-                MessageBox.Show("Error during screenshot capture: " + ex.Message);
-            }
+            return bitmap;
         }
 
-        // Preprocessing
-        private Bitmap PreprocessImage(Bitmap image)
+        // Method to perform OCR on the Raid Timer
+        private string PerformOCROnRaidTimer(Bitmap image)
         {
-            // Convert to grayscale
-            Bitmap grayscaleImage = new Bitmap(image.Width, image.Height);
-            using (Graphics g = Graphics.FromImage(grayscaleImage))
-            {
-                ColorMatrix colorMatrix = new ColorMatrix(
-                    new float[][]
-                    {
-                new float[] {0.3f, 0.3f, 0.3f, 0, 0},
-                new float[] {0.59f, 0.59f, 0.59f, 0, 0},
-                new float[] {0.11f, 0.11f, 0.11f, 0, 0},
-                new float[] {0, 0, 0, 1, 0},
-                new float[] {0, 0, 0, 0, 1}
-                    });
-                ImageAttributes attributes = new ImageAttributes();
-                attributes.SetColorMatrix(colorMatrix);
-                g.DrawImage(image, new Rectangle(0, 0, image.Width, image.Height),
-                    0, 0, image.Width, image.Height, GraphicsUnit.Pixel, attributes);
-            }
-            return grayscaleImage;
-        }
-
-
-        // OCR
-        private string PerformOCR(Bitmap image)
-        {
-            string tessDataPath = @"tessdata"; // Path to your tessdata folder
-            string language = "eng"; // Language(s) to use
+            string tessDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tessdata");
+            string language = "eng+Bender+Bender-Bold"; // Language(s) to use
 
             try
             {
                 using (var engine = new TesseractEngine(tessDataPath, language, EngineMode.Default))
                 {
-                    // Use PixConverter.ToPix
+                    // Set page segmentation mode
+                    engine.DefaultPageSegMode = PageSegMode.SingleLine;
+
+                    // Set whitelist of characters
+                    engine.SetVariable("tessedit_char_whitelist", "0123456789:");
+
+                    // Disable dictionary to prevent word correction
+                    engine.SetVariable("load_system_dawg", "F");
+                    engine.SetVariable("load_freq_dawg", "F");
+
                     using (var pix = PixConverter.ToPix(image))
                     {
                         using (var page = engine.Process(pix))
                         {
                             string text = page.GetText();
+
+                            // Display the extracted OCR text for debugging
+                            Dispatcher.Invoke(() =>
+                            {
+                                MessageBox.Show("Extracted OCR Text:\n" + text);
+                            });
+
                             return text;
                         }
                     }
@@ -307,24 +292,27 @@ namespace EFT_OverlayAPP
             {
                 Dispatcher.Invoke(() =>
                 {
-                    MessageBox.Show("Error performing OCR: " + ex.Message);
+                    MessageBox.Show("Error performing OCR on raid timer: " + ex.Message);
                 });
                 return string.Empty;
             }
         }
 
-        // Parsing the text to obtain time
-        private void UpdateTimerFromExtractedText(string extractedText)
+        // Update the raid timer based on OCR result
+        private void UpdateRaidTimer(string ocrText)
         {
-            if (string.IsNullOrWhiteSpace(extractedText))
+            if (string.IsNullOrWhiteSpace(ocrText))
             {
-                MessageBox.Show("No text extracted from the screenshot.");
+                MessageBox.Show("No text extracted from the raid timer screenshot.");
                 return;
             }
 
+            // Clean up the OCR text
+            ocrText = CleanOcrText(ocrText);
+
             // Use a regular expression to find time patterns
             string pattern = @"(\d{1,2}:\d{2}:\d{2})"; // Matches HH:MM:SS or H:MM:SS
-            var match = System.Text.RegularExpressions.Regex.Match(extractedText, pattern);
+            var match = Regex.Match(ocrText, pattern);
 
             if (match.Success)
             {
@@ -333,9 +321,7 @@ namespace EFT_OverlayAPP
                 {
                     // Update your application's timer
                     remainingTime = extractedTime;
-                    UpdateTimerText();
-
-                    MessageBox.Show("Timer updated to: " + timeString);
+                    Dispatcher.Invoke(() => UpdateTimerText());
                 }
                 else
                 {
@@ -346,6 +332,44 @@ namespace EFT_OverlayAPP
             {
                 MessageBox.Show("No valid time found in the extracted text.");
             }
+        }
+
+        // Clean up OCR text to correct common misrecognitions
+        private string CleanOcrText(string text)
+        {
+            // Correct common misreadings
+            text = text.Replace("O", "0");
+            text = text.Replace("o", "0");
+            text = text.Replace("l", "1");
+            text = text.Replace("I", "1");
+            text = text.Replace(";", ":");
+
+            // Remove unwanted characters
+            text = Regex.Replace(text, @"[^0-9:]", "");
+
+            return text;
+        }
+
+        // Preprocess image before OCR
+        private Bitmap PreprocessImage(Bitmap image)
+        {
+            // Convert to grayscale
+            Grayscale grayscaleFilter = Grayscale.CommonAlgorithms.BT709;
+            Bitmap grayImage = grayscaleFilter.Apply(image);
+
+            // Apply adaptive thresholding
+            OtsuThreshold thresholdFilter = new OtsuThreshold();
+            thresholdFilter.ApplyInPlace(grayImage);
+
+            // Resize the image to improve OCR accuracy
+            ResizeBilinear resizeFilter = new ResizeBilinear(grayImage.Width * 3, grayImage.Height * 3);
+            Bitmap resizedImage = resizeFilter.Apply(grayImage);
+
+            // Apply median filter to reduce noise
+            Median medianFilter = new Median();
+            Bitmap filteredImage = medianFilter.Apply(resizedImage);
+
+            return filteredImage;
         }
     }
 }
