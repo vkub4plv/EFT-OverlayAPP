@@ -189,6 +189,18 @@ namespace EFT_OverlayAPP
             return bitmap;
         }
 
+        private double GetDpiScaleFactor()
+        {
+            PresentationSource source = PresentationSource.FromVisual(Application.Current.MainWindow);
+            double dpiX = 1.0, dpiY = 1.0;
+            if (source != null)
+            {
+                dpiX = source.CompositionTarget.TransformToDevice.M11;
+                dpiY = source.CompositionTarget.TransformToDevice.M22;
+            }
+            return dpiX; // Assuming uniform scaling
+        }
+
         // Usage of the screenshot
         private async void CaptureAndProcessScreenshot()
         {
@@ -202,14 +214,16 @@ namespace EFT_OverlayAPP
                 }
 
                 // Give the system time to refresh the screen without the overlay
-                await Task.Delay(100); // Adjust the delay as needed
+                await Task.Delay(500); // Adjust the delay as needed
 
                 // Define the area to capture (top-right corner)
                 // For example, capture a rectangle that's 200x100 pixels from the top-right corner
-                int width = 200;
-                int height = 100;
-                int left = (int)(SystemParameters.PrimaryScreenWidth) - width;
-                int top = 0;
+                double dpiScale=GetDpiScaleFactor();
+
+                int width = (int)(185 * dpiScale);
+                int height = (int)(70 * dpiScale);
+                int left = (int)(2370 * dpiScale);
+                int top = (int)(7 * dpiScale);
 
                 Rectangle captureArea = new Rectangle(left, top, width, height);
                 Bitmap screenshot = CaptureScreenArea(captureArea);
