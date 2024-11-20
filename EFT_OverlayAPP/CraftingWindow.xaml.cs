@@ -47,19 +47,15 @@ namespace EFT_OverlayAPP
         {
             await LoadDataAsync();
 
+            // Populate category filter
+            PopulateCategoryFilter();
+
             // Set up views
             SetupItemsView();
             SetupFavoritesView();
 
-            // Populate category filter
-            var categories = new HashSet<string>(CraftableItems.Select(i => i.Station));
-            foreach (var category in categories)
-            {
-                if (!string.IsNullOrEmpty(category))
-                {
-                    CategoryFilterComboBox.Items.Add(category);
-                }
-            }
+            // Refresh the ItemsView
+            ItemsView.Refresh();
 
             // Event handlers
             SearchTextBox.TextChanged += SearchTextBox_TextChanged;
@@ -70,6 +66,25 @@ namespace EFT_OverlayAPP
             FavoritesSearchTextBox.TextChanged += FavoritesSearchTextBox_TextChanged;
             FavoritesEditModeToggleButton.Checked += EditModeToggleButton_Checked;
             FavoritesEditModeToggleButton.Unchecked += EditModeToggleButton_Unchecked;
+        }
+
+        private void PopulateCategoryFilter()
+        {
+            // Add "All Categories" as the first item
+            CategoryFilterComboBox.Items.Add("All Categories");
+            CategoryFilterComboBox.SelectedIndex = 0;
+
+            // Get unique categories from the items
+            var categories = new HashSet<string>(CraftableItems.Select(i => i.Station));
+
+            // Add categories to the ComboBox
+            foreach (var category in categories)
+            {
+                if (!string.IsNullOrEmpty(category))
+                {
+                    CategoryFilterComboBox.Items.Add(category);
+                }
+            }
         }
 
         private async Task LoadDataAsync()
@@ -115,11 +130,14 @@ namespace EFT_OverlayAPP
             var craftableItem = item as CraftableItem;
             if (craftableItem == null) return false;
 
-            string searchText = SearchTextBox.Text.ToLower();
-            string selectedCategory = CategoryFilterComboBox.SelectedItem as string;
+            string searchText = SearchTextBox.Text?.ToLower() ?? string.Empty;
+            string selectedCategory = CategoryFilterComboBox.SelectedItem as string ?? "All Categories";
 
-            bool matchesSearch = string.IsNullOrEmpty(searchText) || craftableItem.RewardItems.Any(r => r.Name.ToLower().Contains(searchText));
-            bool matchesCategory = selectedCategory == "All Categories" || craftableItem.Station == selectedCategory;
+            bool matchesSearch = string.IsNullOrEmpty(searchText) ||
+                                 craftableItem.RewardItems.Any(r => r.Name.ToLower().Contains(searchText));
+
+            bool matchesCategory = selectedCategory == "All Categories" ||
+                                   craftableItem.Station == selectedCategory;
 
             return matchesSearch && matchesCategory;
         }

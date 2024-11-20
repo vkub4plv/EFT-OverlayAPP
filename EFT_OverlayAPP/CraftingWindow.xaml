@@ -14,10 +14,7 @@
                     <!-- Search Bar -->
                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="5">
                         <TextBox x:Name="SearchTextBox" Width="200" Margin="0,0,5,0" />
-                        <ComboBox x:Name="CategoryFilterComboBox" Width="150">
-                            <ComboBoxItem Content="All Categories" IsSelected="True"/>
-                            <!-- Categories will be added dynamically -->
-                        </ComboBox>
+                        <ComboBox x:Name="CategoryFilterComboBox" Width="150"/>
                         <!-- Toggle Edit Mode -->
                         <ToggleButton x:Name="EditModeToggleButton" Content="Edit Mode" Width="100" Margin="5,0,0,0"/>
                     </StackPanel>
@@ -43,7 +40,7 @@
                                                     <Image Source="{Binding IconLink}" Width="50" Height="50" Margin="0,0,5,0"/>
                                                     <!-- Reward Item Name and Quantity -->
                                                     <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
-                                                    <TextBlock Text=" x{Binding Quantity}" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                                                    <TextBlock Text="{Binding Quantity, StringFormat=x{0}}" VerticalAlignment="Center" Margin="5,0,0,0"/>
                                                 </StackPanel>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
@@ -123,7 +120,7 @@
                                                     <Image Source="{Binding IconLink}" Width="50" Height="50" Margin="0,0,5,0"/>
                                                     <!-- Reward Item Name and Quantity -->
                                                     <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
-                                                    <TextBlock Text=" x{Binding Quantity}" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                                                    <TextBlock Text="{Binding Quantity, StringFormat=x{0}}" VerticalAlignment="Center" Margin="5,0,0,0"/>
                                                 </StackPanel>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
