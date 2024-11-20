@@ -24,8 +24,10 @@ namespace EFT_OverlayAPP
         private DispatcherTimer timer;
         private TimeSpan remainingTime;
 
-        // Hotkey ID for Raid Timer OCR
+        // Hotkey IDs
         private const int HOTKEY_ID_RAID_TIMER = 9001; // Unique ID for Raid Timer OCR hotkey
+        private const int HOTKEY_ID_CRAFTING_WINDOW = 9002; // Unique ID for CraftingWindow hotkey
+
         private HwndSource source;
 
         public MainWindow()
@@ -106,11 +108,21 @@ namespace EFT_OverlayAPP
             {
                 MessageBox.Show("Failed to register hotkey for Raid Timer OCR.");
             }
+
+            // Hotkey for CraftingWindow (e.g., Ctrl + Shift + C)
+            uint modifiersCrafting = MOD_CONTROL | MOD_SHIFT;
+            uint virtualKeyCrafting = (uint)KeyInterop.VirtualKeyFromKey(Key.C);
+
+            if (!RegisterHotKey(hwnd, HOTKEY_ID_CRAFTING_WINDOW, modifiersCrafting, virtualKeyCrafting))
+            {
+                MessageBox.Show("Failed to register hotkey for Crafting Window.");
+            }
         }
 
         private void UnregisterHotKeys()
         {
             UnregisterHotKey(hwnd, HOTKEY_ID_RAID_TIMER);
+            UnregisterHotKey(hwnd, HOTKEY_ID_CRAFTING_WINDOW);
         }
 
         // Window message hook to capture hotkey presses
@@ -125,8 +137,24 @@ namespace EFT_OverlayAPP
                     CaptureAndProcessRaidTimer();
                     handled = true;
                 }
+                else if (id == HOTKEY_ID_CRAFTING_WINDOW)
+                {
+                    // Handle hotkey press for opening Crafting Window
+                    OpenCraftingWindow();
+                    handled = true;
+                }
             }
             return IntPtr.Zero;
+        }
+
+        // Method to open the CraftingWindow
+        private void OpenCraftingWindow()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                var craftingWindow = new CraftingWindow();
+                craftingWindow.Show();
+            });
         }
 
         // Your existing timer methods
