@@ -90,6 +90,10 @@ namespace EFT_OverlayAPP
 
         private async Task LoadDataAsync()
         {
+            // Clear existing data
+            CraftableItems.Clear();
+            FavoriteItems.Clear();
+
             LoadFavorites(); // Load favorites first
 
             var items = await FetchCraftableItemsAsync();
@@ -196,6 +200,34 @@ namespace EFT_OverlayAPP
                 }
                 SaveFavorites();
             }
+        }
+
+        private async void ResetOrderButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (File.Exists("itemOrder.json"))
+            {
+                File.Delete("itemOrder.json");
+            }
+
+            // Clear and reload the items
+            CraftableItems.Clear();
+            await LoadDataAsync();
+
+            ItemsView.Refresh();
+        }
+
+        private async void FavoritesResetOrderButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (File.Exists("favoritesItemOrder.json"))
+            {
+                File.Delete("favoritesItemOrder.json");
+            }
+
+            // Clear and reload the favorites
+            FavoriteItems.Clear();
+            await LoadDataAsync();
+
+            FavoritesView.Refresh();
         }
 
         private void StartButton_Click(object sender, RoutedEventArgs e)

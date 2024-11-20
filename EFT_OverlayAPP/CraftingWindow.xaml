@@ -18,6 +18,8 @@
                         <ComboBox x:Name="CategoryFilterComboBox" Width="150"/>
                         <!-- Toggle Edit Mode -->
                         <ToggleButton x:Name="EditModeToggleButton" Content="Edit Mode" Width="100" Margin="5,0,0,0"/>
+                        <!-- Reset Order Button -->
+                        <Button x:Name="ResetOrderButton" Content="Reset Order" Width="100" Margin="5,0,0,0" Click="ResetOrderButton_Click"/>
                     </StackPanel>
 
                     <!-- Item List -->
@@ -98,6 +100,8 @@
                         <TextBox x:Name="FavoritesSearchTextBox" Width="200" Margin="0,0,5,0" />
                         <!-- Toggle Edit Mode -->
                         <ToggleButton x:Name="FavoritesEditModeToggleButton" Content="Edit Mode" Width="100" Margin="5,0,0,0"/>
+                        <!-- Reset Order Button -->
+                        <Button x:Name="FavoritesResetOrderButton" Content="Reset Order" Width="100" Margin="5,0,0,0" Click="FavoritesResetOrderButton_Click"/>
                     </StackPanel>
 
                     <!-- Favorites List -->
