@@ -19,8 +19,8 @@ namespace EFT_OverlayAPP
 {
     public partial class CraftingWindow : Window, IDropTarget, INotifyPropertyChanged
     {
-        public ObservableCollection<CraftableItem> CraftableItems { get; set; } = new ObservableCollection<CraftableItem>();
-        public ObservableCollection<CraftableItem> FavoriteItems { get; set; } = new ObservableCollection<CraftableItem>();
+        public ObservableCollection<CraftableItem> CraftableItems { get; set; }
+        public ObservableCollection<CraftableItem> FavoriteItems { get; set; }
         public ICollectionView ItemsView { get; set; }
         public ICollectionView FavoritesView { get; set; }
 
@@ -40,23 +40,64 @@ namespace EFT_OverlayAPP
             InitializeComponent();
             DataContext = this;
 
-            // Load data
-            Loaded += CraftingWindow_Loaded;
+            // Initialize collections
+            CraftableItems = new ObservableCollection<CraftableItem>();
+            FavoriteItems = new ObservableCollection<CraftableItem>();
+
+            // Subscribe to the DataLoaded event
+            DataCache.DataLoaded += OnDataLoaded;
+
+            // Check if data is already loaded
+            if (DataCache.IsDataLoaded)
+            {
+                // Data is already loaded, initialize the UI
+                InitializeData();
+            }
+            else
+            {
+                // Start data loading (if not already started)
+                Task.Run(() => DataCache.LoadDataAsync());
+            }
         }
 
-        private async void CraftingWindow_Loaded(object sender, RoutedEventArgs e)
+        private void OnDataLoaded()
         {
-            await LoadDataAsync();
+            Dispatcher.Invoke(() =>
+            {
+                InitializeData();
+                // Optionally, hide loading indicator here if implemented
+            });
+        }
 
-            // Populate category filter
-            PopulateCategoryFilter();
+        private void InitializeData()
+        {
+            // Clear existing items
+            CraftableItems.Clear();
+            FavoriteItems.Clear();
 
-            // Set up views
+            // Populate the observable collections with cached data
+            foreach (var item in DataCache.CraftableItems)
+            {
+                // Subscribe to PropertyChanged event
+                item.PropertyChanged += Item_PropertyChanged;
+
+                CraftableItems.Add(item);
+
+                if (item.IsFavorite)
+                {
+                    FavoriteItems.Add(item);
+                }
+            }
+
+            // Set up views and filters
             SetupItemsView();
             SetupFavoritesView();
+            PopulateCategoryFilter();
+            // If you have a favorites category filter, call PopulateFavoritesCategoryFilter();
 
-            // Refresh the ItemsView
-            ItemsView.Refresh();
+            // Refresh views
+            ItemsView?.Refresh();
+            FavoritesView?.Refresh();
 
             // Event handlers
             SearchTextBox.TextChanged += SearchTextBox_TextChanged;
@@ -71,6 +112,9 @@ namespace EFT_OverlayAPP
 
         private void PopulateCategoryFilter()
         {
+            // Clear existing items
+            CategoryFilterComboBox.Items.Clear();
+
             // Add "All Categories" as the first item
             CategoryFilterComboBox.Items.Add("All Categories");
             CategoryFilterComboBox.SelectedIndex = 0;
@@ -86,31 +130,6 @@ namespace EFT_OverlayAPP
                     CategoryFilterComboBox.Items.Add(category);
                 }
             }
-        }
-
-        private async Task LoadDataAsync()
-        {
-            // Clear existing data
-            CraftableItems.Clear();
-            FavoriteItems.Clear();
-
-            LoadFavorites(); // Load favorites first
-
-            var items = await FetchCraftableItemsAsync();
-            foreach (var item in items)
-            {
-                // Check if item is favorited
-                item.IsFavorite = favoriteIds.Contains(item.Id);
-                item.PropertyChanged += Item_PropertyChanged;
-                CraftableItems.Add(item);
-
-                if (item.IsFavorite)
-                {
-                    FavoriteItems.Add(item);
-                }
-            }
-
-            LoadItemOrder(); // Load item order after items are added
         }
 
         private void SetupItemsView()
@@ -153,7 +172,7 @@ namespace EFT_OverlayAPP
             var craftableItem = item as CraftableItem;
             if (craftableItem == null) return false;
 
-            string searchText = FavoritesSearchTextBox.Text.ToLower();
+            string searchText = FavoritesSearchTextBox.Text?.ToLower() ?? string.Empty;
 
             bool matchesSearch = string.IsNullOrEmpty(searchText) || craftableItem.RewardItems.Any(r => r.Name.ToLower().Contains(searchText));
 
@@ -193,12 +212,13 @@ namespace EFT_OverlayAPP
                 if (item.IsFavorite)
                 {
                     FavoriteItems.Add(item);
+                    DataCache.AddFavoriteId(item.Id);
                 }
                 else
                 {
                     FavoriteItems.Remove(item);
+                    DataCache.RemoveFavoriteId(item.Id);
                 }
-                SaveFavorites();
             }
         }
 
@@ -209,11 +229,15 @@ namespace EFT_OverlayAPP
                 File.Delete("itemOrder.json");
             }
 
-            // Clear and reload the items
-            CraftableItems.Clear();
-            await LoadDataAsync();
+            // Clear data in DataCache
+            DataCache.ClearData();
+            DataCache.IsDataLoaded = false;
 
-            ItemsView.Refresh();
+            // Start data loading again
+            await DataCache.LoadDataAsync();
+
+            // Update the observable collections
+            InitializeData();
         }
 
         private async void FavoritesResetOrderButton_Click(object sender, RoutedEventArgs e)
@@ -223,11 +247,15 @@ namespace EFT_OverlayAPP
                 File.Delete("favoritesItemOrder.json");
             }
 
-            // Clear and reload the favorites
-            FavoriteItems.Clear();
-            await LoadDataAsync();
+            // Clear data in DataCache
+            DataCache.ClearData();
+            DataCache.IsDataLoaded = false;
 
-            FavoritesView.Refresh();
+            // Start data loading again
+            await DataCache.LoadDataAsync();
+
+            // Update the observable collections
+            InitializeData();
         }
 
         private void StartButton_Click(object sender, RoutedEventArgs e)
@@ -244,148 +272,6 @@ namespace EFT_OverlayAPP
             // Implement the logic to handle the start of crafting
             MessageBox.Show($"Starting crafting of {string.Join(", ", item.RewardItems.Select(r => r.Name))}");
             // Later, you can implement timers or other functionality here
-        }
-
-        // Fetch data from the GraphQL API
-        public async Task<List<CraftableItem>> FetchCraftableItemsAsync()
-        {
-            var craftableItems = new List<CraftableItem>();
-            using (HttpClient client = new HttpClient())
-            {
-                try
-                {
-                    var queryObject = new
-                    {
-                        query = @"{
-                            crafts {
-                                id
-                                station {
-                                    name
-                                }
-                                duration
-                                rewardItems {
-                                    item {
-                                        id
-                                        name
-                                        shortName
-                                        iconLink
-                                    }
-                                    quantity
-                                }
-                            }
-                        }"
-                    };
-                    var queryJson = JsonConvert.SerializeObject(queryObject);
-                    var content = new StringContent(queryJson, Encoding.UTF8, "application/json");
-
-                    HttpResponseMessage response = await client.PostAsync("https://api.tarkov.dev/graphql", content);
-
-                    if (response.IsSuccessStatusCode)
-                    {
-                        string responseContent = await response.Content.ReadAsStringAsync();
-
-                        // Deserialize the response
-                        var graphQLResponse = JsonConvert.DeserializeObject<GraphQLCraftsResponse>(responseContent);
-
-                        if (graphQLResponse.Data != null && graphQLResponse.Data.Crafts != null)
-                        {
-                            foreach (var craft in graphQLResponse.Data.Crafts)
-                            {
-                                var craftableItem = new CraftableItem
-                                {
-                                    Id = craft.Id,
-                                    Station = craft.Station?.Name ?? "Unknown",
-                                    CraftTime = TimeSpan.FromSeconds(craft.Duration ?? 0),
-                                    RewardItems = craft.RewardItems.Select(rewardItem => new RewardItemDetail
-                                    {
-                                        Id = rewardItem.Item.Id,
-                                        Name = rewardItem.Item.Name,
-                                        ShortName = rewardItem.Item.ShortName,
-                                        IconLink = rewardItem.Item.IconLink,
-                                        Quantity = rewardItem.Quantity
-                                    }).ToList()
-                                };
-                                craftableItems.Add(craftableItem);
-                            }
-                        }
-                        else if (graphQLResponse.Errors != null && graphQLResponse.Errors.Length > 0)
-                        {
-                            var errorMessages = string.Join("\n", graphQLResponse.Errors.Select(e => e.Message));
-                            MessageBox.Show($"GraphQL errors:\n{errorMessages}");
-                        }
-                        else
-                        {
-                            MessageBox.Show("No data received from GraphQL API.");
-                        }
-                    }
-                    else
-                    {
-                        // Log the status code and reason
-                        string errorContent = await response.Content.ReadAsStringAsync();
-                        MessageBox.Show($"API request failed with status code {response.StatusCode}: {response.ReasonPhrase}\nContent: {errorContent}");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error fetching craftable items: {ex.Message}");
-                }
-            }
-            return craftableItems;
-        }
-
-        // Persistence for Favorites
-        private List<string> favoriteIds = new List<string>();
-
-        private void SaveFavorites()
-        {
-            favoriteIds = CraftableItems.Where(i => i.IsFavorite).Select(i => i.Id).ToList();
-            string json = JsonConvert.SerializeObject(favoriteIds);
-            File.WriteAllText("favorites.json", json);
-        }
-
-        private void LoadFavorites()
-        {
-            if (File.Exists("favorites.json"))
-            {
-                string json = File.ReadAllText("favorites.json");
-                favoriteIds = JsonConvert.DeserializeObject<List<string>>(json);
-            }
-        }
-
-        // Persistence for Item Order
-        private void SaveItemOrder()
-        {
-            var itemOrder = CraftableItems.Select(i => i.Id).ToList();
-            string json = JsonConvert.SerializeObject(itemOrder);
-            File.WriteAllText("itemOrder.json", json);
-        }
-
-        private void LoadItemOrder()
-        {
-            if (File.Exists("itemOrder.json"))
-            {
-                string json = File.ReadAllText("itemOrder.json");
-                var itemOrder = JsonConvert.DeserializeObject<List<string>>(json);
-
-                var sortedItems = itemOrder
-                    .Select(id => CraftableItems.FirstOrDefault(i => i.Id == id))
-                    .Where(i => i != null)
-                    .ToList();
-
-                // Re-populate the collection to reflect the saved order
-                CraftableItems.Clear();
-                foreach (var item in sortedItems)
-                {
-                    CraftableItems.Add(item);
-                }
-
-                // Add any new items that were not in the saved order
-                var newItems = CraftableItems.Where(i => !itemOrder.Contains(i.Id));
-                foreach (var item in newItems)
-                {
-                    CraftableItems.Add(item);
-                }
-            }
         }
 
         // Implement IDropTarget for Drag-and-Drop
@@ -456,7 +342,8 @@ namespace EFT_OverlayAPP
                     targetCollection.Add(sourceItem);
                 }
 
-                SaveItemOrder();
+                // Save the new order
+                DataCache.SaveItemOrder();
             }
             else if (dropInfo.Data is CollectionViewGroup)
             {
@@ -478,6 +365,20 @@ namespace EFT_OverlayAPP
             {
                 return collection as IList;
             }
+        }
+
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            base.OnClosing(e);
+
+            // Cancel the closing event
+            e.Cancel = true;
+
+            // Hide the window instead of closing
+            this.Hide();
+
+            // Unsubscribe from events to prevent multiple subscriptions
+            DataCache.DataLoaded -= OnDataLoaded;
         }
 
         // Implement INotifyPropertyChanged

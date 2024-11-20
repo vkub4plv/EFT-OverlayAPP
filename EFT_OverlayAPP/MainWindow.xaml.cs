@@ -18,6 +18,7 @@ namespace EFT_OverlayAPP
 {
     public partial class MainWindow : Window
     {
+        private CraftingWindow craftingWindow;
         private WebViewWindow webViewWindow;
         private IntPtr hwnd;
 
@@ -66,6 +67,8 @@ namespace EFT_OverlayAPP
                 webViewWindow.Close();
                 webViewWindow = null;
             }
+
+            CloseCraftingWindow();
 
             // Unregister the hotkeys
             source.RemoveHook(HwndHook);
@@ -150,11 +153,28 @@ namespace EFT_OverlayAPP
         // Method to open the CraftingWindow
         private void OpenCraftingWindow()
         {
-            Dispatcher.Invoke(() =>
+            if (craftingWindow == null)
             {
-                var craftingWindow = new CraftingWindow();
+                craftingWindow = new CraftingWindow();
+            }
+
+            if (!craftingWindow.IsVisible)
+            {
                 craftingWindow.Show();
-            });
+            }
+            else
+            {
+                craftingWindow.Activate();
+            }
+        }
+
+        private void CloseCraftingWindow()
+        {
+            if (craftingWindow != null)
+            {
+                craftingWindow.Close();
+                craftingWindow = null;
+            }
         }
 
         // Your existing timer methods
