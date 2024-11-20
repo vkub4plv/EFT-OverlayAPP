@@ -13,6 +13,7 @@ using System.Windows.Data;
 using GongSolutions.Wpf.DragDrop;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
+using System.Collections;
 
 namespace EFT_OverlayAPP
 {
@@ -120,6 +121,7 @@ namespace EFT_OverlayAPP
         private void SetupFavoritesView()
         {
             FavoritesView = CollectionViewSource.GetDefaultView(FavoriteItems);
+            FavoritesView.GroupDescriptions.Add(new PropertyGroupDescription("Station"));
             FavoritesView.Filter = FavoritesFilter;
 
             FavoritesListView.ItemsSource = FavoritesView;
@@ -386,24 +388,63 @@ namespace EFT_OverlayAPP
                 return;
             }
 
-            if (dropInfo.Data is CraftableItem sourceItem && dropInfo.TargetItem is CraftableItem targetItem)
+            if (dropInfo.Data is CraftableItem sourceItem)
             {
-                var items = (ObservableCollection<CraftableItem>)dropInfo.DragInfo.SourceCollection;
+                // Get the source and target collections
+                IList sourceCollection = GetUnderlyingCollection(dropInfo.DragInfo.SourceCollection);
+                IList targetCollection = GetUnderlyingCollection(dropInfo.TargetCollection);
 
-                int oldIndex = items.IndexOf(sourceItem);
-                int newIndex = items.IndexOf(targetItem);
-
-                if (oldIndex != newIndex)
+                if (sourceCollection == null || targetCollection == null)
                 {
-                    items.Move(oldIndex, newIndex);
-                    SaveItemOrder();
+                    MessageBox.Show("Unable to reorder items in this view.");
+                    return;
                 }
+
+                // Remove the item from the source collection
+                int oldIndex = sourceCollection.IndexOf(sourceItem);
+                if (oldIndex >= 0)
+                {
+                    sourceCollection.RemoveAt(oldIndex);
+                }
+
+                // Determine the index to insert in the target collection
+                int insertIndex = dropInfo.InsertIndex;
+                if (targetCollection == sourceCollection && oldIndex < insertIndex)
+                {
+                    insertIndex--;
+                }
+
+                // Insert the item into the target collection
+                if (insertIndex >= 0)
+                {
+                    targetCollection.Insert(insertIndex, sourceItem);
+                }
+                else
+                {
+                    targetCollection.Add(sourceItem);
+                }
+
+                SaveItemOrder();
             }
-            else if (dropInfo.Data is CollectionViewGroup sourceGroup && dropInfo.TargetItem is CollectionViewGroup targetGroup)
+            else if (dropInfo.Data is CollectionViewGroup)
             {
-                // Handle moving groups (categories)
-                // This requires custom logic as WPF's default grouping does not support reordering groups
                 MessageBox.Show("Moving categories is not implemented in this example.");
+            }
+        }
+
+        private IList GetUnderlyingCollection(object collection)
+        {
+            if (collection is CollectionViewGroup group)
+            {
+                return group.Items;
+            }
+            else if (collection is ICollectionView view)
+            {
+                return view.SourceCollection as IList;
+            }
+            else
+            {
+                return collection as IList;
             }
         }
 

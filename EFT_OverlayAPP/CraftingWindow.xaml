@@ -4,7 +4,8 @@
         xmlns:dd="clr-namespace:GongSolutions.Wpf.DragDrop;assembly=GongSolutions.Wpf.DragDrop"
         Title="Crafting Items"
         Height="600"
-        Width="800">
+        Width="800"
+        Topmost="True">
     <DockPanel>
         <!-- Tabs for All Items and Favorites -->
         <TabControl x:Name="MainTabControl">
@@ -143,6 +144,30 @@
                                 </StackPanel>
                             </DataTemplate>
                         </ListView.ItemTemplate>
+
+                        <!-- Define Grouping Style -->
+                        <ListView.GroupStyle>
+                            <GroupStyle>
+                                <GroupStyle.ContainerStyle>
+                                    <Style TargetType="{x:Type GroupItem}">
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="{x:Type GroupItem}">
+                                                    <StackPanel>
+                                                        <!-- Header -->
+                                                        <DockPanel Background="LightGray" Margin="0,5,0,0" Height="30">
+                                                            <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="16" Padding="5" VerticalAlignment="Center"/>
+                                                        </DockPanel>
+                                                        <!-- Items Presenter -->
+                                                        <ItemsPresenter/>
+                                                    </StackPanel>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </GroupStyle.ContainerStyle>
+                            </GroupStyle>
+                        </ListView.GroupStyle>
                     </ListView>
                 </DockPanel>
             </TabItem>
