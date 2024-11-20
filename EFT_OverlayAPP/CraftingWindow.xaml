@@ -6,175 +6,189 @@
         Height="600"
         Width="800"
         Topmost="True">
-    <DockPanel>
-        <!-- Tabs for All Items and Favorites -->
-        <TabControl x:Name="MainTabControl">
-            <TabItem Header="All Items">
-                <!-- Main Content -->
-                <DockPanel>
-                    <!-- Search Bar -->
-                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="5">
-                        <TextBox x:Name="SearchTextBox" Width="200" Margin="0,0,5,0" />
-                        <ComboBox x:Name="CategoryFilterComboBox" Width="150"/>
-                        <!-- Toggle Edit Mode -->
-                        <ToggleButton x:Name="EditModeToggleButton" Content="Edit Mode" Width="100" Margin="5,0,0,0"/>
-                        <!-- Reset Order Button -->
-                        <Button x:Name="ResetOrderButton" Content="Reset Order" Width="100" Margin="5,0,0,0" Click="ResetOrderButton_Click"/>
-                    </StackPanel>
 
-                    <!-- Item List -->
-                    <ListView x:Name="ItemListView"
-                              Margin="5"
-                              dd:DragDrop.IsDragSource="{Binding IsEditMode}"
-                              dd:DragDrop.IsDropTarget="{Binding IsEditMode}"
-                              dd:DragDrop.UseDefaultDragAdorner="True"
-                              dd:DragDrop.DropHandler="{Binding}"
-                              IsSynchronizedWithCurrentItem="True">
-                        <!-- Define ItemTemplate -->
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Margin="5">
-                                    <!-- Reward Items -->
-                                    <ItemsControl ItemsSource="{Binding RewardItems}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <StackPanel Orientation="Horizontal" Margin="0,0,10,0">
-                                                    <!-- Reward Item Icon -->
-                                                    <Image Source="{Binding IconLink}" Width="50" Height="50" Margin="0,0,5,0"/>
-                                                    <!-- Reward Item Name and Quantity -->
-                                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="{Binding Quantity, StringFormat=x{0}}" VerticalAlignment="Center" Margin="5,0,0,0"/>
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                        <ItemsControl.ItemsPanel>
-                                            <ItemsPanelTemplate>
-                                                <StackPanel Orientation="Horizontal"/>
-                                            </ItemsPanelTemplate>
-                                        </ItemsControl.ItemsPanel>
-                                    </ItemsControl>
+    <!-- Define Resources -->
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </Window.Resources>
 
-                                    <!-- Crafting Actions -->
-                                    <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-                                        <!-- Start Button -->
-                                        <Button Content="Start" Width="75" Margin="0,0,5,0" Click="StartButton_Click"/>
-                                        <!-- Favorite Button -->
-                                        <ToggleButton IsChecked="{Binding IsFavorite}" Content="★" Width="30" Margin="0,0,5,0"/>
-                                        <!-- Craft Time -->
-                                        <TextBlock Text="{Binding CraftTimeString}" VerticalAlignment="Center" Margin="5,0"/>
-                                    </StackPanel>
-                                </StackPanel>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                        <!-- Define Grouping Style -->
-                        <ListView.GroupStyle>
-                            <GroupStyle>
-                                <GroupStyle.ContainerStyle>
-                                    <Style TargetType="{x:Type GroupItem}">
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate TargetType="{x:Type GroupItem}">
-                                                    <StackPanel>
-                                                        <!-- Header -->
-                                                        <DockPanel Background="LightGray" Margin="0,5,0,0" Height="30">
-                                                            <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="16" Padding="5" VerticalAlignment="Center"/>
-                                                        </DockPanel>
-                                                        <!-- Items Presenter -->
-                                                        <ItemsPresenter/>
+    <Grid>
+        <DockPanel>
+            <!-- Tabs for All Items and Favorites -->
+            <TabControl x:Name="MainTabControl">
+                <TabItem Header="All Items">
+                    <!-- Main Content -->
+                    <DockPanel>
+                        <!-- Search Bar -->
+                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="5">
+                            <TextBox x:Name="SearchTextBox" Width="200" Margin="0,0,5,0" />
+                            <ComboBox x:Name="CategoryFilterComboBox" Width="150"/>
+                            <!-- Toggle Edit Mode -->
+                            <ToggleButton x:Name="EditModeToggleButton" Content="Edit Mode" Width="100" Margin="5,0,0,0"/>
+                            <!-- Reset Order Button -->
+                            <Button x:Name="ResetOrderButton" Content="Reset Order" Width="100" Margin="5,0,0,0" Click="ResetOrderButton_Click"/>
+                        </StackPanel>
+
+                        <!-- Item List -->
+                        <ListView x:Name="ItemListView"
+                                  Margin="5"
+                                  dd:DragDrop.IsDragSource="{Binding IsEditMode}"
+                                  dd:DragDrop.IsDropTarget="{Binding IsEditMode}"
+                                  dd:DragDrop.UseDefaultDragAdorner="True"
+                                  dd:DragDrop.DropHandler="{Binding}"
+                                  IsSynchronizedWithCurrentItem="True">
+                            <!-- Define ItemTemplate -->
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Margin="5">
+                                        <!-- Reward Items -->
+                                        <ItemsControl ItemsSource="{Binding RewardItems}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal" Margin="0,0,10,0">
+                                                        <!-- Reward Item Icon -->
+                                                        <Image Source="{Binding IconLink}" Width="50" Height="50" Margin="0,0,5,0"/>
+                                                        <!-- Reward Item Name and Quantity -->
+                                                        <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="{Binding Quantity, StringFormat=x{0}}" VerticalAlignment="Center" Margin="5,0,0,0"/>
                                                     </StackPanel>
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Style>
-                                </GroupStyle.ContainerStyle>
-                            </GroupStyle>
-                        </ListView.GroupStyle>
-                    </ListView>
-                </DockPanel>
-            </TabItem>
-            <TabItem Header="Favorites">
-                <!-- Favorites Content -->
-                <DockPanel>
-                    <!-- Search Bar -->
-                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="5">
-                        <TextBox x:Name="FavoritesSearchTextBox" Width="200" Margin="0,0,5,0" />
-                        <!-- Toggle Edit Mode -->
-                        <ToggleButton x:Name="FavoritesEditModeToggleButton" Content="Edit Mode" Width="100" Margin="5,0,0,0"/>
-                        <!-- Reset Order Button -->
-                        <Button x:Name="FavoritesResetOrderButton" Content="Reset Order" Width="100" Margin="5,0,0,0" Click="FavoritesResetOrderButton_Click"/>
-                    </StackPanel>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <StackPanel Orientation="Horizontal"/>
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                        </ItemsControl>
 
-                    <!-- Favorites List -->
-                    <ListView x:Name="FavoritesListView"
-                              Margin="5"
-                              dd:DragDrop.IsDragSource="{Binding IsEditMode}"
-                              dd:DragDrop.IsDropTarget="{Binding IsEditMode}"
-                              dd:DragDrop.UseDefaultDragAdorner="True"
-                              dd:DragDrop.DropHandler="{Binding}"
-                              IsSynchronizedWithCurrentItem="True">
-                        <!-- Define ItemTemplate (Same as above) -->
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Margin="5">
-                                    <!-- Reward Items -->
-                                    <ItemsControl ItemsSource="{Binding RewardItems}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <StackPanel Orientation="Horizontal" Margin="0,0,10,0">
-                                                    <!-- Reward Item Icon -->
-                                                    <Image Source="{Binding IconLink}" Width="50" Height="50" Margin="0,0,5,0"/>
-                                                    <!-- Reward Item Name and Quantity -->
-                                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="{Binding Quantity, StringFormat=x{0}}" VerticalAlignment="Center" Margin="5,0,0,0"/>
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                        <ItemsControl.ItemsPanel>
-                                            <ItemsPanelTemplate>
-                                                <StackPanel Orientation="Horizontal"/>
-                                            </ItemsPanelTemplate>
-                                        </ItemsControl.ItemsPanel>
-                                    </ItemsControl>
-
-                                    <!-- Crafting Actions -->
-                                    <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-                                        <!-- Start Button -->
-                                        <Button Content="Start" Width="75" Margin="0,0,5,0" Click="StartButton_Click"/>
-                                        <!-- Favorite Button -->
-                                        <ToggleButton IsChecked="{Binding IsFavorite}" Content="★" Width="30" Margin="0,0,5,0"/>
-                                        <!-- Craft Time -->
-                                        <TextBlock Text="{Binding CraftTimeString}" VerticalAlignment="Center" Margin="5,0"/>
+                                        <!-- Crafting Actions -->
+                                        <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                                            <!-- Start Button -->
+                                            <Button Content="Start" Width="75" Margin="0,0,5,0" Click="StartButton_Click"/>
+                                            <!-- Favorite Button -->
+                                            <ToggleButton IsChecked="{Binding IsFavorite}" Content="★" Width="30" Margin="0,0,5,0"/>
+                                            <!-- Craft Time -->
+                                            <TextBlock Text="{Binding CraftTimeString}" VerticalAlignment="Center" Margin="5,0"/>
+                                        </StackPanel>
                                     </StackPanel>
-                                </StackPanel>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                            <!-- Define Grouping Style -->
+                            <ListView.GroupStyle>
+                                <GroupStyle>
+                                    <GroupStyle.ContainerStyle>
+                                        <Style TargetType="{x:Type GroupItem}">
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="{x:Type GroupItem}">
+                                                        <StackPanel>
+                                                            <!-- Header -->
+                                                            <DockPanel Background="LightGray" Margin="0,5,0,0" Height="30">
+                                                                <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="16" Padding="5" VerticalAlignment="Center"/>
+                                                            </DockPanel>
+                                                            <!-- Items Presenter -->
+                                                            <ItemsPresenter/>
+                                                        </StackPanel>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </GroupStyle.ContainerStyle>
+                                </GroupStyle>
+                            </ListView.GroupStyle>
+                        </ListView>
+                    </DockPanel>
+                </TabItem>
+                <TabItem Header="Favorites">
+                    <!-- Favorites Content -->
+                    <DockPanel>
+                        <!-- Search Bar and Category Filter -->
+                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="5">
+                            <TextBox x:Name="FavoritesSearchTextBox" Width="200" Margin="0,0,5,0"/>
+                            <ComboBox x:Name="FavoritesCategoryFilterComboBox" Width="150"/>
+                            <!-- Toggle Edit Mode -->
+                            <ToggleButton x:Name="FavoritesEditModeToggleButton" Content="Edit Mode" Width="100" Margin="5,0,0,0"/>
+                            <!-- Reset Order Button -->
+                            <Button x:Name="FavoritesResetOrderButton" Content="Reset Order" Width="100" Margin="5,0,0,0" Click="FavoritesResetOrderButton_Click"/>
+                        </StackPanel>
 
-                        <!-- Define Grouping Style -->
-                        <ListView.GroupStyle>
-                            <GroupStyle>
-                                <GroupStyle.ContainerStyle>
-                                    <Style TargetType="{x:Type GroupItem}">
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate TargetType="{x:Type GroupItem}">
-                                                    <StackPanel>
-                                                        <!-- Header -->
-                                                        <DockPanel Background="LightGray" Margin="0,5,0,0" Height="30">
-                                                            <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="16" Padding="5" VerticalAlignment="Center"/>
-                                                        </DockPanel>
-                                                        <!-- Items Presenter -->
-                                                        <ItemsPresenter/>
+                        <!-- Favorites List -->
+                        <ListView x:Name="FavoritesListView"
+                                  Margin="5"
+                                  dd:DragDrop.IsDragSource="{Binding IsEditMode}"
+                                  dd:DragDrop.IsDropTarget="{Binding IsEditMode}"
+                                  dd:DragDrop.UseDefaultDragAdorner="True"
+                                  dd:DragDrop.DropHandler="{Binding}"
+                                  IsSynchronizedWithCurrentItem="True">
+                            <!-- Define ItemTemplate (Same as above) -->
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Margin="5">
+                                        <!-- Reward Items -->
+                                        <ItemsControl ItemsSource="{Binding RewardItems}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal" Margin="0,0,10,0">
+                                                        <!-- Reward Item Icon -->
+                                                        <Image Source="{Binding IconLink}" Width="50" Height="50" Margin="0,0,5,0"/>
+                                                        <!-- Reward Item Name and Quantity -->
+                                                        <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="{Binding Quantity, StringFormat=x{0}}" VerticalAlignment="Center" Margin="5,0,0,0"/>
                                                     </StackPanel>
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Style>
-                                </GroupStyle.ContainerStyle>
-                            </GroupStyle>
-                        </ListView.GroupStyle>
-                    </ListView>
-                </DockPanel>
-            </TabItem>
-        </TabControl>
-    </DockPanel>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <StackPanel Orientation="Horizontal"/>
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                        </ItemsControl>
+
+                                        <!-- Crafting Actions -->
+                                        <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                                            <!-- Start Button -->
+                                            <Button Content="Start" Width="75" Margin="0,0,5,0" Click="StartButton_Click"/>
+                                            <!-- Favorite Button -->
+                                            <ToggleButton IsChecked="{Binding IsFavorite}" Content="★" Width="30" Margin="0,0,5,0"/>
+                                            <!-- Craft Time -->
+                                            <TextBlock Text="{Binding CraftTimeString}" VerticalAlignment="Center" Margin="5,0"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+
+                            <!-- Define Grouping Style -->
+                            <ListView.GroupStyle>
+                                <GroupStyle>
+                                    <GroupStyle.ContainerStyle>
+                                        <Style TargetType="{x:Type GroupItem}">
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="{x:Type GroupItem}">
+                                                        <StackPanel>
+                                                            <!-- Header -->
+                                                            <DockPanel Background="LightGray" Margin="0,5,0,0" Height="30">
+                                                                <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="16" Padding="5" VerticalAlignment="Center"/>
+                                                            </DockPanel>
+                                                            <!-- Items Presenter -->
+                                                            <ItemsPresenter/>
+                                                        </StackPanel>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </GroupStyle.ContainerStyle>
+                                </GroupStyle>
+                            </ListView.GroupStyle>
+                        </ListView>
+                    </DockPanel>
+                </TabItem>
+            </TabControl>
+        </DockPanel>
+        
+        <!-- Loading Overlay -->
+        <Grid x:Name="LoadingOverlay" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}" Background="#AA000000">
+            <TextBlock Text="Loading..." Foreground="White" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Grid>
+    </Grid>
 </Window>

@@ -35,6 +35,17 @@ namespace EFT_OverlayAPP
             }
         }
 
+        private bool isLoading;
+        public bool IsLoading
+        {
+            get => isLoading;
+            set
+            {
+                isLoading = value;
+                OnPropertyChanged(nameof(IsLoading));
+            }
+        }
+
         public CraftingWindow()
         {
             InitializeComponent();
@@ -44,6 +55,8 @@ namespace EFT_OverlayAPP
             CraftableItems = new ObservableCollection<CraftableItem>();
             FavoriteItems = new ObservableCollection<CraftableItem>();
 
+            // Unsubscribe first to prevent multiple subscriptions
+            DataCache.DataLoaded -= OnDataLoaded;
             // Subscribe to the DataLoaded event
             DataCache.DataLoaded += OnDataLoaded;
 
@@ -56,6 +69,7 @@ namespace EFT_OverlayAPP
             else
             {
                 // Start data loading (if not already started)
+                IsLoading = true;
                 Task.Run(() => DataCache.LoadDataAsync());
             }
         }
@@ -65,12 +79,18 @@ namespace EFT_OverlayAPP
             Dispatcher.Invoke(() =>
             {
                 InitializeData();
-                // Optionally, hide loading indicator here if implemented
+                IsLoading = false; // Hide loading indicator
             });
         }
 
         private void InitializeData()
         {
+            // Unsubscribe from event handlers to prevent multiple subscriptions
+            foreach (var item in CraftableItems)
+            {
+                item.PropertyChanged -= Item_PropertyChanged;
+            }
+
             // Clear existing items
             CraftableItems.Clear();
             FavoriteItems.Clear();
@@ -93,7 +113,7 @@ namespace EFT_OverlayAPP
             SetupItemsView();
             SetupFavoritesView();
             PopulateCategoryFilter();
-            // If you have a favorites category filter, call PopulateFavoritesCategoryFilter();
+            PopulateFavoritesCategoryFilter();
 
             // Refresh views
             ItemsView?.Refresh();
@@ -106,6 +126,7 @@ namespace EFT_OverlayAPP
             EditModeToggleButton.Unchecked += EditModeToggleButton_Unchecked;
 
             FavoritesSearchTextBox.TextChanged += FavoritesSearchTextBox_TextChanged;
+            FavoritesCategoryFilterComboBox.SelectionChanged += FavoritesCategoryFilterComboBox_SelectionChanged;
             FavoritesEditModeToggleButton.Checked += EditModeToggleButton_Checked;
             FavoritesEditModeToggleButton.Unchecked += EditModeToggleButton_Unchecked;
         }
@@ -132,9 +153,36 @@ namespace EFT_OverlayAPP
             }
         }
 
+        private void PopulateFavoritesCategoryFilter()
+        {
+            // Clear existing items
+            FavoritesCategoryFilterComboBox.Items.Clear();
+
+            // Add "All Categories" as the first item
+            FavoritesCategoryFilterComboBox.Items.Add("All Categories");
+            FavoritesCategoryFilterComboBox.SelectedIndex = 0;
+
+            // Get unique categories from the favorite items
+            var categories = new HashSet<string>(FavoriteItems.Select(i => i.Station));
+
+            // Add categories to the ComboBox
+            foreach (var category in categories)
+            {
+                if (!string.IsNullOrEmpty(category))
+                {
+                    FavoritesCategoryFilterComboBox.Items.Add(category);
+                }
+            }
+        }
+
         private void SetupItemsView()
         {
             ItemsView = CollectionViewSource.GetDefaultView(CraftableItems);
+
+            // Clear existing group descriptions
+            ItemsView.GroupDescriptions.Clear();
+
+            // Add new group description
             ItemsView.GroupDescriptions.Add(new PropertyGroupDescription("Station"));
             ItemsView.Filter = ItemsFilter;
 
@@ -144,6 +192,11 @@ namespace EFT_OverlayAPP
         private void SetupFavoritesView()
         {
             FavoritesView = CollectionViewSource.GetDefaultView(FavoriteItems);
+
+            // Clear existing group descriptions
+            FavoritesView.GroupDescriptions.Clear();
+
+            // Add new group description
             FavoritesView.GroupDescriptions.Add(new PropertyGroupDescription("Station"));
             FavoritesView.Filter = FavoritesFilter;
 
@@ -173,11 +226,17 @@ namespace EFT_OverlayAPP
             if (craftableItem == null) return false;
 
             string searchText = FavoritesSearchTextBox.Text?.ToLower() ?? string.Empty;
+            string selectedCategory = FavoritesCategoryFilterComboBox.SelectedItem as string ?? "All Categories";
 
-            bool matchesSearch = string.IsNullOrEmpty(searchText) || craftableItem.RewardItems.Any(r => r.Name.ToLower().Contains(searchText));
+            bool matchesSearch = string.IsNullOrEmpty(searchText) ||
+                                 craftableItem.RewardItems.Any(r => r.Name.ToLower().Contains(searchText));
 
-            return craftableItem.IsFavorite && matchesSearch;
+            bool matchesCategory = selectedCategory == "All Categories" ||
+                                   craftableItem.Station == selectedCategory;
+
+            return craftableItem.IsFavorite && matchesSearch && matchesCategory;
         }
+
 
         private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -190,6 +249,10 @@ namespace EFT_OverlayAPP
         }
 
         private void FavoritesSearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            FavoritesView.Refresh();
+        }
+        private void FavoritesCategoryFilterComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             FavoritesView.Refresh();
         }
@@ -209,18 +272,25 @@ namespace EFT_OverlayAPP
             if (e.PropertyName == nameof(CraftableItem.IsFavorite))
             {
                 var item = sender as CraftableItem;
-                if (item.IsFavorite)
+
+                // Avoid duplicate entries in FavoriteItems
+                if (item.IsFavorite && !FavoriteItems.Contains(item))
                 {
                     FavoriteItems.Add(item);
                     DataCache.AddFavoriteId(item.Id);
                 }
-                else
+                else if (!item.IsFavorite && FavoriteItems.Contains(item))
                 {
                     FavoriteItems.Remove(item);
                     DataCache.RemoveFavoriteId(item.Id);
                 }
+
+                // Update the favorites category filter
+                PopulateFavoritesCategoryFilter();
+                FavoritesView.Refresh();
             }
         }
+
 
         private async void ResetOrderButton_Click(object sender, RoutedEventArgs e)
         {
@@ -228,6 +298,8 @@ namespace EFT_OverlayAPP
             {
                 File.Delete("itemOrder.json");
             }
+
+            IsLoading = true; // Show loading indicator
 
             // Clear data in DataCache
             DataCache.ClearData();
@@ -238,6 +310,8 @@ namespace EFT_OverlayAPP
 
             // Update the observable collections
             InitializeData();
+
+            IsLoading = false; // Hide loading indicator
         }
 
         private async void FavoritesResetOrderButton_Click(object sender, RoutedEventArgs e)
@@ -247,6 +321,8 @@ namespace EFT_OverlayAPP
                 File.Delete("favoritesItemOrder.json");
             }
 
+            IsLoading = true; // Show loading indicator
+
             // Clear data in DataCache
             DataCache.ClearData();
             DataCache.IsDataLoaded = false;
@@ -256,6 +332,8 @@ namespace EFT_OverlayAPP
 
             // Update the observable collections
             InitializeData();
+
+            IsLoading = false; // Hide loading indicator
         }
 
         private void StartButton_Click(object sender, RoutedEventArgs e)
