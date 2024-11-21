@@ -459,7 +459,7 @@ namespace EFT_OverlayAPP
                 ListViewItem listViewItem = FindAncestor<ListViewItem>(result.VisualHit);
 
                 int removedIdx = FavoriteItems.IndexOf(droppedData);
-                int targetIdx = FavoriteItems.Count;
+                int targetIdx = FavoriteItems.Count; // Default to end
 
                 if (listViewItem != null)
                 {
@@ -481,13 +481,16 @@ namespace EFT_OverlayAPP
                     }
                 }
 
+                // Debugging Logs
+                Debug.WriteLine($"Drag Drop Operation: RemovedIdx={removedIdx}, TargetIdx={targetIdx}");
+
                 if (removedIdx >= 0 && targetIdx >= 0 && removedIdx != targetIdx)
                 {
                     // Prevent moving items across different categories
                     var sourceItem = FavoriteItems[removedIdx];
                     var targetItem = targetIdx < FavoriteItems.Count ? FavoriteItems[targetIdx] : null;
 
-                    if (targetItem != null && sourceItem.Station != targetItem.Station)
+                    if (targetItem != null && !sourceItem.Station.Equals(targetItem.Station, StringComparison.OrdinalIgnoreCase))
                     {
                         // Inform the user that cross-category reordering is not allowed
                         MessageBox.Show("You can only reorder items within the same category.", "Reordering Not Allowed", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -497,13 +500,21 @@ namespace EFT_OverlayAPP
                     // Move the item
                     FavoriteItems.Move(removedIdx, targetIdx);
 
+                    // Debugging Logs
+                    Debug.WriteLine($"Moved '{sourceItem.FirstRewardItemName}' from {removedIdx} to {targetIdx}");
+
                     // Update FavoriteSortOrder based on new positions within each category
                     UpdateFavoriteSortOrder();
 
+                    // Refresh the view to apply new sort orders
+                    FavoritesView.Refresh();
+
+                    // Save the updated order
                     DataCache.SaveFavoriteItemOrder(FavoriteItems);
                 }
             }
         }
+
 
         private static T FindAncestor<T>(DependencyObject current) where T : DependencyObject
         {
@@ -555,10 +566,35 @@ namespace EFT_OverlayAPP
 
         private void UpdateFavoriteSortOrder()
         {
-            // Assign FavoriteSortOrder based on the current order in FavoriteItems
-            for (int i = 0; i < FavoriteItems.Count; i++)
+            // Assign FavoriteSortOrder within each category based on the static category order
+            foreach (var category in DataCache.StaticCategoryOrder)
             {
-                FavoriteItems[i].FavoriteSortOrder = i;
+                var itemsInCategory = FavoriteItems
+                    .Where(i => i.Station.Equals(category, StringComparison.OrdinalIgnoreCase))
+                    .OrderBy(i => FavoriteItems.IndexOf(i)) // Maintain current order within category
+                    .ToList();
+
+                for (int i = 0; i < itemsInCategory.Count; i++)
+                {
+                    itemsInCategory[i].FavoriteSortOrder = i;
+                }
+            }
+
+            // Assign FavoriteSortOrder to items not in any predefined category
+            var unknownCategoryItems = FavoriteItems
+                .Where(i => !DataCache.StaticCategoryOrder.Contains(i.Station, StringComparer.OrdinalIgnoreCase))
+                .ToList();
+
+            for (int i = 0; i < unknownCategoryItems.Count; i++)
+            {
+                unknownCategoryItems[i].FavoriteSortOrder = i;
+            }
+
+            // Log FavoriteSortOrder assignments for debugging
+            Debug.WriteLine("Updated FavoriteSortOrder:");
+            foreach (var item in FavoriteItems)
+            {
+                Debug.WriteLine($" - {item.FirstRewardItemName}: {item.FavoriteSortOrder}");
             }
         }
     }
