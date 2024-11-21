@@ -101,6 +101,8 @@
                         <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="5">
                             <TextBox x:Name="FavoritesSearchTextBox" Width="200" Margin="0,0,5,0"/>
                             <ComboBox x:Name="FavoritesCategoryFilterComboBox" Width="150" Margin="0,0,5,0"/>
+                            <!-- Reset Order Button -->
+                            <Button x:Name="FavoritesResetOrderButton" Content="Reset Order" Width="100" Margin="5,0,0,0" Click="FavoritesResetOrderButton_Click"/>
                         </StackPanel>
 
                         <!-- Favorites List -->

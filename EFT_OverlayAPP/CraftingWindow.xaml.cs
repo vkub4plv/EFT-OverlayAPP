@@ -409,6 +409,34 @@ namespace EFT_OverlayAPP
             while (current != null);
             return null;
         }
+
+        private void FavoritesResetOrderButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (File.Exists("favoritesItemOrder.json"))
+            {
+                File.Delete("favoritesItemOrder.json");
+            }
+
+            IsLoading = true; // Show loading indicator
+
+            // Clear the FavoriteItems collection
+            FavoriteItems.Clear();
+
+            // Re-populate FavoriteItems based on current favorites in default order
+            foreach (var item in CraftableItems)
+            {
+                if (item.IsFavorite)
+                {
+                    FavoriteItems.Add(item);
+                }
+            }
+
+            // Refresh the favorites view
+            FavoritesView.Refresh();
+
+            IsLoading = false; // Hide loading indicator
+        }
+
     }
 
     // Classes for deserialization
