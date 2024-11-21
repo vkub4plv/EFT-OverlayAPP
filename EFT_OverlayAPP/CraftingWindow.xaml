@@ -13,29 +13,24 @@
     </Window.Resources>
 
     <Grid>
+        <!-- Main Content -->
         <DockPanel>
             <!-- Tabs for All Items and Favorites -->
             <TabControl x:Name="MainTabControl">
+                <!-- All Items Tab -->
                 <TabItem Header="All Items">
                     <!-- Main Content -->
                     <DockPanel>
-                        <!-- Search Bar -->
+                        <!-- Search Bar and Category Filter -->
                         <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="5">
-                            <TextBox x:Name="SearchTextBox" Width="200" Margin="0,0,5,0" />
-                            <ComboBox x:Name="CategoryFilterComboBox" Width="150"/>
-                            <!-- Toggle Edit Mode -->
-                            <ToggleButton x:Name="EditModeToggleButton" Content="Edit Mode" Width="100" Margin="5,0,0,0"/>
-                            <!-- Reset Order Button -->
-                            <Button x:Name="ResetOrderButton" Content="Reset Order" Width="100" Margin="5,0,0,0" Click="ResetOrderButton_Click"/>
+                            <TextBox x:Name="SearchTextBox" Width="200" Margin="0,0,5,0"/>
+                            <ComboBox x:Name="CategoryFilterComboBox" Width="150" Margin="0,0,5,0"/>
                         </StackPanel>
+
 
                         <!-- Item List -->
                         <ListView x:Name="ItemListView"
                                   Margin="5"
-                                  dd:DragDrop.IsDragSource="{Binding IsEditMode}"
-                                  dd:DragDrop.IsDropTarget="{Binding IsEditMode}"
-                                  dd:DragDrop.UseDefaultDragAdorner="True"
-                                  dd:DragDrop.DropHandler="{Binding}"
                                   IsSynchronizedWithCurrentItem="True">
                             <!-- Define ItemTemplate -->
                             <ListView.ItemTemplate>
@@ -99,13 +94,15 @@
                         </ListView>
                     </DockPanel>
                 </TabItem>
+
+                <!-- Favorites Tab -->
                 <TabItem Header="Favorites">
                     <!-- Favorites Content -->
                     <DockPanel>
                         <!-- Search Bar and Category Filter -->
                         <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="5">
                             <TextBox x:Name="FavoritesSearchTextBox" Width="200" Margin="0,0,5,0"/>
-                            <ComboBox x:Name="FavoritesCategoryFilterComboBox" Width="150"/>
+                            <ComboBox x:Name="FavoritesCategoryFilterComboBox" Width="150" Margin="0,0,5,0"/>
                             <!-- Toggle Edit Mode -->
                             <ToggleButton x:Name="FavoritesEditModeToggleButton" Content="Edit Mode" Width="100" Margin="5,0,0,0"/>
                             <!-- Reset Order Button -->
@@ -115,12 +112,12 @@
                         <!-- Favorites List -->
                         <ListView x:Name="FavoritesListView"
                                   Margin="5"
-                                  dd:DragDrop.IsDragSource="{Binding IsEditMode}"
-                                  dd:DragDrop.IsDropTarget="{Binding IsEditMode}"
+                                  dd:DragDrop.IsDragSource="{Binding IsFavoritesEditMode}"
+                                  dd:DragDrop.IsDropTarget="{Binding IsFavoritesEditMode}"
                                   dd:DragDrop.UseDefaultDragAdorner="True"
-                                  dd:DragDrop.DropHandler="{Binding}"
+                                  dd:DragDrop.DropHandler="{Binding FavoritesDropHandler}"
                                   IsSynchronizedWithCurrentItem="True">
-                            <!-- Define ItemTemplate (Same as above) -->
+                            <!-- Define ItemTemplate -->
                             <ListView.ItemTemplate>
                                 <DataTemplate>
                                     <StackPanel Margin="5">
@@ -185,7 +182,7 @@
                 </TabItem>
             </TabControl>
         </DockPanel>
-        
+
         <!-- Loading Overlay -->
         <Grid x:Name="LoadingOverlay" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}" Background="#AA000000">
             <TextBlock Text="Loading..." Foreground="White" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>

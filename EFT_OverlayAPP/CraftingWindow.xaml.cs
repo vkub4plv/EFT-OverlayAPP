@@ -1,37 +1,37 @@
 ﻿using EFT_OverlayAPP;
+using GongSolutions.Wpf.DragDrop;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
-using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using GongSolutions.Wpf.DragDrop;
-using Newtonsoft.Json;
-using System.Threading.Tasks;
-using System.Collections;
 
 namespace EFT_OverlayAPP
 {
-    public partial class CraftingWindow : Window, IDropTarget, INotifyPropertyChanged
+    public partial class CraftingWindow : Window, INotifyPropertyChanged
     {
         public ObservableCollection<CraftableItem> CraftableItems { get; set; }
         public ObservableCollection<CraftableItem> FavoriteItems { get; set; }
         public ICollectionView ItemsView { get; set; }
         public ICollectionView FavoritesView { get; set; }
 
-        private bool isEditMode;
-        public bool IsEditMode
+        public FavoritesDropHandler FavoritesDropHandler { get; set; }
+
+        private bool isFavoritesEditMode;
+        public bool IsFavoritesEditMode
         {
-            get => isEditMode;
+            get => isFavoritesEditMode;
             set
             {
-                isEditMode = value;
-                OnPropertyChanged(nameof(IsEditMode));
+                isFavoritesEditMode = value;
+                OnPropertyChanged(nameof(IsFavoritesEditMode));
             }
         }
 
@@ -55,20 +55,22 @@ namespace EFT_OverlayAPP
             CraftableItems = new ObservableCollection<CraftableItem>();
             FavoriteItems = new ObservableCollection<CraftableItem>();
 
-            // Unsubscribe first to prevent multiple subscriptions
-            DataCache.DataLoaded -= OnDataLoaded;
+            // Initialize the drop handler
+            FavoritesDropHandler = new FavoritesDropHandler(this);
+
+            // Subscribe to CollectionChanged event
+            FavoriteItems.CollectionChanged += FavoriteItems_CollectionChanged;
+
             // Subscribe to the DataLoaded event
             DataCache.DataLoaded += OnDataLoaded;
 
             // Check if data is already loaded
             if (DataCache.IsDataLoaded)
             {
-                // Data is already loaded, initialize the UI
                 InitializeData();
             }
             else
             {
-                // Start data loading (if not already started)
                 IsLoading = true;
                 Task.Run(() => DataCache.LoadDataAsync());
             }
@@ -79,7 +81,7 @@ namespace EFT_OverlayAPP
             Dispatcher.Invoke(() =>
             {
                 InitializeData();
-                IsLoading = false; // Hide loading indicator
+                IsLoading = false;
             });
         }
 
@@ -98,9 +100,7 @@ namespace EFT_OverlayAPP
             // Populate the observable collections with cached data
             foreach (var item in DataCache.CraftableItems)
             {
-                // Subscribe to PropertyChanged event
                 item.PropertyChanged += Item_PropertyChanged;
-
                 CraftableItems.Add(item);
 
                 if (item.IsFavorite)
@@ -108,6 +108,9 @@ namespace EFT_OverlayAPP
                     FavoriteItems.Add(item);
                 }
             }
+
+            // Load saved favorite item order
+            DataCache.LoadFavoriteItemOrder(FavoriteItems);
 
             // Set up views and filters
             SetupItemsView();
@@ -122,13 +125,41 @@ namespace EFT_OverlayAPP
             // Event handlers
             SearchTextBox.TextChanged += SearchTextBox_TextChanged;
             CategoryFilterComboBox.SelectionChanged += CategoryFilterComboBox_SelectionChanged;
-            EditModeToggleButton.Checked += EditModeToggleButton_Checked;
-            EditModeToggleButton.Unchecked += EditModeToggleButton_Unchecked;
 
             FavoritesSearchTextBox.TextChanged += FavoritesSearchTextBox_TextChanged;
             FavoritesCategoryFilterComboBox.SelectionChanged += FavoritesCategoryFilterComboBox_SelectionChanged;
-            FavoritesEditModeToggleButton.Checked += EditModeToggleButton_Checked;
-            FavoritesEditModeToggleButton.Unchecked += EditModeToggleButton_Unchecked;
+            FavoritesEditModeToggleButton.Checked += FavoritesEditModeToggleButton_Checked;
+            FavoritesEditModeToggleButton.Unchecked += FavoritesEditModeToggleButton_Unchecked;
+        }
+
+        private void SetupItemsView()
+        {
+            ItemsView = CollectionViewSource.GetDefaultView(CraftableItems);
+
+            // Clear existing group descriptions
+            ItemsView.GroupDescriptions.Clear();
+
+            // Add new group description
+            ItemsView.GroupDescriptions.Add(new PropertyGroupDescription("Station"));
+
+            ItemsView.Filter = ItemsFilter;
+
+            ItemListView.ItemsSource = ItemsView;
+        }
+
+        private void SetupFavoritesView()
+        {
+            FavoritesView = CollectionViewSource.GetDefaultView(FavoriteItems);
+
+            // Clear existing group descriptions
+            FavoritesView.GroupDescriptions.Clear();
+
+            // Add new group description
+            FavoritesView.GroupDescriptions.Add(new PropertyGroupDescription("Station"));
+
+            FavoritesView.Filter = FavoritesFilter;
+
+            FavoritesListView.ItemsSource = FavoritesView;
         }
 
         private void PopulateCategoryFilter()
@@ -175,34 +206,6 @@ namespace EFT_OverlayAPP
             }
         }
 
-        private void SetupItemsView()
-        {
-            ItemsView = CollectionViewSource.GetDefaultView(CraftableItems);
-
-            // Clear existing group descriptions
-            ItemsView.GroupDescriptions.Clear();
-
-            // Add new group description
-            ItemsView.GroupDescriptions.Add(new PropertyGroupDescription("Station"));
-            ItemsView.Filter = ItemsFilter;
-
-            ItemListView.ItemsSource = ItemsView;
-        }
-
-        private void SetupFavoritesView()
-        {
-            FavoritesView = CollectionViewSource.GetDefaultView(FavoriteItems);
-
-            // Clear existing group descriptions
-            FavoritesView.GroupDescriptions.Clear();
-
-            // Add new group description
-            FavoritesView.GroupDescriptions.Add(new PropertyGroupDescription("Station"));
-            FavoritesView.Filter = FavoritesFilter;
-
-            FavoritesListView.ItemsSource = FavoritesView;
-        }
-
         private bool ItemsFilter(object item)
         {
             var craftableItem = item as CraftableItem;
@@ -237,7 +240,6 @@ namespace EFT_OverlayAPP
             return craftableItem.IsFavorite && matchesSearch && matchesCategory;
         }
 
-
         private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             ItemsView.Refresh();
@@ -252,19 +254,20 @@ namespace EFT_OverlayAPP
         {
             FavoritesView.Refresh();
         }
+
         private void FavoritesCategoryFilterComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             FavoritesView.Refresh();
         }
 
-        private void EditModeToggleButton_Checked(object sender, RoutedEventArgs e)
+        private void FavoritesEditModeToggleButton_Checked(object sender, RoutedEventArgs e)
         {
-            IsEditMode = true;
+            IsFavoritesEditMode = true;
         }
 
-        private void EditModeToggleButton_Unchecked(object sender, RoutedEventArgs e)
+        private void FavoritesEditModeToggleButton_Unchecked(object sender, RoutedEventArgs e)
         {
-            IsEditMode = false;
+            IsFavoritesEditMode = false;
         }
 
         private void Item_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -291,30 +294,15 @@ namespace EFT_OverlayAPP
             }
         }
 
-
-        private async void ResetOrderButton_Click(object sender, RoutedEventArgs e)
+        private void FavoriteItems_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            if (File.Exists("itemOrder.json"))
+            if (e.Action == NotifyCollectionChangedAction.Move)
             {
-                File.Delete("itemOrder.json");
+                DataCache.SaveFavoriteItemOrder(FavoriteItems);
             }
-
-            IsLoading = true; // Show loading indicator
-
-            // Clear data in DataCache
-            DataCache.ClearData();
-            DataCache.IsDataLoaded = false;
-
-            // Start data loading again
-            await DataCache.LoadDataAsync();
-
-            // Update the observable collections
-            InitializeData();
-
-            IsLoading = false; // Hide loading indicator
         }
 
-        private async void FavoritesResetOrderButton_Click(object sender, RoutedEventArgs e)
+        private void FavoritesResetOrderButton_Click(object sender, RoutedEventArgs e)
         {
             if (File.Exists("favoritesItemOrder.json"))
             {
@@ -323,15 +311,20 @@ namespace EFT_OverlayAPP
 
             IsLoading = true; // Show loading indicator
 
-            // Clear data in DataCache
-            DataCache.ClearData();
-            DataCache.IsDataLoaded = false;
+            // Reload favorite items without any saved order
+            FavoriteItems.Clear();
 
-            // Start data loading again
-            await DataCache.LoadDataAsync();
+            // Re-populate FavoriteItems based on current favorites
+            foreach (var item in CraftableItems)
+            {
+                if (item.IsFavorite)
+                {
+                    FavoriteItems.Add(item);
+                }
+            }
 
-            // Update the observable collections
-            InitializeData();
+            // Refresh the favorites view
+            FavoritesView.Refresh();
 
             IsLoading = false; // Hide loading indicator
         }
@@ -350,99 +343,6 @@ namespace EFT_OverlayAPP
             // Implement the logic to handle the start of crafting
             MessageBox.Show($"Starting crafting of {string.Join(", ", item.RewardItems.Select(r => r.Name))}");
             // Later, you can implement timers or other functionality here
-        }
-
-        // Implement IDropTarget for Drag-and-Drop
-        public void DragOver(IDropInfo dropInfo)
-        {
-            if (!IsEditMode)
-            {
-                dropInfo.Effects = DragDropEffects.None;
-                return;
-            }
-
-            if (dropInfo.Data is CraftableItem && dropInfo.TargetItem is CraftableItem)
-            {
-                dropInfo.Effects = DragDropEffects.Move;
-                dropInfo.DropTargetAdorner = DropTargetAdorners.Insert;
-            }
-            else if (dropInfo.Data is CollectionViewGroup && dropInfo.TargetItem is CollectionViewGroup)
-            {
-                // Handle moving groups (categories) - Not implemented
-                dropInfo.Effects = DragDropEffects.None;
-            }
-            else
-            {
-                dropInfo.Effects = DragDropEffects.None;
-            }
-        }
-
-        public void Drop(IDropInfo dropInfo)
-        {
-            if (!IsEditMode)
-            {
-                return;
-            }
-
-            if (dropInfo.Data is CraftableItem sourceItem)
-            {
-                // Get the source and target collections
-                IList sourceCollection = GetUnderlyingCollection(dropInfo.DragInfo.SourceCollection);
-                IList targetCollection = GetUnderlyingCollection(dropInfo.TargetCollection);
-
-                if (sourceCollection == null || targetCollection == null)
-                {
-                    MessageBox.Show("Unable to reorder items in this view.");
-                    return;
-                }
-
-                // Remove the item from the source collection
-                int oldIndex = sourceCollection.IndexOf(sourceItem);
-                if (oldIndex >= 0)
-                {
-                    sourceCollection.RemoveAt(oldIndex);
-                }
-
-                // Determine the index to insert in the target collection
-                int insertIndex = dropInfo.InsertIndex;
-                if (targetCollection == sourceCollection && oldIndex < insertIndex)
-                {
-                    insertIndex--;
-                }
-
-                // Insert the item into the target collection
-                if (insertIndex >= 0)
-                {
-                    targetCollection.Insert(insertIndex, sourceItem);
-                }
-                else
-                {
-                    targetCollection.Add(sourceItem);
-                }
-
-                // Save the new order
-                DataCache.SaveItemOrder();
-            }
-            else if (dropInfo.Data is CollectionViewGroup)
-            {
-                MessageBox.Show("Moving categories is not implemented in this example.");
-            }
-        }
-
-        private IList GetUnderlyingCollection(object collection)
-        {
-            if (collection is CollectionViewGroup group)
-            {
-                return group.Items;
-            }
-            else if (collection is ICollectionView view)
-            {
-                return view.SourceCollection as IList;
-            }
-            else
-            {
-                return collection as IList;
-            }
         }
 
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)

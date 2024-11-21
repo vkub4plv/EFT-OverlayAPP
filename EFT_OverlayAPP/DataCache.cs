@@ -1,12 +1,13 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using Newtonsoft.Json;
 
 namespace EFT_OverlayAPP
 {
@@ -171,6 +172,38 @@ namespace EFT_OverlayAPP
                 CraftableItems.Clear();
                 CraftableItems.AddRange(sortedItems);
                 CraftableItems.AddRange(newItems);
+            }
+        }
+
+        // Methods for saving and loading favorite item order
+        public static void SaveFavoriteItemOrder(IList<CraftableItem> favoriteItems)
+        {
+            var itemOrder = favoriteItems.Select(i => i.Id).ToList();
+            string json = JsonConvert.SerializeObject(itemOrder);
+            File.WriteAllText("favoritesItemOrder.json", json);
+        }
+
+        public static void LoadFavoriteItemOrder(ObservableCollection<CraftableItem> favoriteItems)
+        {
+            if (File.Exists("favoritesItemOrder.json"))
+            {
+                string json = File.ReadAllText("favoritesItemOrder.json");
+                var itemOrder = JsonConvert.DeserializeObject<List<string>>(json);
+
+                var sortedItems = itemOrder
+                    .Select(id => favoriteItems.FirstOrDefault(i => i.Id == id))
+                    .Where(i => i != null)
+                    .ToList();
+
+                // Add any new items that were not in the saved order
+                var newItems = favoriteItems.Where(i => !itemOrder.Contains(i.Id)).ToList();
+
+                // Clear and re-populate the collection
+                favoriteItems.Clear();
+                foreach (var item in sortedItems.Concat(newItems))
+                {
+                    favoriteItems.Add(item);
+                }
             }
         }
 
