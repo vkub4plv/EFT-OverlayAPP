@@ -1,5 +1,4 @@
 ﻿using EFT_OverlayAPP;
-using GongSolutions.Wpf.DragDrop;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,6 +11,8 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Input;
+using System.Windows.Media;
 
 namespace EFT_OverlayAPP
 {
@@ -21,19 +22,6 @@ namespace EFT_OverlayAPP
         public ObservableCollection<CraftableItem> FavoriteItems { get; set; }
         public ICollectionView ItemsView { get; set; }
         public ICollectionView FavoritesView { get; set; }
-
-        public FavoritesDropHandler FavoritesDropHandler { get; set; }
-
-        private bool isFavoritesEditMode;
-        public bool IsFavoritesEditMode
-        {
-            get => isFavoritesEditMode;
-            set
-            {
-                isFavoritesEditMode = value;
-                OnPropertyChanged(nameof(IsFavoritesEditMode));
-            }
-        }
 
         private bool isLoading;
         public bool IsLoading
@@ -54,9 +42,6 @@ namespace EFT_OverlayAPP
             // Initialize collections
             CraftableItems = new ObservableCollection<CraftableItem>();
             FavoriteItems = new ObservableCollection<CraftableItem>();
-
-            // Initialize the drop handler
-            FavoritesDropHandler = new FavoritesDropHandler(this);
 
             // Subscribe to CollectionChanged event
             FavoriteItems.CollectionChanged += FavoriteItems_CollectionChanged;
@@ -128,8 +113,6 @@ namespace EFT_OverlayAPP
 
             FavoritesSearchTextBox.TextChanged += FavoritesSearchTextBox_TextChanged;
             FavoritesCategoryFilterComboBox.SelectionChanged += FavoritesCategoryFilterComboBox_SelectionChanged;
-            FavoritesEditModeToggleButton.Checked += FavoritesEditModeToggleButton_Checked;
-            FavoritesEditModeToggleButton.Unchecked += FavoritesEditModeToggleButton_Unchecked;
         }
 
         private void SetupItemsView()
@@ -260,16 +243,6 @@ namespace EFT_OverlayAPP
             FavoritesView.Refresh();
         }
 
-        private void FavoritesEditModeToggleButton_Checked(object sender, RoutedEventArgs e)
-        {
-            IsFavoritesEditMode = true;
-        }
-
-        private void FavoritesEditModeToggleButton_Unchecked(object sender, RoutedEventArgs e)
-        {
-            IsFavoritesEditMode = false;
-        }
-
         private void Item_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(CraftableItem.IsFavorite))
@@ -300,33 +273,6 @@ namespace EFT_OverlayAPP
             {
                 DataCache.SaveFavoriteItemOrder(FavoriteItems);
             }
-        }
-
-        private void FavoritesResetOrderButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (File.Exists("favoritesItemOrder.json"))
-            {
-                File.Delete("favoritesItemOrder.json");
-            }
-
-            IsLoading = true; // Show loading indicator
-
-            // Reload favorite items without any saved order
-            FavoriteItems.Clear();
-
-            // Re-populate FavoriteItems based on current favorites
-            foreach (var item in CraftableItems)
-            {
-                if (item.IsFavorite)
-                {
-                    FavoriteItems.Add(item);
-                }
-            }
-
-            // Refresh the favorites view
-            FavoritesView.Refresh();
-
-            IsLoading = false; // Hide loading indicator
         }
 
         private void StartButton_Click(object sender, RoutedEventArgs e)
@@ -363,6 +309,106 @@ namespace EFT_OverlayAPP
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged(string name) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+        // Drag-and-Drop Implementation for FavoritesListView
+
+        private Point _startPoint;
+
+        private void FavoritesListView_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // Store the mouse position
+            _startPoint = e.GetPosition(null);
+        }
+
+        private void FavoritesListView_PreviewMouseMove(object sender, MouseEventArgs e)
+        {
+            Point mousePos = e.GetPosition(null);
+            Vector diff = _startPoint - mousePos;
+
+            if (e.LeftButton == MouseButtonState.Pressed &&
+                (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance ||
+                 Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance))
+            {
+                // Get the dragged ListViewItem
+                ListView listView = sender as ListView;
+                ListViewItem listViewItem = FindAncestor<ListViewItem>((DependencyObject)e.OriginalSource);
+
+                if (listViewItem == null)
+                    return;
+
+                // Get the data bound to the ListViewItem
+                CraftableItem draggedItem = listView.ItemContainerGenerator.ItemFromContainer(listViewItem) as CraftableItem;
+
+                if (draggedItem != null)
+                {
+                    // Initialize the drag-and-drop operation
+                    DataObject dragData = new DataObject("CraftableItemFormat", draggedItem);
+                    DragDrop.DoDragDrop(listViewItem, dragData, DragDropEffects.Move);
+                }
+            }
+        }
+
+        private void FavoritesListView_Drop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent("CraftableItemFormat"))
+            {
+                CraftableItem droppedData = e.Data.GetData("CraftableItemFormat") as CraftableItem;
+                ListView listView = sender as ListView;
+
+                // Get the drop position
+                Point position = e.GetPosition(listView);
+                HitTestResult result = VisualTreeHelper.HitTest(listView, position);
+
+                // Try to find the target item
+                ListViewItem listViewItem = FindAncestor<ListViewItem>(result.VisualHit);
+
+                int removedIdx = FavoriteItems.IndexOf(droppedData);
+                int targetIdx = FavoriteItems.Count;
+
+                if (listViewItem != null)
+                {
+                    CraftableItem targetData = listView.ItemContainerGenerator.ItemFromContainer(listViewItem) as CraftableItem;
+                    targetIdx = FavoriteItems.IndexOf(targetData);
+                }
+                else
+                {
+                    // Handle dropping on group headers or empty spaces
+                    GroupItem groupItem = FindAncestor<GroupItem>(result.VisualHit);
+                    if (groupItem != null)
+                    {
+                        CollectionViewGroup group = groupItem.Content as CollectionViewGroup;
+                        if (group != null && group.ItemCount > 0)
+                        {
+                            var firstItemInGroup = group.Items[0] as CraftableItem;
+                            targetIdx = FavoriteItems.IndexOf(firstItemInGroup);
+                        }
+                    }
+                }
+
+                if (removedIdx >= 0 && targetIdx >= 0)
+                {
+                    if (removedIdx != targetIdx)
+                    {
+                        FavoriteItems.Move(removedIdx, targetIdx);
+                        DataCache.SaveFavoriteItemOrder(FavoriteItems);
+                    }
+                }
+            }
+        }
+
+        private static T FindAncestor<T>(DependencyObject current) where T : DependencyObject
+        {
+            do
+            {
+                if (current is T)
+                {
+                    return (T)current;
+                }
+                current = VisualTreeHelper.GetParent(current);
+            }
+            while (current != null);
+            return null;
+        }
     }
 
     // Classes for deserialization
