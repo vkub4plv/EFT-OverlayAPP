@@ -9,7 +9,6 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Diagnostics; // Added for Debugging
 
 namespace EFT_OverlayAPP
 {
@@ -109,9 +108,6 @@ namespace EFT_OverlayAPP
                             {
                                 int idx = StaticCategoryOrder.IndexOf(item.Station);
                                 item.StationIndex = idx >= 0 ? idx : StaticCategoryOrder.Count;
-
-                                // Log StationIndex assignment for debugging
-                                Debug.WriteLine($"Assigning StationIndex: {item.FirstRewardItemName} - {item.Station} - {item.StationIndex}");
                             }
                         }
                         else if (graphQLResponse.Errors != null && graphQLResponse.Errors.Length > 0)

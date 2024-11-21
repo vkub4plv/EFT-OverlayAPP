@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -105,19 +104,6 @@ namespace EFT_OverlayAPP
 
             // Load saved favorite item order
             DataCache.LoadFavoriteItemOrder(FavoriteItems);
-
-            // Log StaticCategoryOrder for debugging
-            Debug.WriteLine("StaticCategoryOrder:");
-            foreach (var category in DataCache.StaticCategoryOrder)
-            {
-                Debug.WriteLine($" - {category}");
-            }
-
-            // Log StationIndex and FavoriteSortOrder for CraftableItems
-            foreach (var item in CraftableItems)
-            {
-                Debug.WriteLine($"Item: {item.FirstRewardItemName}, Station: {item.Station}, StationIndex: {item.StationIndex}, FavoriteSortOrder: {item.FavoriteSortOrder}");
-            }
 
             // Set up views and filters
             SetupItemsView();
@@ -321,19 +307,6 @@ namespace EFT_OverlayAPP
             }
 
             FavoritesView.Refresh();
-
-            // Optional: Log applied sort descriptions for debugging
-            Debug.WriteLine("Applied SortDescriptions to All Items:");
-            foreach (var sortDescription in ItemsView.SortDescriptions)
-            {
-                Debug.WriteLine($" - {sortDescription.PropertyName}: {sortDescription.Direction}");
-            }
-
-            Debug.WriteLine("Applied SortDescriptions to Favorites:");
-            foreach (var sortDescription in FavoritesView.SortDescriptions)
-            {
-                Debug.WriteLine($" - {sortDescription.PropertyName}: {sortDescription.Direction}");
-            }
         }
 
         private void Item_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -481,9 +454,6 @@ namespace EFT_OverlayAPP
                     }
                 }
 
-                // Debugging Logs
-                Debug.WriteLine($"Drag Drop Operation: RemovedIdx={removedIdx}, TargetIdx={targetIdx}");
-
                 if (removedIdx >= 0 && targetIdx >= 0 && removedIdx != targetIdx)
                 {
                     // Prevent moving items across different categories
@@ -499,9 +469,6 @@ namespace EFT_OverlayAPP
 
                     // Move the item
                     FavoriteItems.Move(removedIdx, targetIdx);
-
-                    // Debugging Logs
-                    Debug.WriteLine($"Moved '{sourceItem.FirstRewardItemName}' from {removedIdx} to {targetIdx}");
 
                     // Update FavoriteSortOrder based on new positions within each category
                     UpdateFavoriteSortOrder();
@@ -535,7 +502,6 @@ namespace EFT_OverlayAPP
             if (File.Exists("favoritesItemOrder.json"))
             {
                 File.Delete("favoritesItemOrder.json");
-                Debug.WriteLine("Deleted favoritesItemOrder.json");
             }
 
             IsLoading = true; // Show loading indicator
@@ -588,13 +554,6 @@ namespace EFT_OverlayAPP
             for (int i = 0; i < unknownCategoryItems.Count; i++)
             {
                 unknownCategoryItems[i].FavoriteSortOrder = i;
-            }
-
-            // Log FavoriteSortOrder assignments for debugging
-            Debug.WriteLine("Updated FavoriteSortOrder:");
-            foreach (var item in FavoriteItems)
-            {
-                Debug.WriteLine($" - {item.FirstRewardItemName}: {item.FavoriteSortOrder}");
             }
         }
     }
