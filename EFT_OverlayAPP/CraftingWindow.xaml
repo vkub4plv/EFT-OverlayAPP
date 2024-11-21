@@ -20,10 +20,16 @@
                 <TabItem Header="All Items">
                     <!-- Main Content -->
                     <DockPanel>
-                        <!-- Search Bar and Category Filter -->
+                        <!-- Search Bar, Category Filter, and Sorting Options -->
                         <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="5">
                             <TextBox x:Name="SearchTextBox" Width="200" Margin="0,0,5,0"/>
                             <ComboBox x:Name="CategoryFilterComboBox" Width="150" Margin="0,0,5,0"/>
+                            <!-- Sorting Options -->
+                            <ComboBox x:Name="SortingComboBox" Width="150" Margin="0,0,5,0" SelectionChanged="SortingComboBox_SelectionChanged">
+                                <ComboBoxItem Content="Default" IsSelected="True"/>
+                                <ComboBoxItem Content="Name (A-Z)"/>
+                                <ComboBoxItem Content="Name (Z-A)"/>
+                            </ComboBox>
                         </StackPanel>
 
                         <!-- Item List -->

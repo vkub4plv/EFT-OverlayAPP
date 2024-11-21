@@ -25,6 +25,9 @@ namespace EFT_OverlayAPP
         // List to store favorite item IDs
         private static List<string> favoriteIds = new List<string>();
 
+        // List to store order of categories in favorite
+        public static List<string> CategoryOrder { get; private set; } = new List<string>();
+
         // Fetch data from the GraphQL API
         public static async Task<List<CraftableItem>> FetchCraftableItemsAsync()
         {
@@ -68,6 +71,7 @@ namespace EFT_OverlayAPP
 
                         if (graphQLResponse.Data != null && graphQLResponse.Data.Crafts != null)
                         {
+                            int index = 0;
                             foreach (var craft in graphQLResponse.Data.Crafts)
                             {
                                 var craftableItem = new CraftableItem
@@ -82,9 +86,20 @@ namespace EFT_OverlayAPP
                                         ShortName = rewardItem.Item.ShortName,
                                         IconLink = rewardItem.Item.IconLink,
                                         Quantity = rewardItem.Quantity
-                                    }).ToList()
+                                    }).ToList(),
+                                    OriginalIndex = index++
                                 };
                                 craftableItems.Add(craftableItem);
+                            }
+                            // Store the order of categories
+                            CategoryOrder = craftableItems.Select(item => item.Station)
+                                                          .Distinct()
+                                                          .ToList();
+
+                            // Set StationIndex for each item
+                            foreach (var item in craftableItems)
+                            {
+                                item.StationIndex = CategoryOrder.IndexOf(item.Station);
                             }
                         }
                         else if (graphQLResponse.Errors != null && graphQLResponse.Errors.Length > 0)
@@ -145,36 +160,6 @@ namespace EFT_OverlayAPP
             }
         }
 
-        // Persistence for Item Order
-        public static void SaveItemOrder()
-        {
-            var itemOrder = CraftableItems.Select(i => i.Id).ToList();
-            string json = JsonConvert.SerializeObject(itemOrder);
-            File.WriteAllText("itemOrder.json", json);
-        }
-
-        private static void LoadItemOrder()
-        {
-            if (File.Exists("itemOrder.json"))
-            {
-                string json = File.ReadAllText("itemOrder.json");
-                var itemOrder = JsonConvert.DeserializeObject<List<string>>(json);
-
-                var sortedItems = itemOrder
-                    .Select(id => CraftableItems.FirstOrDefault(i => i.Id == id))
-                    .Where(i => i != null)
-                    .ToList();
-
-                // Add any new items that were not in the saved order
-                var newItems = CraftableItems.Where(i => !itemOrder.Contains(i.Id));
-
-                // Re-populate the collection to reflect the saved order
-                CraftableItems.Clear();
-                CraftableItems.AddRange(sortedItems);
-                CraftableItems.AddRange(newItems);
-            }
-        }
-
         // Methods for saving and loading favorite item order
         public static void SaveFavoriteItemOrder(IList<CraftableItem> favoriteItems)
         {
@@ -220,8 +205,6 @@ namespace EFT_OverlayAPP
                     item.IsFavorite = favoriteIds.Contains(item.Id);
                     // No need to subscribe to PropertyChanged here
                 }
-
-                LoadItemOrder();
 
                 IsDataLoaded = true;
 

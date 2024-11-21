@@ -33,6 +33,7 @@ namespace EFT_OverlayAPP
                 OnPropertyChanged(nameof(IsLoading));
             }
         }
+        private bool isInitialized = false;
 
         public CraftingWindow()
         {
@@ -59,6 +60,9 @@ namespace EFT_OverlayAPP
                 IsLoading = true;
                 Task.Run(() => DataCache.LoadDataAsync());
             }
+
+            // Delay subscribing to the event handler
+            SortingComboBox.SelectionChanged += SortingComboBox_SelectionChanged;
         }
 
         private void OnDataLoaded()
@@ -67,6 +71,8 @@ namespace EFT_OverlayAPP
             {
                 InitializeData();
                 IsLoading = false;
+
+                isInitialized = true; // Set initialization flag
             });
         }
 
@@ -99,6 +105,7 @@ namespace EFT_OverlayAPP
 
             // Set up views and filters
             SetupItemsView();
+            ApplySorting(); // Apply initial sorting based on the default selection
             SetupFavoritesView();
             PopulateCategoryFilter();
             PopulateFavoritesCategoryFilter();
@@ -122,8 +129,11 @@ namespace EFT_OverlayAPP
             // Clear existing group descriptions
             ItemsView.GroupDescriptions.Clear();
 
+            // Create a custom PropertyGroupDescription with custom comparer
+            var groupDescription = new PropertyGroupDescription("Station");
+
             // Add new group description
-            ItemsView.GroupDescriptions.Add(new PropertyGroupDescription("Station"));
+            ItemsView.GroupDescriptions.Add(groupDescription);
 
             ItemsView.Filter = ItemsFilter;
 
@@ -137,13 +147,16 @@ namespace EFT_OverlayAPP
             // Clear existing group descriptions
             FavoritesView.GroupDescriptions.Clear();
 
-            // Add new group description
-            FavoritesView.GroupDescriptions.Add(new PropertyGroupDescription("Station"));
+            // Create a custom PropertyGroupDescription with custom comparer
+            var groupDescription = new PropertyGroupDescription("Station");
+
+            FavoritesView.GroupDescriptions.Add(groupDescription);
 
             FavoritesView.Filter = FavoritesFilter;
 
             FavoritesListView.ItemsSource = FavoritesView;
         }
+
 
         private void PopulateCategoryFilter()
         {
@@ -241,6 +254,16 @@ namespace EFT_OverlayAPP
         private void FavoritesCategoryFilterComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             FavoritesView.Refresh();
+        }
+
+        private void SortingComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!isInitialized)
+            {
+                return;
+            }
+
+            ApplySorting();
         }
 
         private void Item_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -437,6 +460,39 @@ namespace EFT_OverlayAPP
             IsLoading = false; // Hide loading indicator
         }
 
+        private void ApplySorting()
+        {
+            if (ItemsView == null)
+            {
+                return;
+            }
+
+            var selectedSorting = (SortingComboBox.SelectedItem as ComboBoxItem)?.Content as string;
+
+            // Clear existing sort descriptions
+            ItemsView.SortDescriptions.Clear();
+
+            // Always sort by StationIndex first to maintain group order
+            ItemsView.SortDescriptions.Add(new SortDescription(nameof(CraftableItem.StationIndex), ListSortDirection.Ascending));
+
+            if (selectedSorting == "Name (A-Z)")
+            {
+                // Then sort items within groups
+                ItemsView.SortDescriptions.Add(new SortDescription(nameof(CraftableItem.FirstRewardItemName), ListSortDirection.Ascending));
+            }
+            else if (selectedSorting == "Name (Z-A)")
+            {
+                // Then sort items within groups
+                ItemsView.SortDescriptions.Add(new SortDescription(nameof(CraftableItem.FirstRewardItemName), ListSortDirection.Descending));
+            }
+            else
+            {
+                // Then sort by OriginalIndex to maintain original item order within groups
+                ItemsView.SortDescriptions.Add(new SortDescription(nameof(CraftableItem.OriginalIndex), ListSortDirection.Ascending));
+            }
+
+            ItemsView.Refresh();
+        }
     }
 
     // Classes for deserialization
@@ -480,6 +536,7 @@ namespace EFT_OverlayAPP
         public string Id { get; set; } // Unique identifier
         public string Station { get; set; } // Crafting station (category)
         public TimeSpan CraftTime { get; set; }
+        public int StationIndex { get; set; }
         public string CraftTimeString => CraftTime.ToString(@"hh\:mm\:ss");
 
         public List<RewardItemDetail> RewardItems { get; set; } // List of reward items
@@ -493,6 +550,13 @@ namespace EFT_OverlayAPP
                 isFavorite = value;
                 OnPropertyChanged(nameof(IsFavorite));
             }
+        }
+
+        public int OriginalIndex { get; set; }
+
+        public string FirstRewardItemName
+        {
+            get => RewardItems.FirstOrDefault()?.Name ?? string.Empty;
         }
 
         // Implement INotifyPropertyChanged
