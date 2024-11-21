@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -33,6 +34,7 @@ namespace EFT_OverlayAPP
                 OnPropertyChanged(nameof(IsLoading));
             }
         }
+
         private bool isInitialized = false;
 
         public CraftingWindow()
@@ -54,6 +56,7 @@ namespace EFT_OverlayAPP
             if (DataCache.IsDataLoaded)
             {
                 InitializeData();
+                isInitialized = true;
             }
             else
             {
@@ -61,7 +64,7 @@ namespace EFT_OverlayAPP
                 Task.Run(() => DataCache.LoadDataAsync());
             }
 
-            // Delay subscribing to the event handler
+            // Subscribe to event handlers after initialization
             SortingComboBox.SelectionChanged += SortingComboBox_SelectionChanged;
         }
 
@@ -103,18 +106,33 @@ namespace EFT_OverlayAPP
             // Load saved favorite item order
             DataCache.LoadFavoriteItemOrder(FavoriteItems);
 
+            // Log StaticCategoryOrder for debugging
+            Debug.WriteLine("StaticCategoryOrder:");
+            foreach (var category in DataCache.StaticCategoryOrder)
+            {
+                Debug.WriteLine($" - {category}");
+            }
+
+            // Log StationIndex and FavoriteSortOrder for CraftableItems
+            foreach (var item in CraftableItems)
+            {
+                Debug.WriteLine($"Item: {item.FirstRewardItemName}, Station: {item.Station}, StationIndex: {item.StationIndex}, FavoriteSortOrder: {item.FavoriteSortOrder}");
+            }
+
             // Set up views and filters
             SetupItemsView();
-            ApplySorting(); // Apply initial sorting based on the default selection
             SetupFavoritesView();
             PopulateCategoryFilter();
             PopulateFavoritesCategoryFilter();
+
+            // Apply initial sorting based on the default selection
+            ApplySorting();
 
             // Refresh views
             ItemsView?.Refresh();
             FavoritesView?.Refresh();
 
-            // Event handlers
+            // Subscribe to event handlers
             SearchTextBox.TextChanged += SearchTextBox_TextChanged;
             CategoryFilterComboBox.SelectionChanged += CategoryFilterComboBox_SelectionChanged;
 
@@ -129,11 +147,8 @@ namespace EFT_OverlayAPP
             // Clear existing group descriptions
             ItemsView.GroupDescriptions.Clear();
 
-            // Create a custom PropertyGroupDescription with custom comparer
-            var groupDescription = new PropertyGroupDescription("Station");
-
-            // Add new group description
-            ItemsView.GroupDescriptions.Add(groupDescription);
+            // Group by Station
+            ItemsView.GroupDescriptions.Add(new PropertyGroupDescription("Station"));
 
             ItemsView.Filter = ItemsFilter;
 
@@ -147,16 +162,13 @@ namespace EFT_OverlayAPP
             // Clear existing group descriptions
             FavoritesView.GroupDescriptions.Clear();
 
-            // Create a custom PropertyGroupDescription with custom comparer
-            var groupDescription = new PropertyGroupDescription("Station");
-
-            FavoritesView.GroupDescriptions.Add(groupDescription);
+            // Group by Station
+            FavoritesView.GroupDescriptions.Add(new PropertyGroupDescription("Station"));
 
             FavoritesView.Filter = FavoritesFilter;
 
             FavoritesListView.ItemsSource = FavoritesView;
         }
-
 
         private void PopulateCategoryFilter()
         {
@@ -170,10 +182,10 @@ namespace EFT_OverlayAPP
             // Get unique categories from the items
             var categories = new HashSet<string>(CraftableItems.Select(i => i.Station));
 
-            // Add categories to the ComboBox
-            foreach (var category in categories)
+            // Add categories to the ComboBox in the static order
+            foreach (var category in DataCache.StaticCategoryOrder)
             {
-                if (!string.IsNullOrEmpty(category))
+                if (!string.IsNullOrEmpty(category) && categories.Contains(category))
                 {
                     CategoryFilterComboBox.Items.Add(category);
                 }
@@ -192,10 +204,10 @@ namespace EFT_OverlayAPP
             // Get unique categories from the favorite items
             var categories = new HashSet<string>(FavoriteItems.Select(i => i.Station));
 
-            // Add categories to the ComboBox
-            foreach (var category in categories)
+            // Add categories to the ComboBox in the static order
+            foreach (var category in DataCache.StaticCategoryOrder)
             {
-                if (!string.IsNullOrEmpty(category))
+                if (!string.IsNullOrEmpty(category) && categories.Contains(category))
                 {
                     FavoritesCategoryFilterComboBox.Items.Add(category);
                 }
@@ -266,6 +278,64 @@ namespace EFT_OverlayAPP
             ApplySorting();
         }
 
+        private void ApplySorting()
+        {
+            if (ItemsView == null || FavoritesView == null)
+            {
+                return;
+            }
+
+            var selectedSorting = (SortingComboBox.SelectedItem as ComboBoxItem)?.Content as string;
+
+            // Apply sorting to All Items
+            ItemsView.SortDescriptions.Clear();
+            ItemsView.SortDescriptions.Add(new SortDescription(nameof(CraftableItem.StationIndex), ListSortDirection.Ascending));
+
+            if (selectedSorting == "Name (A-Z)")
+            {
+                ItemsView.SortDescriptions.Add(new SortDescription(nameof(CraftableItem.FirstRewardItemName), ListSortDirection.Ascending));
+            }
+            else if (selectedSorting == "Name (Z-A)")
+            {
+                ItemsView.SortDescriptions.Add(new SortDescription(nameof(CraftableItem.FirstRewardItemName), ListSortDirection.Descending));
+            }
+            else
+            {
+                ItemsView.SortDescriptions.Add(new SortDescription(nameof(CraftableItem.OriginalIndex), ListSortDirection.Ascending));
+            }
+
+            ItemsView.Refresh();
+
+            // Apply sorting to Favorites
+            FavoritesView.SortDescriptions.Clear();
+            FavoritesView.SortDescriptions.Add(new SortDescription(nameof(CraftableItem.StationIndex), ListSortDirection.Ascending));
+            FavoritesView.SortDescriptions.Add(new SortDescription(nameof(CraftableItem.FavoriteSortOrder), ListSortDirection.Ascending));
+
+            if (selectedSorting == "Name (A-Z)")
+            {
+                FavoritesView.SortDescriptions.Add(new SortDescription(nameof(CraftableItem.FirstRewardItemName), ListSortDirection.Ascending));
+            }
+            else if (selectedSorting == "Name (Z-A)")
+            {
+                FavoritesView.SortDescriptions.Add(new SortDescription(nameof(CraftableItem.FirstRewardItemName), ListSortDirection.Descending));
+            }
+
+            FavoritesView.Refresh();
+
+            // Optional: Log applied sort descriptions for debugging
+            Debug.WriteLine("Applied SortDescriptions to All Items:");
+            foreach (var sortDescription in ItemsView.SortDescriptions)
+            {
+                Debug.WriteLine($" - {sortDescription.PropertyName}: {sortDescription.Direction}");
+            }
+
+            Debug.WriteLine("Applied SortDescriptions to Favorites:");
+            foreach (var sortDescription in FavoritesView.SortDescriptions)
+            {
+                Debug.WriteLine($" - {sortDescription.PropertyName}: {sortDescription.Direction}");
+            }
+        }
+
         private void Item_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(CraftableItem.IsFavorite))
@@ -275,6 +345,7 @@ namespace EFT_OverlayAPP
                 // Avoid duplicate entries in FavoriteItems
                 if (item.IsFavorite && !FavoriteItems.Contains(item))
                 {
+                    item.FavoriteSortOrder = FavoriteItems.Count; // Assign the next sort order
                     FavoriteItems.Add(item);
                     DataCache.AddFavoriteId(item.Id);
                 }
@@ -292,7 +363,9 @@ namespace EFT_OverlayAPP
 
         private void FavoriteItems_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            if (e.Action == NotifyCollectionChangedAction.Move)
+            if (e.Action == NotifyCollectionChangedAction.Move ||
+                e.Action == NotifyCollectionChangedAction.Add ||
+                e.Action == NotifyCollectionChangedAction.Remove)
             {
                 DataCache.SaveFavoriteItemOrder(FavoriteItems);
             }
@@ -408,13 +481,26 @@ namespace EFT_OverlayAPP
                     }
                 }
 
-                if (removedIdx >= 0 && targetIdx >= 0)
+                if (removedIdx >= 0 && targetIdx >= 0 && removedIdx != targetIdx)
                 {
-                    if (removedIdx != targetIdx)
+                    // Prevent moving items across different categories
+                    var sourceItem = FavoriteItems[removedIdx];
+                    var targetItem = targetIdx < FavoriteItems.Count ? FavoriteItems[targetIdx] : null;
+
+                    if (targetItem != null && sourceItem.Station != targetItem.Station)
                     {
-                        FavoriteItems.Move(removedIdx, targetIdx);
-                        DataCache.SaveFavoriteItemOrder(FavoriteItems);
+                        // Inform the user that cross-category reordering is not allowed
+                        MessageBox.Show("You can only reorder items within the same category.", "Reordering Not Allowed", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
                     }
+
+                    // Move the item
+                    FavoriteItems.Move(removedIdx, targetIdx);
+
+                    // Update FavoriteSortOrder based on new positions within each category
+                    UpdateFavoriteSortOrder();
+
+                    DataCache.SaveFavoriteItemOrder(FavoriteItems);
                 }
             }
         }
@@ -438,6 +524,7 @@ namespace EFT_OverlayAPP
             if (File.Exists("favoritesItemOrder.json"))
             {
                 File.Delete("favoritesItemOrder.json");
+                Debug.WriteLine("Deleted favoritesItemOrder.json");
             }
 
             IsLoading = true; // Show loading indicator
@@ -445,132 +532,34 @@ namespace EFT_OverlayAPP
             // Clear the FavoriteItems collection
             FavoriteItems.Clear();
 
-            // Re-populate FavoriteItems based on current favorites in default order
-            foreach (var item in CraftableItems)
+            // Re-populate FavoriteItems based on current favorites in static category order
+            foreach (var category in DataCache.StaticCategoryOrder)
             {
-                if (item.IsFavorite)
+                var itemsInCategory = DataCache.CraftableItems
+                    .Where(i => i.IsFavorite && i.Station == category)
+                    .OrderBy(i => i.OriginalIndex) // Preserve original API order within category
+                    .ToList();
+
+                foreach (var item in itemsInCategory)
                 {
+                    item.FavoriteSortOrder = FavoriteItems.Count;
                     FavoriteItems.Add(item);
                 }
             }
 
             // Refresh the favorites view
-            FavoritesView.Refresh();
+            ApplySorting(); // Re-apply sorting to FavoritesView
 
             IsLoading = false; // Hide loading indicator
         }
 
-        private void ApplySorting()
+        private void UpdateFavoriteSortOrder()
         {
-            if (ItemsView == null)
+            // Assign FavoriteSortOrder based on the current order in FavoriteItems
+            for (int i = 0; i < FavoriteItems.Count; i++)
             {
-                return;
-            }
-
-            var selectedSorting = (SortingComboBox.SelectedItem as ComboBoxItem)?.Content as string;
-
-            // Clear existing sort descriptions
-            ItemsView.SortDescriptions.Clear();
-
-            // Always sort by StationIndex first to maintain group order
-            ItemsView.SortDescriptions.Add(new SortDescription(nameof(CraftableItem.StationIndex), ListSortDirection.Ascending));
-
-            if (selectedSorting == "Name (A-Z)")
-            {
-                // Then sort items within groups
-                ItemsView.SortDescriptions.Add(new SortDescription(nameof(CraftableItem.FirstRewardItemName), ListSortDirection.Ascending));
-            }
-            else if (selectedSorting == "Name (Z-A)")
-            {
-                // Then sort items within groups
-                ItemsView.SortDescriptions.Add(new SortDescription(nameof(CraftableItem.FirstRewardItemName), ListSortDirection.Descending));
-            }
-            else
-            {
-                // Then sort by OriginalIndex to maintain original item order within groups
-                ItemsView.SortDescriptions.Add(new SortDescription(nameof(CraftableItem.OriginalIndex), ListSortDirection.Ascending));
-            }
-
-            ItemsView.Refresh();
-        }
-    }
-
-    // Classes for deserialization
-    public class GraphQLCraftsResponse
-    {
-        public CraftsData Data { get; set; }
-        public GraphQLError[] Errors { get; set; }
-    }
-
-    public class CraftsData
-    {
-        public List<Craft> Crafts { get; set; }
-    }
-
-    public class Craft
-    {
-        public string Id { get; set; }
-        public Station Station { get; set; }
-        public int? Duration { get; set; }
-        public List<RewardItem> RewardItems { get; set; }
-    }
-
-    public class Station
-    {
-        public string Name { get; set; }
-    }
-
-    public class RewardItem
-    {
-        public RewardItemDetail Item { get; set; }
-        public int Quantity { get; set; }
-    }
-
-    public class GraphQLError
-    {
-        public string Message { get; set; }
-    }
-
-    public class CraftableItem : INotifyPropertyChanged
-    {
-        public string Id { get; set; } // Unique identifier
-        public string Station { get; set; } // Crafting station (category)
-        public TimeSpan CraftTime { get; set; }
-        public int StationIndex { get; set; }
-        public string CraftTimeString => CraftTime.ToString(@"hh\:mm\:ss");
-
-        public List<RewardItemDetail> RewardItems { get; set; } // List of reward items
-
-        private bool isFavorite;
-        public bool IsFavorite
-        {
-            get => isFavorite;
-            set
-            {
-                isFavorite = value;
-                OnPropertyChanged(nameof(IsFavorite));
+                FavoriteItems[i].FavoriteSortOrder = i;
             }
         }
-
-        public int OriginalIndex { get; set; }
-
-        public string FirstRewardItemName
-        {
-            get => RewardItems.FirstOrDefault()?.Name ?? string.Empty;
-        }
-
-        // Implement INotifyPropertyChanged
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged(string name) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-    }
-
-    public class RewardItemDetail
-    {
-        public string Id { get; set; }
-        public string Name { get; set; }
-        public string ShortName { get; set; }
-        public string IconLink { get; set; }
-        public int Quantity { get; set; }
     }
 }
