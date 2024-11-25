@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace EFT_OverlayAPP
 {
@@ -539,6 +540,42 @@ namespace EFT_OverlayAPP
                 }
             }
             return "";
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class StationNameToIconConverter : IValueConverter
+    {
+        public string IconFolderPath { get; set; } = "StationIcons";
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is string stationName)
+            {
+                // Build the icon path
+                var iconFileName = $"{stationName}.png";
+                var iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, IconFolderPath, iconFileName);
+
+                // Check if the file exists
+                if (File.Exists(iconPath))
+                {
+                    return new BitmapImage(new Uri(iconPath));
+                }
+                else
+                {
+                    // Optionally, return a default icon if the specific icon is missing
+                    var defaultIconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, IconFolderPath, "default.png");
+                    if (File.Exists(defaultIconPath))
+                    {
+                        return new BitmapImage(new Uri(defaultIconPath));
+                    }
+                }
+            }
+            return null; // Return null if no icon is found
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

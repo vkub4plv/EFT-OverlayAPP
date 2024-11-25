@@ -11,7 +11,33 @@
     <Window.Resources>
         <local:RemainingTimeToBlackOrGreenConverter x:Key="RemainingTimeToBlackOrGreenConverter"/>
         <local:TimeSpanToStringConverter x:Key="TimeSpanToStringConverter"/>
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <local:StationNameToIconConverter x:Key="StationNameToIconConverter"/>
+
+        <GroupStyle x:Key="StationGroupStyle">
+            <GroupStyle.ContainerStyle>
+                <Style TargetType="{x:Type GroupItem}">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type GroupItem}">
+                                <StackPanel>
+                                    <!-- Header -->
+                                    <DockPanel Background="LightGray" Margin="0,5,0,0" Height="30">
+                                        <Image Source="{Binding Name, Converter={StaticResource StationNameToIconConverter}}"
+                                           Height="24" Width="24" Margin="5,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding Name}"
+                                               FontWeight="Bold" FontSize="16"
+                                               Padding="5" VerticalAlignment="Center"/>
+                                    </DockPanel>
+                                    <!-- Items Presenter -->
+                                    <ItemsPresenter/>
+                                </StackPanel>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </GroupStyle.ContainerStyle>
+        </GroupStyle>
     </Window.Resources>
 
     <Grid>
@@ -75,28 +101,9 @@
                                     </StackPanel>
                                 </DataTemplate>
                             </ListView.ItemTemplate>
-                            <!-- Define Grouping Style -->
+                            <!-- Apply the GroupStyle -->
                             <ListView.GroupStyle>
-                                <GroupStyle>
-                                    <GroupStyle.ContainerStyle>
-                                        <Style TargetType="{x:Type GroupItem}">
-                                            <Setter Property="Template">
-                                                <Setter.Value>
-                                                    <ControlTemplate TargetType="{x:Type GroupItem}">
-                                                        <StackPanel>
-                                                            <!-- Header -->
-                                                            <DockPanel Background="LightGray" Margin="0,5,0,0" Height="30">
-                                                                <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="16" Padding="5" VerticalAlignment="Center"/>
-                                                            </DockPanel>
-                                                            <!-- Items Presenter -->
-                                                            <ItemsPresenter/>
-                                                        </StackPanel>
-                                                    </ControlTemplate>
-                                                </Setter.Value>
-                                            </Setter>
-                                        </Style>
-                                    </GroupStyle.ContainerStyle>
-                                </GroupStyle>
+                                <StaticResource ResourceKey="StationGroupStyle"/>
                             </ListView.GroupStyle>
                         </ListView>
                     </DockPanel>
@@ -158,28 +165,9 @@
                                     </StackPanel>
                                 </DataTemplate>
                             </ListView.ItemTemplate>
-                            <!-- Define Grouping Style -->
+                            <!-- Apply the GroupStyle -->
                             <ListView.GroupStyle>
-                                <GroupStyle>
-                                    <GroupStyle.ContainerStyle>
-                                        <Style TargetType="{x:Type GroupItem}">
-                                            <Setter Property="Template">
-                                                <Setter.Value>
-                                                    <ControlTemplate TargetType="{x:Type GroupItem}">
-                                                        <StackPanel>
-                                                            <!-- Header -->
-                                                            <DockPanel Background="LightGray" Margin="0,5,0,0" Height="30">
-                                                                <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="16" Padding="5" VerticalAlignment="Center"/>
-                                                            </DockPanel>
-                                                            <!-- Items Presenter -->
-                                                            <ItemsPresenter/>
-                                                        </StackPanel>
-                                                    </ControlTemplate>
-                                                </Setter.Value>
-                                            </Setter>
-                                        </Style>
-                                    </GroupStyle.ContainerStyle>
-                                </GroupStyle>
+                                <StaticResource ResourceKey="StationGroupStyle"/>
                             </ListView.GroupStyle>
                         </ListView>
                     </DockPanel>
@@ -238,28 +226,9 @@
                                 </DataTemplate>
                             </ListView.ItemTemplate>
 
-                            <!-- Define Grouping Style -->
+                            <!-- Apply the GroupStyle -->
                             <ListView.GroupStyle>
-                                <GroupStyle>
-                                    <GroupStyle.ContainerStyle>
-                                        <Style TargetType="{x:Type GroupItem}">
-                                            <Setter Property="Template">
-                                                <Setter.Value>
-                                                    <ControlTemplate TargetType="{x:Type GroupItem}">
-                                                        <StackPanel>
-                                                            <!-- Header -->
-                                                            <DockPanel Background="LightGray" Margin="0,5,0,0" Height="30">
-                                                                <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="16" Padding="5" VerticalAlignment="Center"/>
-                                                            </DockPanel>
-                                                            <!-- Items Presenter -->
-                                                            <ItemsPresenter/>
-                                                        </StackPanel>
-                                                    </ControlTemplate>
-                                                </Setter.Value>
-                                            </Setter>
-                                        </Style>
-                                    </GroupStyle.ContainerStyle>
-                                </GroupStyle>
+                                <StaticResource ResourceKey="StationGroupStyle"/>
                             </ListView.GroupStyle>
                         </ListView>
                     </DockPanel>
