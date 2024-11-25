@@ -24,6 +24,7 @@ namespace EFT_OverlayAPP
 
         private CraftingWindow craftingWindow;
         private WebViewWindow webViewWindow;
+        private OthersWindow othersWindow;
         private IntPtr hwnd;
 
         private DispatcherTimer timer;
@@ -59,6 +60,10 @@ namespace EFT_OverlayAPP
             webViewWindow = new WebViewWindow(this);
             webViewWindow.Show();
 
+            // Show the OthersWindow
+            othersWindow = new OthersWindow(this);
+            othersWindow.Show();
+
             // Register the global hotkeys
             source = HwndSource.FromHwnd(hwnd);
             source.AddHook(HwndHook);
@@ -71,6 +76,13 @@ namespace EFT_OverlayAPP
             {
                 webViewWindow.Close();
                 webViewWindow = null;
+            }
+
+            // Close the OthersWindow
+            if (othersWindow != null)
+            {
+                othersWindow.Close();
+                othersWindow = null;
             }
 
             CloseCraftingWindow();
@@ -156,7 +168,7 @@ namespace EFT_OverlayAPP
         }
 
         // Method to open the CraftingWindow
-        private void OpenCraftingWindow()
+        public void OpenCraftingWindow()
         {
             if (craftingWindow == null)
             {

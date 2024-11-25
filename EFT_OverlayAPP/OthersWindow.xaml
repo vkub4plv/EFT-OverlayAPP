@@ -1,0 +1,34 @@
+﻿<Window x:Class="EFT_OverlayAPP.OthersWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:EFT_OverlayAPP"
+        mc:Ignorable="d"
+        Title="OthersWindow"
+        Width="100"
+        Height="30"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        ResizeMode="NoResize"
+        Loaded="Window_Loaded"
+        >
+    <Grid>
+        <!-- Open Crafting Window Button -->
+        <Button x:Name="OpenCraftingWindowButton"
+                Content="Crafting"
+                Width="100"
+                Height="30"
+                Click="OpenCraftingWindowButton_Click"
+                Background="#55000000"
+                Foreground="White"
+                BorderBrush="Gray"
+                BorderThickness="1"
+                Opacity="0.8"
+                FontSize="14"
+                />
+    </Grid>
+</Window>
