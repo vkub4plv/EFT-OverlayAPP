@@ -13,15 +13,22 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace EFT_OverlayAPP
 {
     public partial class CraftingWindow : Window, INotifyPropertyChanged
     {
+        // Reference to MainWindow to update overlay
+        public MainWindow MainWindow { get; set; }
         public ObservableCollection<CraftableItem> CraftableItems { get; set; }
         public ObservableCollection<CraftableItem> FavoriteItems { get; set; }
+        public ObservableCollection<CraftableItem> ActiveCrafts { get; set; } = new ObservableCollection<CraftableItem>();
+        public ICollectionView ActiveCraftsView { get; set; }
         public ICollectionView ItemsView { get; set; }
         public ICollectionView FavoritesView { get; set; }
+        // Dictionary to track active crafts per station
+        private Dictionary<string, CraftableItem> activeCraftsPerStation = new Dictionary<string, CraftableItem>();
 
         private bool isLoading;
         public bool IsLoading
@@ -36,9 +43,11 @@ namespace EFT_OverlayAPP
 
         private bool isInitialized = false;
 
-        public CraftingWindow()
+        // Constructor updated to accept MainWindow reference
+        public CraftingWindow(MainWindow mainWindow)
         {
             InitializeComponent();
+            MainWindow = mainWindow;
             DataContext = this;
 
             // Initialize collections
@@ -47,6 +56,7 @@ namespace EFT_OverlayAPP
 
             // Subscribe to CollectionChanged event
             FavoriteItems.CollectionChanged += FavoriteItems_CollectionChanged;
+            ActiveCrafts.CollectionChanged += ActiveCrafts_CollectionChanged;
 
             // Subscribe to the DataLoaded event
             DataCache.DataLoaded += OnDataLoaded;
@@ -108,8 +118,10 @@ namespace EFT_OverlayAPP
             // Set up views and filters
             SetupItemsView();
             SetupFavoritesView();
+            SetupActiveCraftsView();
             PopulateCategoryFilter();
             PopulateFavoritesCategoryFilter();
+            PopulateActiveCraftsCategoryFilter();
 
             // Apply initial sorting based on the default selection
             ApplySorting();
@@ -124,6 +136,9 @@ namespace EFT_OverlayAPP
 
             FavoritesSearchTextBox.TextChanged += FavoritesSearchTextBox_TextChanged;
             FavoritesCategoryFilterComboBox.SelectionChanged += FavoritesCategoryFilterComboBox_SelectionChanged;
+
+            ActiveCraftsSearchTextBox.TextChanged += ActiveCraftsSearchTextBox_TextChanged;
+            ActiveCraftsCategoryFilterComboBox.SelectionChanged += ActiveCraftsCategoryFilterComboBox_SelectionChanged;
         }
 
         private void SetupItemsView()
@@ -200,6 +215,28 @@ namespace EFT_OverlayAPP
             }
         }
 
+        private void PopulateActiveCraftsCategoryFilter()
+        {
+            // Clear existing items
+            ActiveCraftsCategoryFilterComboBox.Items.Clear();
+
+            // Add "All Categories" as the first item
+            ActiveCraftsCategoryFilterComboBox.Items.Add("All Categories");
+            ActiveCraftsCategoryFilterComboBox.SelectedIndex = 0;
+
+            // Get unique categories from the active crafts
+            var categories = new HashSet<string>(ActiveCrafts.Select(i => i.Station));
+
+            // Add categories to the ComboBox in the static order
+            foreach (var category in DataCache.StaticCategoryOrder)
+            {
+                if (!string.IsNullOrEmpty(category) && categories.Contains(category))
+                {
+                    ActiveCraftsCategoryFilterComboBox.Items.Add(category);
+                }
+            }
+        }
+
         private bool ItemsFilter(object item)
         {
             var craftableItem = item as CraftableItem;
@@ -234,6 +271,138 @@ namespace EFT_OverlayAPP
             return craftableItem.IsFavorite && matchesSearch && matchesCategory;
         }
 
+        // Handle Start/Stop/Finish button clicks
+        private void StartButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.DataContext is CraftableItem item)
+            {
+                HandleCraftAction(item);
+            }
+        }
+
+        private void HandleCraftAction(CraftableItem item)
+        {
+            switch (item.CraftStatus)
+            {
+                case CraftStatus.NotStarted:
+                    StartCraft(item);
+                    break;
+                case CraftStatus.InProgress:
+                    StopCraft(item);
+                    break;
+                case CraftStatus.Ready:
+                    FinishCraft(item);
+                    break;
+            }
+        }
+
+        private void StartCraft(CraftableItem item)
+        {
+            // Check for existing craft in the same station
+            if (activeCraftsPerStation.TryGetValue(item.Station, out var existingItem))
+            {
+                if (existingItem.CraftStatus == CraftStatus.InProgress)
+                {
+                    var result = MessageBox.Show($"Another craft is in progress on {item.Station}. Do you want to replace it?", "Confirm Replace", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        StopCraft(existingItem);
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+                else if (existingItem.CraftStatus == CraftStatus.Ready)
+                {
+                    FinishCraft(existingItem);
+                }
+            }
+
+            // Start the new craft
+            item.CraftStatus = CraftStatus.InProgress;
+            item.CraftStartTime = DateTime.Now;
+            activeCraftsPerStation[item.Station] = item;
+
+            if (!ActiveCrafts.Contains(item))
+            {
+                ActiveCrafts.Add(item);
+                ActiveCraftsView?.Refresh(); // Refresh the view
+            }
+
+            StartCraftTimer(item);
+            MainWindow?.UpdateCraftDisplay(item, remove: false);
+        }
+
+        private void StopCraft(CraftableItem item)
+        {
+            // Stop and remove the craft
+            item.CraftStatus = CraftStatus.NotStarted;
+            item.CraftStartTime = DateTime.MinValue;
+            activeCraftsPerStation.Remove(item.Station);
+            ActiveCrafts.Remove(item);
+            MainWindow?.UpdateCraftDisplay(item, remove: true);
+        }
+
+        private void FinishCraft(CraftableItem item)
+        {
+            // Finish and remove the craft
+            item.CraftStatus = CraftStatus.NotStarted;
+            item.CraftStartTime = DateTime.MinValue;
+            activeCraftsPerStation.Remove(item.Station);
+            ActiveCrafts.Remove(item);
+            MainWindow?.UpdateCraftDisplay(item, remove: true);
+        }
+
+        private void StartCraftTimer(CraftableItem item)
+        {
+            var timer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(1)
+            };
+
+            timer.Tick += (s, e) =>
+            {
+                if (item.CraftStatus == CraftStatus.InProgress)
+                {
+                    if (item.RemainingTime <= TimeSpan.Zero)
+                    {
+                        item.CraftStatus = CraftStatus.Ready;
+                        // Raise PropertyChanged for RemainingTime and RemainingTimeString
+                        item.OnPropertyChanged(nameof(CraftableItem.RemainingTime));
+                        item.OnPropertyChanged(nameof(CraftableItem.RemainingTimeString));
+                        timer.Stop();
+                    }
+                    else
+                    {
+                        item.OnPropertyChanged(nameof(CraftableItem.RemainingTime));
+                    }
+                }
+                else
+                {
+                    timer.Stop();
+                }
+            };
+
+            timer.Start();
+        }
+
+        private void SetupActiveCraftsView()
+        {
+            ActiveCraftsView = CollectionViewSource.GetDefaultView(ActiveCrafts);
+
+            // Clear existing group descriptions
+            ActiveCraftsView.GroupDescriptions.Clear();
+
+            // Group by Station
+            ActiveCraftsView.GroupDescriptions.Add(new PropertyGroupDescription("Station"));
+
+            ActiveCraftsView.Filter = ActiveCraftsFilter;
+
+            ActiveCraftsListView.ItemsSource = ActiveCraftsView;
+        }
+
+
         private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             ItemsView.Refresh();
@@ -262,6 +431,39 @@ namespace EFT_OverlayAPP
             }
 
             ApplySorting();
+        }
+
+        private void ActiveCrafts_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            PopulateActiveCraftsCategoryFilter();
+            ActiveCraftsView?.Refresh();
+        }
+
+        private void ActiveCraftsSearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            ActiveCraftsView?.Refresh();
+        }
+
+        private void ActiveCraftsCategoryFilterComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            ActiveCraftsView?.Refresh();
+        }
+
+        private bool ActiveCraftsFilter(object item)
+        {
+            var craftableItem = item as CraftableItem;
+            if (craftableItem == null) return false;
+
+            string searchText = ActiveCraftsSearchTextBox.Text?.ToLower() ?? string.Empty;
+            string selectedCategory = ActiveCraftsCategoryFilterComboBox.SelectedItem as string ?? "All Categories";
+
+            bool matchesSearch = string.IsNullOrEmpty(searchText) ||
+                                 craftableItem.RewardItems.Any(r => r.Name.ToLower().Contains(searchText));
+
+            bool matchesCategory = selectedCategory == "All Categories" ||
+                                   craftableItem.Station == selectedCategory;
+
+            return matchesSearch && matchesCategory;
         }
 
         private void ApplySorting()
@@ -342,22 +544,6 @@ namespace EFT_OverlayAPP
             {
                 DataCache.SaveFavoriteItemOrder(FavoriteItems);
             }
-        }
-
-        private void StartButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is Button button && button.DataContext is CraftableItem item)
-            {
-                // Handle the start action
-                StartCrafting(item);
-            }
-        }
-
-        private void StartCrafting(CraftableItem item)
-        {
-            // Implement the logic to handle the start of crafting
-            MessageBox.Show($"Starting crafting of {string.Join(", ", item.RewardItems.Select(r => r.Name))}");
-            // Later, you can implement timers or other functionality here
         }
 
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)

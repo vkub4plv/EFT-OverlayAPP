@@ -18,10 +18,46 @@
     <None Remove="Fonts\Jovanny Lemonad - Bender-Light.otf" />
     <None Remove="Fonts\Jovanny Lemonad - Bender-LightItalic.otf" />
     <None Remove="Fonts\Jovanny Lemonad - Bender.otf" />
+    <None Remove="StationIcons\Bitcoin Farm.png" />
+    <None Remove="StationIcons\Booze Generator.png" />
+    <None Remove="StationIcons\default.png" />
+    <None Remove="StationIcons\Intelligence Center.png" />
+    <None Remove="StationIcons\Lavatory.png" />
+    <None Remove="StationIcons\Medstation.png" />
+    <None Remove="StationIcons\Nutrition Unit.png" />
+    <None Remove="StationIcons\Water Collector.png" />
+    <None Remove="StationIcons\Workbench.png" />
     <None Remove="tessdata\eng.traineddata" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="StationIcons\Bitcoin Farm.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="StationIcons\Booze Generator.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="StationIcons\default.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="StationIcons\Intelligence Center.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="StationIcons\Lavatory.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="StationIcons\Medstation.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="StationIcons\Nutrition Unit.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="StationIcons\Water Collector.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="StationIcons\Workbench.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="tessdata\eng.traineddata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

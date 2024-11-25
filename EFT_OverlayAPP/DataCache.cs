@@ -3,12 +3,15 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel; // Added for INotifyPropertyChanged
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Data;
+using System.Windows.Media;
 
 namespace EFT_OverlayAPP
 {
@@ -286,6 +289,13 @@ namespace EFT_OverlayAPP
         public string Message { get; set; }
     }
 
+    public enum CraftStatus
+    {
+        NotStarted,
+        InProgress,
+        Ready
+    }
+
     public class CraftableItem : INotifyPropertyChanged
     {
         public string Id { get; set; } // Unique identifier
@@ -325,9 +335,105 @@ namespace EFT_OverlayAPP
             get => RewardItems.FirstOrDefault()?.Name ?? string.Empty;
         }
 
+        private CraftStatus craftStatus;
+        public CraftStatus CraftStatus
+        {
+            get => craftStatus;
+            set
+            {
+                if (craftStatus != value)
+                {
+                    craftStatus = value;
+                    OnPropertyChanged(nameof(CraftStatus));
+                    OnPropertyChanged(nameof(CraftButtonText));
+
+                    // Raise PropertyChanged for RemainingTime and RemainingTimeString
+                    OnPropertyChanged(nameof(RemainingTime));
+                    OnPropertyChanged(nameof(RemainingTimeString));
+                }
+            }
+        }
+
+        private DateTime craftStartTime;
+        public DateTime CraftStartTime
+        {
+            get => craftStartTime;
+            set
+            {
+                if (craftStartTime != value)
+                {
+                    craftStartTime = value;
+                    OnPropertyChanged(nameof(CraftStartTime));
+                }
+            }
+        }
+
+        public string RemainingTimeString
+        {
+            get
+            {
+                if (CraftStatus == CraftStatus.InProgress)
+                {
+                    var remaining = RemainingTime;
+                    if (remaining > TimeSpan.Zero)
+                        return remaining.ToString(@"hh\:mm\:ss");
+                    else
+                        return "Ready";
+                }
+                else if (CraftStatus == CraftStatus.Ready)
+                {
+                    return "Ready";
+                }
+                else
+                {
+                    return CraftTime.ToString(@"hh\:mm\:ss");
+                }
+            }
+        }
+
+
+        public TimeSpan RemainingTime
+        {
+            get
+            {
+                if (CraftStatus == CraftStatus.InProgress)
+                {
+                    var elapsed = DateTime.Now - CraftStartTime;
+                    var remaining = CraftTime - elapsed;
+                    return remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero;
+                }
+                else if (CraftStatus == CraftStatus.Ready)
+                {
+                    return TimeSpan.Zero;
+                }
+                else
+                {
+                    return CraftTime;
+                }
+            }
+        }
+
+        public string CraftButtonText
+        {
+            get
+            {
+                switch (CraftStatus)
+                {
+                    case CraftStatus.NotStarted:
+                        return "Start";
+                    case CraftStatus.InProgress:
+                        return "Stop";
+                    case CraftStatus.Ready:
+                        return "Finish";
+                    default:
+                        return "Start";
+                }
+            }
+        }
+
         // Implement INotifyPropertyChanged
         public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged(string name) =>
+        public void OnPropertyChanged(string name) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 
@@ -338,5 +444,106 @@ namespace EFT_OverlayAPP
         public string ShortName { get; set; }
         public string IconLink { get; set; }
         public int Quantity { get; set; }
+    }
+
+    public class CraftTimerDisplayItem : INotifyPropertyChanged
+    {
+        public string Station { get; set; }
+        public ImageSource StationIcon { get; set; }
+        public CraftableItem CraftItem { get; set; }
+
+        public string RemainingTimeString
+        {
+            get
+            {
+                return CraftItem.RemainingTimeString;
+            }
+        }
+
+        // Add the RemainingTime property
+        public TimeSpan RemainingTime
+        {
+            get
+            {
+                return CraftItem.RemainingTime;
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public void OnPropertyChanged(string name) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+    }
+
+    public class RemainingTimeToColorConverter : IValueConverter
+    {
+        public Brush ReadyBrush { get; set; } = Brushes.Green;
+        public Brush DefaultBrush { get; set; } = Brushes.White;
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is TimeSpan remainingTime)
+            {
+                if (remainingTime <= TimeSpan.Zero)
+                {
+                    return ReadyBrush;
+                }
+            }
+            return DefaultBrush;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class RemainingTimeToBlackOrGreenConverter : IValueConverter
+    {
+        public Brush ReadyBrush { get; set; } = Brushes.Green;
+        public Brush DefaultBrush { get; set; } = Brushes.Black;
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is TimeSpan remainingTime)
+            {
+                if (remainingTime <= TimeSpan.Zero)
+                {
+                    return ReadyBrush;
+                }
+            }
+            return DefaultBrush;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class TimeSpanToStringConverter : IValueConverter
+    {
+        public string ReadyText { get; set; } = "Ready";
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is TimeSpan timeSpan)
+            {
+                if (timeSpan <= TimeSpan.Zero)
+                {
+                    return ReadyText;
+                }
+                else
+                {
+                    return timeSpan.ToString(@"hh\:mm\:ss");
+                }
+            }
+            return "";
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

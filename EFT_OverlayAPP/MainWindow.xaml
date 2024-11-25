@@ -16,6 +16,7 @@
         d:DesignWidth="1920"
         d:DesignHeight="1080">
     <Window.Resources>
+        <local:RemainingTimeToColorConverter x:Key="RemainingTimeToColorConverter"/>
         <Style x:Key="Clock" TargetType="TextBlock">
             <Setter Property="FontSize" Value="42"/>
             <Setter Property="Foreground" Value="#B6C1C7"/>
@@ -172,6 +173,28 @@
                       HorizontalAlignment="Right"
                       VerticalAlignment="Top">
             <!-- Optional: Define ItemsPanel if you want to customize the layout -->
+        </ItemsControl>
+        <!-- Craft Timers Overlay -->
+        <ItemsControl x:Name="CraftTimersControl"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Bottom"
+                      Margin="0,0,0,20"
+                      ItemsSource="{Binding ActiveCraftTimers}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Vertical" Margin="10,0">
+                        <Image Source="{Binding StationIcon}" Width="50" Height="50"/>
+                        <TextBlock Text="{Binding RemainingTimeString}"
+                                   Foreground="{Binding RemainingTime, Converter={StaticResource RemainingTimeToColorConverter}}"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
         </ItemsControl>
     </Grid>
 </Window>

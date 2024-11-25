@@ -13,11 +13,15 @@ using System.Windows.Threading;
 using Tesseract;
 using AForge.Imaging.Filters;
 using System.Text.RegularExpressions;
+using System.Collections.ObjectModel;
+using System.Windows.Media.Imaging;
 
 namespace EFT_OverlayAPP
 {
     public partial class MainWindow : Window
     {
+        public ObservableCollection<CraftTimerDisplayItem> ActiveCraftTimers { get; set; } = new ObservableCollection<CraftTimerDisplayItem>();
+
         private CraftingWindow craftingWindow;
         private WebViewWindow webViewWindow;
         private IntPtr hwnd;
@@ -36,6 +40,7 @@ namespace EFT_OverlayAPP
             InitializeComponent();
             this.Loaded += MainWindow_Loaded;
             this.Closed += MainWindow_Closed;
+            DataContext = this;
 
             // Initialize your existing timer or other overlay content here
             InitializeTimer();
@@ -155,7 +160,7 @@ namespace EFT_OverlayAPP
         {
             if (craftingWindow == null)
             {
-                craftingWindow = new CraftingWindow();
+                craftingWindow = new CraftingWindow(this);
             }
 
             if (!craftingWindow.IsVisible)
@@ -418,6 +423,72 @@ namespace EFT_OverlayAPP
             Bitmap filteredImage = medianFilter.Apply(resizedImage);
 
             return filteredImage;
+        }
+
+        public void UpdateCraftDisplay(CraftableItem item, bool remove)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                if (remove)
+                {
+                    var displayItem = ActiveCraftTimers.FirstOrDefault(x => x.Station == item.Station);
+                    if (displayItem != null)
+                    {
+                        ActiveCraftTimers.Remove(displayItem);
+                    }
+                }
+                else
+                {
+                    var displayItem = ActiveCraftTimers.FirstOrDefault(x => x.Station == item.Station);
+                    if (displayItem == null)
+                    {
+                        // Load the station icon
+                        var iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "StationIcons", $"{item.Station}.png");
+                        ImageSource icon = null;
+                        if (File.Exists(iconPath))
+                        {
+                            icon = new BitmapImage(new Uri(iconPath));
+                        }
+                        else
+                        {
+                            // Handle missing icon - use a default icon or leave it null
+                            // You can add a default icon to your project and use it here
+                            var defaultIconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "StationIcons", "default.png");
+                            if (File.Exists(defaultIconPath))
+                            {
+                                icon = new BitmapImage(new Uri(defaultIconPath));
+                            }
+                            else
+                            {
+                                // Optionally, log or notify that the icon is missing
+                                // For now, we'll just proceed without an icon
+                                icon = null;
+                            }
+                        }
+
+
+                        displayItem = new CraftTimerDisplayItem
+                        {
+                            Station = item.Station,
+                            StationIcon = icon,
+                            CraftItem = item
+                        };
+
+                        ActiveCraftTimers.Add(displayItem);
+
+                        // Subscribe to property changes
+                        item.PropertyChanged += (s, e) =>
+                        {
+                            if (e.PropertyName == nameof(CraftableItem.RemainingTime) ||
+                                e.PropertyName == nameof(CraftableItem.CraftStatus))
+                            {
+                                displayItem.OnPropertyChanged(nameof(CraftTimerDisplayItem.RemainingTimeString));
+                                displayItem.OnPropertyChanged(nameof(CraftTimerDisplayItem.RemainingTime));
+                            }
+                        };
+                    }
+                }
+            });
         }
     }
 }
