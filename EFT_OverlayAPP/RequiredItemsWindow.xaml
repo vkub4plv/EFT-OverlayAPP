@@ -115,7 +115,10 @@
                                             <!-- Item Details -->
                                             <StackPanel Orientation="Vertical">
                                                 <TextBlock Text="{Binding Item.Name}" FontWeight="Bold"/>
-                                                <TextBlock Text="{Binding QuantityOwnedNeeded}"/>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="Quantity: "/>
+                                                    <TextBlock Text="{Binding QuantityOwnedNeeded}"/>
+                                                </StackPanel>
                                                 <TextBlock Text="{Binding RequiredFor}" FontStyle="Italic"/>
                                             </StackPanel>
                                         </StackPanel>
@@ -172,6 +175,7 @@
                                             <StackPanel Orientation="Vertical">
                                                 <TextBlock Text="{Binding Item.Name}" FontWeight="Bold"/>
                                                 <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="Quantity: "/>
                                                     <TextBlock Text="{Binding QuantityOwnedNeeded}"/>
                                                     <Button Content="-" Width="20" Margin="5,0" Click="ManualCombinedDecrementButton_Click"/>
                                                     <Button Content="+" Width="20" Click="ManualCombinedIncrementButton_Click"/>
