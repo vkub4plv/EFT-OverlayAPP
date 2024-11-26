@@ -139,23 +139,22 @@
                                                     <TextBlock Text="Quantity: "/>
                                                     <TextBlock Text="{Binding QuantityOwnedNeeded}"/>
                                                 </StackPanel>
-                                                <!-- Required For -->
-                                                <TextBlock Text="{Binding RequiredFor}" FontStyle="Italic"/>
-                                                <!-- Source Icons -->
-                                                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-                                                    <ItemsControl ItemsSource="{Binding SourceIcons}">
-                                                        <ItemsControl.ItemsPanel>
-                                                            <ItemsPanelTemplate>
-                                                                <StackPanel Orientation="Horizontal"/>
-                                                            </ItemsPanelTemplate>
-                                                        </ItemsControl.ItemsPanel>
-                                                        <ItemsControl.ItemTemplate>
-                                                            <DataTemplate>
-                                                                <Image Source="{Binding}" Width="20" Height="20" Margin="0,0,5,0"/>
-                                                            </DataTemplate>
-                                                        </ItemsControl.ItemTemplate>
-                                                    </ItemsControl>
-                                                </StackPanel>
+                                                <!-- Required For: Icon Name Pairs -->
+                                                <ItemsControl ItemsSource="{Binding RequiredForDetails}" Margin="0,5,0,0">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <WrapPanel/>
+                                                        </ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <StackPanel Orientation="Horizontal" Margin="0,0,10,0">
+                                                                <Image Source="{Binding Icon}" Width="20" Height="20" Margin="0,0,5,0"/>
+                                                                <TextBlock Text="{Binding Name}"/>
+                                                            </StackPanel>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
                                             </StackPanel>
                                         </StackPanel>
                                     </Border>
@@ -213,23 +212,22 @@
                                                     <Button Content="-" Width="20" Margin="5,0" Click="ManualCombinedDecrementButton_Click"/>
                                                     <Button Content="+" Width="20" Click="ManualCombinedIncrementButton_Click"/>
                                                 </StackPanel>
-                                                <!-- Required For -->
-                                                <TextBlock Text="{Binding RequiredFor}" FontStyle="Italic"/>
-                                                <!-- Source Icons -->
-                                                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-                                                    <ItemsControl ItemsSource="{Binding SourceIcons}">
-                                                        <ItemsControl.ItemsPanel>
-                                                            <ItemsPanelTemplate>
-                                                                <StackPanel Orientation="Horizontal"/>
-                                                            </ItemsPanelTemplate>
-                                                        </ItemsControl.ItemsPanel>
-                                                        <ItemsControl.ItemTemplate>
-                                                            <DataTemplate>
-                                                                <Image Source="{Binding}" Width="20" Height="20" Margin="0,0,5,0"/>
-                                                            </DataTemplate>
-                                                        </ItemsControl.ItemTemplate>
-                                                    </ItemsControl>
-                                                </StackPanel>
+                                                <!-- Required For: Icon Name Pairs -->
+                                                <ItemsControl ItemsSource="{Binding RequiredForDetails}" Margin="0,5,0,0">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <WrapPanel/>
+                                                        </ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <StackPanel Orientation="Horizontal" Margin="0,0,10,0">
+                                                                <Image Source="{Binding Icon}" Width="20" Height="20" Margin="0,0,5,0"/>
+                                                                <TextBlock Text="{Binding Name}"/>
+                                                            </StackPanel>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
                                             </StackPanel>
                                         </StackPanel>
                                     </Border>

@@ -399,8 +399,11 @@ namespace EFT_OverlayAPP
                         QuantityNeeded = g.Sum(e => e.QuantityNeeded),
                         QuantityOwned = g.Sum(e => e.QuantityOwned),
                         IsFoundInRaid = g.Key.IsFoundInRaid,
-                        RequiredFor = string.Join(", ", g.Select(e => e.SourceDetail).Distinct()),
-                        SourceIcons = g.Select(e => e.SourceIcon).Distinct().ToList(),
+                        RequiredForDetails = g.Select(e => new SourceDetail
+                        {
+                            Icon = e.SourceIcon,
+                            Name = e.SourceDetail
+                        }).Distinct().ToList()
                     };
 
                     // Map the combined entry to the required items
@@ -564,8 +567,11 @@ namespace EFT_OverlayAPP
                     QuantityNeeded = g.Sum(e => e.QuantityNeeded),
                     QuantityOwned = 0, // Start with zero; user adjusts manually
                     IsFoundInRaid = g.Key.IsFoundInRaid,
-                    RequiredFor = string.Join(", ", g.Select(e => e.SourceDetail).Distinct()),
-                    SourceIcons = g.Select(e => e.SourceIcon).Distinct().ToList(),
+                    RequiredForDetails = g.Select(e => new SourceDetail
+                    {
+                        Icon = e.SourceIcon,
+                        Name = e.SourceDetail
+                    }).Distinct().ToList()
                 })
                 .ToList();
 

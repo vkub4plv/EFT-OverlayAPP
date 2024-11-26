@@ -938,7 +938,9 @@ namespace EFT_OverlayAPP
         }
         public string QuantityOwnedNeeded => $"{QuantityOwned} / {QuantityNeeded}";
         public bool IsFoundInRaid { get; set; }
-        public string RequiredFor { get; set; }
+        // New property to hold list of source details
+        public List<SourceDetail> RequiredForDetails { get; set; } = new List<SourceDetail>();
+
         public bool IsComplete => QuantityOwned >= QuantityNeeded;
         // New property to hold source icons
         public List<string> SourceIcons { get; set; } = new List<string>();
@@ -1015,5 +1017,11 @@ namespace EFT_OverlayAPP
         public event PropertyChangedEventHandler PropertyChanged;
         public void OnPropertyChanged(string name) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+    }
+
+    public class SourceDetail
+    {
+        public string Icon { get; set; } // URL or path to the icon image
+        public string Name { get; set; } // Quest name or hideout level
     }
 }
