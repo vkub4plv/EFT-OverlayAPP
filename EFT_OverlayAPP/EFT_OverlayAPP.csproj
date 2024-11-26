@@ -32,9 +32,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="FIR.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="StationIcons\Bitcoin Farm.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -79,6 +76,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="FIR.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Fonts\Jovanny Lemonad - Bender-BlackItalic.otf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>

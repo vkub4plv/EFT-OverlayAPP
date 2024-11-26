@@ -52,10 +52,13 @@
                                             <Image Source="{Binding Item.IconLink}" Width="50" Height="50" Margin="0,0,5,0"/>
                                             <!-- Item Details -->
                                             <StackPanel Orientation="Vertical">
-                                                <!-- Item Name -->
-                                                <TextBlock Text="{Binding Item.Name}" FontWeight="Bold"/>
-                                                <!-- Found in Raid -->
-                                                <TextBlock Text="Found in Raid" Visibility="{Binding IsFoundInRaid, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                                <!-- Item Name and FIR Icon -->
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding Item.Name}" FontWeight="Bold"/>
+                                                    <Image Source="pack://application:,,,/FIR.png"
+                                                           Width="16" Height="16" Margin="5,0,0,0"
+                                                           Visibility="{Binding IsFoundInRaid, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                                </StackPanel>
                                                 <!-- Quantity with Increment/Decrement Buttons -->
                                                 <StackPanel Orientation="Horizontal">
                                                     <TextBlock Text="Quantity: "/>
@@ -124,10 +127,13 @@
                                             <Image Source="{Binding Item.IconLink}" Width="50" Height="50" Margin="0,0,5,0"/>
                                             <!-- Item Details -->
                                             <StackPanel Orientation="Vertical">
-                                                <!-- Item Name -->
-                                                <TextBlock Text="{Binding Item.Name}" FontWeight="Bold"/>
-                                                <!-- Found in Raid -->
-                                                <TextBlock Text="Found in Raid" Visibility="{Binding IsFoundInRaid, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                                <!-- Item Name and FIR Icon -->
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding Item.Name}" FontWeight="Bold"/>
+                                                    <Image Source="pack://application:,,,/FIR.png"
+                                                           Width="16" Height="16" Margin="5,0,0,0"
+                                                           Visibility="{Binding IsFoundInRaid, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                                </StackPanel>
                                                 <!-- Quantity -->
                                                 <StackPanel Orientation="Horizontal">
                                                     <TextBlock Text="Quantity: "/>
@@ -178,10 +184,13 @@
                                             <Image Source="{Binding Item.IconLink}" Width="50" Height="50" Margin="0,0,5,0"/>
                                             <!-- Item Details -->
                                             <StackPanel Orientation="Vertical">
-                                                <!-- Item Name -->
-                                                <TextBlock Text="{Binding Item.Name}" FontWeight="Bold"/>
-                                                <!-- Found in Raid -->
-                                                <TextBlock Text="Found in Raid" Visibility="{Binding IsFoundInRaid, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                                <!-- Item Name and FIR Icon -->
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding Item.Name}" FontWeight="Bold"/>
+                                                    <Image Source="pack://application:,,,/FIR.png"
+                                                           Width="16" Height="16" Margin="5,0,0,0"
+                                                           Visibility="{Binding IsFoundInRaid, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                                </StackPanel>
                                                 <!-- Quantity with Increment/Decrement Buttons -->
                                                 <StackPanel Orientation="Horizontal">
                                                     <TextBlock Text="Quantity: "/>
