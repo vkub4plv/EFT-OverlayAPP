@@ -285,18 +285,18 @@ namespace EFT_OverlayAPP
             entry.OnPropertyChanged(nameof(entry.IsComplete));
             if (entry.ParentEntry != null)
             {
+                entry.ParentEntry.QuantityOwned = entry.ParentEntry.ChildEntries.Sum(c => c.QuantityOwned);
                 entry.ParentEntry.OnPropertyChanged(nameof(entry.ParentEntry.QuantityOwned));
                 entry.ParentEntry.OnPropertyChanged(nameof(entry.ParentEntry.IsComplete));
-            }
-            else if (entry.IsCombined && entry.ChildEntries != null)
-            {
-                foreach (var child in entry.ChildEntries)
+
+                // Update IsComplete for all child entries
+                foreach (var child in entry.ParentEntry.ChildEntries)
                 {
-                    child.OnPropertyChanged(nameof(child.QuantityOwned));
                     child.OnPropertyChanged(nameof(child.IsComplete));
                 }
             }
         }
+
 
         // Save and Load Quantities
         public void SaveQuantities()

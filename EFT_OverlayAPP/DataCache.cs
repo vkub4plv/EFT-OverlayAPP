@@ -987,7 +987,24 @@ namespace EFT_OverlayAPP
         public string SourceName { get; set; }
         public string SourceDetail { get; set; }
         public string GroupType { get; set; } // "Quests" or "Hideout"
-        public bool IsComplete => QuantityOwned >= QuantityNeeded;
+        public bool IsComplete
+        {
+            get
+            {
+                if (ParentEntry != null)
+                {
+                    return ParentEntry.QuantityOwned >= ParentEntry.QuantityNeeded;
+                }
+                else if (IsCombined)
+                {
+                    return QuantityOwned >= QuantityNeeded;
+                }
+                else
+                {
+                    return QuantityOwned >= QuantityNeeded;
+                }
+            }
+        }
 
         // For combined entries
         public bool IsCombined { get; set; }
