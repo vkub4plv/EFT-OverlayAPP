@@ -35,29 +35,42 @@ namespace EFT_OverlayAPP
             // Load data from DataCache
             await DataCache.LoadRequiredItemsData();
 
-            // Process data into RequiredItems
-            LoadRequiredItems();
+            // Check if data has already been loaded to avoid re-processing
+            if (RequiredItems.Count == 0)
+            {
+                // Process data into RequiredItems
+                LoadRequiredItems();
 
-            // Setup CollectionView
-            RequiredItemsView = CollectionViewSource.GetDefaultView(RequiredItems);
-            RequiredItemsView.GroupDescriptions.Add(new PropertyGroupDescription("GroupType"));
-            RequiredItemsView.Filter = RequiredItemsFilter;
-            RequiredItemsListView.ItemsSource = RequiredItemsView;
+                // Setup CollectionView
+                RequiredItemsView = CollectionViewSource.GetDefaultView(RequiredItems);
+                RequiredItemsView.GroupDescriptions.Add(new PropertyGroupDescription("GroupType"));
+                RequiredItemsView.Filter = RequiredItemsFilter;
+                RequiredItemsListView.ItemsSource = RequiredItemsView;
 
-            // Load combined items
-            LoadCombinedRequiredItems();
+                // Load combined items
+                LoadCombinedRequiredItems();
 
-            // Load manual combined items
-            LoadManualCombinedRequiredItems();
+                // Load manual combined items
+                LoadManualCombinedRequiredItems();
 
-            // Populate filters
-            PopulateFilters();
+                // Populate filters
+                PopulateFilters();
 
-            // Load quantities from file
-            LoadQuantities();
+                // Load quantities from file
+                LoadQuantities();
 
-            // Apply initial sorting
-            ApplyRequiredItemsSorting();
+                // Apply initial sorting
+                ApplyRequiredItemsSorting();
+                ApplyCombinedRequiredItemsSorting();
+                ApplyManualCombinedRequiredItemsSorting();
+            }
+            else
+            {
+                // Data already loaded, refresh views
+                RequiredItemsView?.Refresh();
+                CombinedRequiredItemsView?.Refresh();
+                ManualCombinedRequiredItemsView?.Refresh();
+            }
         }
 
         private void LoadRequiredItems()
@@ -237,6 +250,9 @@ namespace EFT_OverlayAPP
                         entry.ParentEntry.QuantityOwned = entry.ParentEntry.ChildEntries.Sum(c => c.QuantityOwned);
                     }
                     OnEntryUpdated(entry);
+
+                    // Save quantities after change
+                    SaveQuantities();
                 }
             }
         }
@@ -255,6 +271,9 @@ namespace EFT_OverlayAPP
                         entry.ParentEntry.QuantityOwned = entry.ParentEntry.ChildEntries.Sum(c => c.QuantityOwned);
                     }
                     OnEntryUpdated(entry);
+
+                    // Save quantities after change
+                    SaveQuantities();
                 }
             }
         }
@@ -279,7 +298,7 @@ namespace EFT_OverlayAPP
         }
 
         // Save and Load Quantities
-        private void SaveQuantities()
+        public void SaveQuantities()
         {
             try
             {
@@ -324,9 +343,10 @@ namespace EFT_OverlayAPP
 
         protected override void OnClosing(CancelEventArgs e)
         {
-            base.OnClosing(e);
-            SaveQuantities();
-            SaveManualCombinedQuantities();
+            e.Cancel = true; // Cancel the close operation
+            this.Hide(); // Hide the window instead
+            SaveQuantities(); // Save quantities when hiding
+            SaveManualCombinedQuantities(); // Save manual quantities when hiding
         }
 
         private void ApplyRequiredItemsSorting()
@@ -587,6 +607,9 @@ namespace EFT_OverlayAPP
                     entry.QuantityOwned++;
                     entry.OnPropertyChanged(nameof(entry.QuantityOwned));
                     entry.OnPropertyChanged(nameof(entry.IsComplete));
+
+                    // Save manual combined quantities after change
+                    SaveManualCombinedQuantities();
                 }
             }
         }
@@ -602,12 +625,15 @@ namespace EFT_OverlayAPP
                     entry.QuantityOwned--;
                     entry.OnPropertyChanged(nameof(entry.QuantityOwned));
                     entry.OnPropertyChanged(nameof(entry.IsComplete));
+
+                    // Save manual combined quantities after change
+                    SaveManualCombinedQuantities();
                 }
             }
         }
 
         // Save and Load quantities for Manual Combined Required Items
-        private void SaveManualCombinedQuantities()
+        public void SaveManualCombinedQuantities()
         {
             try
             {

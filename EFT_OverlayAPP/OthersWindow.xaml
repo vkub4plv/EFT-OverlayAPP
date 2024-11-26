@@ -6,8 +6,8 @@
         xmlns:local="clr-namespace:EFT_OverlayAPP"
         mc:Ignorable="d"
         Title="OthersWindow"
-        Width="100"
-        Height="30"
+        Width="210"
+        Height="40"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
@@ -17,18 +17,30 @@
         Loaded="Window_Loaded"
         >
     <Grid>
-        <!-- Open Crafting Window Button -->
-        <Button x:Name="OpenCraftingWindowButton"
-                Content="Crafting"
-                Width="100"
-                Height="30"
-                Click="OpenCraftingWindowButton_Click"
-                Background="#55000000"
-                Foreground="White"
-                BorderBrush="Gray"
-                BorderThickness="1"
-                Opacity="0.8"
-                FontSize="14"
-                />
+        <StackPanel Orientation="Horizontal">
+            <!-- Open Crafting Window Button -->
+            <Button x:Name="OpenCraftingWindowButton"
+                    Content="Crafting"
+                    Width="100"
+                    Height="30"
+                    Click="OpenCraftingWindowButton_Click"
+                    Margin="0,0,5,0"
+                    Background="#55000000"
+                    Foreground="White"
+                    BorderBrush="Gray"
+                    BorderThickness="1"
+                    Opacity="0.8"/>
+            <!-- Open Required Items Window Button -->
+            <Button x:Name="OpenRequiredItemsWindowButton"
+                    Content="Required Items"
+                    Width="100"
+                    Height="30"
+                    Click="OpenRequiredItemsWindowButton_Click"
+                    Background="#55000000"
+                    Foreground="White"
+                    BorderBrush="Gray"
+                    BorderThickness="1"
+                    Opacity="0.8"/>
+        </StackPanel>
     </Grid>
 </Window>

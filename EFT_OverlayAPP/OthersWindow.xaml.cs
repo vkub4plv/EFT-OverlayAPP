@@ -34,12 +34,9 @@ namespace EFT_OverlayAPP
             // Adjust for DPI scaling
             AdjustForDpi();
 
-            // Set the window size to fit the button (already set in XAML)
-        }
-
-        private void OpenCraftingWindowButton_Click(object sender, RoutedEventArgs e)
-        {
-            mainWindow.OpenCraftingWindow();
+            // Set the window size to fit the content
+            this.Width = (OpenCraftingWindowButton.Width + OpenRequiredItemsWindowButton.Width + 5); // 5 is the margin between buttons
+            this.Height = OpenCraftingWindowButton.Height;
         }
 
         private void AdjustForDpi()
@@ -52,7 +49,20 @@ namespace EFT_OverlayAPP
 
                 this.Left *= dpiX;
                 this.Top *= dpiY;
+
+                this.Width *= dpiX;
+                this.Height *= dpiY;
             }
+        }
+
+        private void OpenCraftingWindowButton_Click(object sender, RoutedEventArgs e)
+        {
+            mainWindow.OpenCraftingWindow();
+        }
+
+        private void OpenRequiredItemsWindowButton_Click(object sender, RoutedEventArgs e)
+        {
+            mainWindow.OpenRequiredItemsWindow();
         }
     }
 }

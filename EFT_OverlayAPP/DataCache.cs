@@ -43,6 +43,9 @@ namespace EFT_OverlayAPP
         // Event to notify when data loading is complete
         public static event Action DataLoaded;
 
+        // Flag to indicate whether the data has already been loaded
+        public static bool IsRequiredItemsDataLoaded { get; private set; } = false;
+
         // List to store favorite item IDs
         private static List<string> favoriteIds = new List<string>();
 
@@ -261,6 +264,9 @@ namespace EFT_OverlayAPP
 
         public static async Task LoadRequiredItemsData()
         {
+            if (IsRequiredItemsDataLoaded)
+                return; // Data is already loaded, no need to load again
+
             string query = @"
             {
               tasks {
@@ -318,6 +324,7 @@ namespace EFT_OverlayAPP
                     {
                         ParseTasks(data["tasks"] as JArray);
                         ParseHideoutStations(data["hideoutStations"] as JArray);
+                        IsRequiredItemsDataLoaded = true; // Set the flag after successful loading
                     }
                 }
             }
@@ -326,6 +333,7 @@ namespace EFT_OverlayAPP
                 MessageBox.Show($"Error loading required items data: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
 
         private static void ParseTasks(JArray tasksArray)
         {

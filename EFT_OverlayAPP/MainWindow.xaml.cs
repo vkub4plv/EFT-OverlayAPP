@@ -25,6 +25,7 @@ namespace EFT_OverlayAPP
         private CraftingWindow craftingWindow;
         private WebViewWindow webViewWindow;
         private OthersWindow othersWindow;
+        private RequiredItemsWindow requiredItemsWindow;
         private IntPtr hwnd;
 
         private DispatcherTimer timer;
@@ -72,6 +73,14 @@ namespace EFT_OverlayAPP
 
         private void MainWindow_Closed(object sender, EventArgs e)
         {
+            // Save quantities from RequiredItemsWindow if it's open
+            if (requiredItemsWindow != null)
+            {
+                requiredItemsWindow.SaveQuantities();
+                requiredItemsWindow.SaveManualCombinedQuantities();
+            }
+
+            // Close the WebViewWindow
             if (webViewWindow != null)
             {
                 webViewWindow.Close();
@@ -83,6 +92,13 @@ namespace EFT_OverlayAPP
             {
                 othersWindow.Close();
                 othersWindow = null;
+            }
+
+            // Close the RequiredItemsWindow if open
+            if (requiredItemsWindow != null)
+            {
+                requiredItemsWindow.Close();
+                requiredItemsWindow = null;
             }
 
             CloseCraftingWindow();
@@ -182,6 +198,23 @@ namespace EFT_OverlayAPP
             else
             {
                 craftingWindow.Activate();
+            }
+        }
+
+        public void OpenRequiredItemsWindow()
+        {
+            if (requiredItemsWindow == null)
+            {
+                requiredItemsWindow = new RequiredItemsWindow();
+            }
+
+            if (!requiredItemsWindow.IsVisible)
+            {
+                requiredItemsWindow.Show();
+            }
+            else
+            {
+                requiredItemsWindow.Activate();
             }
         }
 
