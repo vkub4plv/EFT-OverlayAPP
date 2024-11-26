@@ -46,6 +46,9 @@ namespace EFT_OverlayAPP
 
             // Initialize your existing timer or other overlay content here
             InitializeTimer();
+
+            // Start loading data for RequiredItemsWindow
+            StartLoadingRequiredItemsData();
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -106,6 +109,11 @@ namespace EFT_OverlayAPP
             // Unregister the hotkeys
             source.RemoveHook(HwndHook);
             UnregisterHotKeys();
+        }
+
+        private async void StartLoadingRequiredItemsData()
+        {
+            await DataCache.LoadRequiredItemsData();
         }
 
         // P/Invoke declarations

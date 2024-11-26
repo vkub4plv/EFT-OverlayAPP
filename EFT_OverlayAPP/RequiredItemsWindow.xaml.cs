@@ -28,11 +28,16 @@ namespace EFT_OverlayAPP
             InitializeComponent();
             DataContext = this;
 
+            // Start data initialization
             InitializeData();
         }
 
         private async void InitializeData()
         {
+            // Show loading indicator
+            LoadingGrid.Visibility = Visibility.Visible;
+            MainContent.Visibility = Visibility.Collapsed;
+
             // Load data from DataCache
             await DataCache.LoadRequiredItemsData();
 
@@ -72,6 +77,10 @@ namespace EFT_OverlayAPP
                 CombinedRequiredItemsView?.Refresh();
                 ManualCombinedRequiredItemsView?.Refresh();
             }
+
+            // Hide loading indicator
+            LoadingGrid.Visibility = Visibility.Collapsed;
+            MainContent.Visibility = Visibility.Visible;
         }
 
         private void LoadRequiredItems()
