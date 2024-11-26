@@ -400,6 +400,7 @@ namespace EFT_OverlayAPP
                         QuantityOwned = g.Sum(e => e.QuantityOwned),
                         IsFoundInRaid = g.Key.IsFoundInRaid,
                         RequiredFor = string.Join(", ", g.Select(e => e.SourceDetail).Distinct()),
+                        SourceIcons = g.Select(e => e.SourceIcon).Distinct().ToList(),
                     };
 
                     // Map the combined entry to the required items
@@ -421,8 +422,6 @@ namespace EFT_OverlayAPP
 
             // Setup CollectionView
             CombinedRequiredItemsView = CollectionViewSource.GetDefaultView(CombinedRequiredItems);
-            // Remove Grouping
-            // CombinedRequiredItemsView.GroupDescriptions.Add(new PropertyGroupDescription("GroupType"));
             CombinedRequiredItemsView.Filter = CombinedRequiredItemsFilter;
             CombinedRequiredItemsListView.ItemsSource = CombinedRequiredItemsView;
 
@@ -566,7 +565,7 @@ namespace EFT_OverlayAPP
                     QuantityOwned = 0, // Start with zero; user adjusts manually
                     IsFoundInRaid = g.Key.IsFoundInRaid,
                     RequiredFor = string.Join(", ", g.Select(e => e.SourceDetail).Distinct()),
-                    // GroupType is no longer used for grouping
+                    SourceIcons = g.Select(e => e.SourceIcon).Distinct().ToList(),
                 })
                 .ToList();
 
@@ -574,8 +573,6 @@ namespace EFT_OverlayAPP
 
             // Setup CollectionView
             ManualCombinedRequiredItemsView = CollectionViewSource.GetDefaultView(ManualCombinedRequiredItems);
-            // Remove Grouping
-            // ManualCombinedRequiredItemsView.GroupDescriptions.Add(new PropertyGroupDescription("GroupType"));
             ManualCombinedRequiredItemsView.Filter = ManualCombinedRequiredItemsFilter;
             ManualCombinedRequiredItemsListView.ItemsSource = ManualCombinedRequiredItemsView;
 

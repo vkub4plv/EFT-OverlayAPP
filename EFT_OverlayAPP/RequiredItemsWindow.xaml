@@ -141,6 +141,21 @@
                                                 </StackPanel>
                                                 <!-- Required For -->
                                                 <TextBlock Text="{Binding RequiredFor}" FontStyle="Italic"/>
+                                                <!-- Source Icons -->
+                                                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                                                    <ItemsControl ItemsSource="{Binding SourceIcons}">
+                                                        <ItemsControl.ItemsPanel>
+                                                            <ItemsPanelTemplate>
+                                                                <StackPanel Orientation="Horizontal"/>
+                                                            </ItemsPanelTemplate>
+                                                        </ItemsControl.ItemsPanel>
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <Image Source="{Binding}" Width="20" Height="20" Margin="0,0,5,0"/>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </StackPanel>
                                             </StackPanel>
                                         </StackPanel>
                                     </Border>
@@ -200,6 +215,21 @@
                                                 </StackPanel>
                                                 <!-- Required For -->
                                                 <TextBlock Text="{Binding RequiredFor}" FontStyle="Italic"/>
+                                                <!-- Source Icons -->
+                                                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                                                    <ItemsControl ItemsSource="{Binding SourceIcons}">
+                                                        <ItemsControl.ItemsPanel>
+                                                            <ItemsPanelTemplate>
+                                                                <StackPanel Orientation="Horizontal"/>
+                                                            </ItemsPanelTemplate>
+                                                        </ItemsControl.ItemsPanel>
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <Image Source="{Binding}" Width="20" Height="20" Margin="0,0,5,0"/>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </StackPanel>
                                             </StackPanel>
                                         </StackPanel>
                                     </Border>

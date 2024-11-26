@@ -940,6 +940,8 @@ namespace EFT_OverlayAPP
         public bool IsFoundInRaid { get; set; }
         public string RequiredFor { get; set; }
         public bool IsComplete => QuantityOwned >= QuantityNeeded;
+        // New property to hold source icons
+        public List<string> SourceIcons { get; set; } = new List<string>();
 
         public event PropertyChangedEventHandler PropertyChanged;
         public void OnPropertyChanged(string name) =>
