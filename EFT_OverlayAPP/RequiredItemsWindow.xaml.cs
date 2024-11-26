@@ -161,7 +161,7 @@ namespace EFT_OverlayAPP
                             IsFoundInRaid = false,
                             SourceIcon = station.ImageLink,
                             SourceName = station.Name,
-                            SourceDetail = $"Level {level.Level}",
+                            SourceDetail = $"{station.Name} Level {level.Level}",
                             GroupType = "Hideout"
                         };
                         RequiredItems.Add(entry);
@@ -566,7 +566,7 @@ namespace EFT_OverlayAPP
                     QuantityOwned = 0, // Start with zero; user adjusts manually
                     IsFoundInRaid = g.Key.IsFoundInRaid,
                     RequiredFor = string.Join(", ", g.Select(e => e.SourceDetail).Distinct()),
-                    GroupType = g.Key.IsFoundInRaid ? "Found in Raid" : "Not Found in Raid"
+                    // GroupType is no longer used for grouping
                 })
                 .ToList();
 
@@ -574,7 +574,8 @@ namespace EFT_OverlayAPP
 
             // Setup CollectionView
             ManualCombinedRequiredItemsView = CollectionViewSource.GetDefaultView(ManualCombinedRequiredItems);
-            ManualCombinedRequiredItemsView.GroupDescriptions.Add(new PropertyGroupDescription("GroupType"));
+            // Remove Grouping
+            // ManualCombinedRequiredItemsView.GroupDescriptions.Add(new PropertyGroupDescription("GroupType"));
             ManualCombinedRequiredItemsView.Filter = ManualCombinedRequiredItemsFilter;
             ManualCombinedRequiredItemsListView.ItemsSource = ManualCombinedRequiredItemsView;
 
@@ -587,6 +588,7 @@ namespace EFT_OverlayAPP
             // Apply initial sorting
             ApplyManualCombinedRequiredItemsSorting();
         }
+
 
         private void PopulateManualCombinedFilters()
         {

@@ -52,14 +52,24 @@
                                             <Image Source="{Binding Item.IconLink}" Width="50" Height="50" Margin="0,0,5,0"/>
                                             <!-- Item Details -->
                                             <StackPanel Orientation="Vertical">
+                                                <!-- Item Name -->
                                                 <TextBlock Text="{Binding Item.Name}" FontWeight="Bold"/>
+                                                <!-- Found in Raid -->
+                                                <TextBlock Text="Found in Raid" Visibility="{Binding IsFoundInRaid, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                                <!-- Quantity with Increment/Decrement Buttons -->
                                                 <StackPanel Orientation="Horizontal">
                                                     <TextBlock Text="Quantity: "/>
                                                     <TextBlock Text="{Binding QuantityOwnedNeeded}"/>
                                                     <Button Content="-" Width="20" Margin="5,0" Click="DecrementButton_Click"/>
                                                     <Button Content="+" Width="20" Click="IncrementButton_Click"/>
                                                 </StackPanel>
-                                                <TextBlock Text="{Binding SourceDetail}" FontStyle="Italic"/>
+                                                <!-- Source Info (Trader Icon and Quest Name or Hideout Station Icon and Level) -->
+                                                <StackPanel Orientation="Horizontal">
+                                                    <!-- Source Icon -->
+                                                    <Image Source="{Binding SourceIcon}" Width="20" Height="20" Margin="0,0,5,0"/>
+                                                    <!-- Source Detail -->
+                                                    <TextBlock Text="{Binding SourceDetail}"/>
+                                                </StackPanel>
                                             </StackPanel>
                                         </StackPanel>
                                     </Border>
@@ -114,27 +124,22 @@
                                             <Image Source="{Binding Item.IconLink}" Width="50" Height="50" Margin="0,0,5,0"/>
                                             <!-- Item Details -->
                                             <StackPanel Orientation="Vertical">
+                                                <!-- Item Name -->
                                                 <TextBlock Text="{Binding Item.Name}" FontWeight="Bold"/>
+                                                <!-- Found in Raid -->
+                                                <TextBlock Text="Found in Raid" Visibility="{Binding IsFoundInRaid, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                                <!-- Quantity -->
                                                 <StackPanel Orientation="Horizontal">
                                                     <TextBlock Text="Quantity: "/>
                                                     <TextBlock Text="{Binding QuantityOwnedNeeded}"/>
                                                 </StackPanel>
+                                                <!-- Required For -->
                                                 <TextBlock Text="{Binding RequiredFor}" FontStyle="Italic"/>
                                             </StackPanel>
                                         </StackPanel>
                                     </Border>
                                 </DataTemplate>
                             </ListView.ItemTemplate>
-                            <!-- Grouping -->
-                            <ListView.GroupStyle>
-                                <GroupStyle>
-                                    <GroupStyle.HeaderTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="16" Padding="5"/>
-                                        </DataTemplate>
-                                    </GroupStyle.HeaderTemplate>
-                                </GroupStyle>
-                            </ListView.GroupStyle>
                         </ListView>
                     </DockPanel>
                 </TabItem>
@@ -173,29 +178,24 @@
                                             <Image Source="{Binding Item.IconLink}" Width="50" Height="50" Margin="0,0,5,0"/>
                                             <!-- Item Details -->
                                             <StackPanel Orientation="Vertical">
+                                                <!-- Item Name -->
                                                 <TextBlock Text="{Binding Item.Name}" FontWeight="Bold"/>
+                                                <!-- Found in Raid -->
+                                                <TextBlock Text="Found in Raid" Visibility="{Binding IsFoundInRaid, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                                <!-- Quantity with Increment/Decrement Buttons -->
                                                 <StackPanel Orientation="Horizontal">
                                                     <TextBlock Text="Quantity: "/>
                                                     <TextBlock Text="{Binding QuantityOwnedNeeded}"/>
                                                     <Button Content="-" Width="20" Margin="5,0" Click="ManualCombinedDecrementButton_Click"/>
                                                     <Button Content="+" Width="20" Click="ManualCombinedIncrementButton_Click"/>
                                                 </StackPanel>
+                                                <!-- Required For -->
                                                 <TextBlock Text="{Binding RequiredFor}" FontStyle="Italic"/>
                                             </StackPanel>
                                         </StackPanel>
                                     </Border>
                                 </DataTemplate>
                             </ListView.ItemTemplate>
-                            <!-- Grouping -->
-                            <ListView.GroupStyle>
-                                <GroupStyle>
-                                    <GroupStyle.HeaderTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="16" Padding="5"/>
-                                        </DataTemplate>
-                                    </GroupStyle.HeaderTemplate>
-                                </GroupStyle>
-                            </ListView.GroupStyle>
                         </ListView>
                     </DockPanel>
                 </TabItem>

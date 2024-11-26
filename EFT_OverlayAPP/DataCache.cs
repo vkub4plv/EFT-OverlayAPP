@@ -939,7 +939,6 @@ namespace EFT_OverlayAPP
         public string QuantityOwnedNeeded => $"{QuantityOwned} / {QuantityNeeded}";
         public bool IsFoundInRaid { get; set; }
         public string RequiredFor { get; set; }
-        public string GroupType { get; set; }
         public bool IsComplete => QuantityOwned >= QuantityNeeded;
 
         public event PropertyChangedEventHandler PropertyChanged;
