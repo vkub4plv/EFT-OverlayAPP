@@ -19,6 +19,7 @@ namespace EFT_OverlayAPP
 {
     public partial class RequiredItemsWindow : Window
     {
+        private Dictionary<string, CombinedRequiredItemEntry> combinedItemDictionary = new Dictionary<string, CombinedRequiredItemEntry>();
         public ObservableCollection<RequiredItemEntry> RequiredItems { get; set; } = new ObservableCollection<RequiredItemEntry>();
         private ICollectionView RequiredItemsView;
 
@@ -381,21 +382,38 @@ namespace EFT_OverlayAPP
 
         private void LoadCombinedRequiredItems()
         {
+            combinedItemDictionary.Clear();
+
             var groupedItems = RequiredItems
                 .GroupBy(e => new { e.Item.Id, e.Item.Name, e.Item.IconLink, e.IsFoundInRaid })
-                .Select(g => new CombinedRequiredItemEntry
+                .Select(g =>
                 {
-                    Item = new Item
+                    var combinedEntry = new CombinedRequiredItemEntry
                     {
-                        Id = g.Key.Id,
-                        Name = g.Key.Name,
-                        IconLink = g.Key.IconLink
-                    },
-                    QuantityNeeded = g.Sum(e => e.QuantityNeeded),
-                    QuantityOwned = g.Sum(e => e.QuantityOwned),
-                    IsFoundInRaid = g.Key.IsFoundInRaid,
-                    RequiredFor = string.Join(", ", g.Select(e => e.SourceDetail).Distinct()),
-                    GroupType = g.Key.IsFoundInRaid ? "Found in Raid" : "Not Found in Raid"
+                        Item = new Item
+                        {
+                            Id = g.Key.Id,
+                            Name = g.Key.Name,
+                            IconLink = g.Key.IconLink
+                        },
+                        QuantityNeeded = g.Sum(e => e.QuantityNeeded),
+                        QuantityOwned = g.Sum(e => e.QuantityOwned),
+                        IsFoundInRaid = g.Key.IsFoundInRaid,
+                        RequiredFor = string.Join(", ", g.Select(e => e.SourceDetail).Distinct()),
+                    };
+
+                    // Map the combined entry to the required items
+                    foreach (var entry in g)
+                    {
+                        entry.PropertyChanged += RequiredItemEntry_PropertyChanged;
+                        string key = $"{entry.Item.Id}_{entry.IsFoundInRaid}";
+                        if (!combinedItemDictionary.ContainsKey(key))
+                        {
+                            combinedItemDictionary.Add(key, combinedEntry);
+                        }
+                    }
+
+                    return combinedEntry;
                 })
                 .ToList();
 
@@ -403,7 +421,8 @@ namespace EFT_OverlayAPP
 
             // Setup CollectionView
             CombinedRequiredItemsView = CollectionViewSource.GetDefaultView(CombinedRequiredItems);
-            CombinedRequiredItemsView.GroupDescriptions.Add(new PropertyGroupDescription("GroupType"));
+            // Remove Grouping
+            // CombinedRequiredItemsView.GroupDescriptions.Add(new PropertyGroupDescription("GroupType"));
             CombinedRequiredItemsView.Filter = CombinedRequiredItemsFilter;
             CombinedRequiredItemsListView.ItemsSource = CombinedRequiredItemsView;
 
@@ -413,6 +432,31 @@ namespace EFT_OverlayAPP
             // Apply initial sorting
             ApplyCombinedRequiredItemsSorting();
         }
+
+        private void RequiredItemEntry_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(RequiredItemEntry.QuantityOwned))
+            {
+                var requiredEntry = sender as RequiredItemEntry;
+                if (requiredEntry != null)
+                {
+                    // Find the corresponding combined entry
+                    string key = $"{requiredEntry.Item.Id}_{requiredEntry.IsFoundInRaid}";
+                    if (combinedItemDictionary.TryGetValue(key, out CombinedRequiredItemEntry combinedEntry))
+                    {
+                        // Update the combined entry's QuantityOwned
+                        combinedEntry.QuantityOwned = RequiredItems
+                            .Where(re => re.Item.Id == requiredEntry.Item.Id && re.IsFoundInRaid == requiredEntry.IsFoundInRaid)
+                            .Sum(re => re.QuantityOwned);
+
+                        // Notify property changed
+                        combinedEntry.OnPropertyChanged(nameof(combinedEntry.QuantityOwned));
+                        combinedEntry.OnPropertyChanged(nameof(combinedEntry.IsComplete));
+                    }
+                }
+            }
+        }
+
 
         private void PopulateCombinedFilters()
         {
