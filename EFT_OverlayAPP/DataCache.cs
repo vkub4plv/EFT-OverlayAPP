@@ -1,8 +1,11 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel; // Added for INotifyPropertyChanged
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -252,6 +255,244 @@ namespace EFT_OverlayAPP
             CraftableItems.Clear();
             IsDataLoaded = false;
         }
+
+        public static List<Quest> Quests { get; set; } = new List<Quest>();
+        public static List<HideoutStation> HideoutStations { get; set; } = new List<HideoutStation>();
+
+        public static async Task LoadRequiredItemsData()
+        {
+            string query = @"
+            {
+              tasks {
+                id
+                name
+                trader {
+                  id
+                  name
+                  imageLink
+                }
+                objectives {
+                  id
+                  type
+                  description
+                  ... on TaskObjectiveItem {
+                    items {
+                      id
+                      name
+                      iconLink
+                    }
+                    count
+                    foundInRaid
+                  }
+                }
+              }
+              hideoutStations {
+                id
+                name
+                normalizedName
+                imageLink
+                levels {
+                  level
+                  itemRequirements {
+                    item {
+                      id
+                      name
+                      iconLink 
+                    }
+                    count
+                  }
+                }
+              }
+            }";
+
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    var content = new StringContent("{\"query\": \"" + query.Replace("\"", "\\\"") + "\"}", Encoding.UTF8, "application/json");
+                    HttpResponseMessage response = await client.PostAsync("https://api.tarkov.dev/graphql", content);
+                    string result = await response.Content.ReadAsStringAsync();
+
+                    JObject data = JObject.Parse(result)["data"] as JObject;
+                    if (data != null)
+                    {
+                        ParseTasks(data["tasks"] as JArray);
+                        ParseHideoutStations(data["hideoutStations"] as JArray);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading required items data: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private static void ParseTasks(JArray tasksArray)
+        {
+            Quests.Clear();
+            foreach (var taskToken in tasksArray)
+            {
+                var quest = new Quest
+                {
+                    Id = taskToken["id"].ToString(),
+                    Name = taskToken["name"].ToString(),
+                    Trader = new Trader
+                    {
+                        Id = taskToken["trader"]["id"].ToString(),
+                        Name = taskToken["trader"]["name"].ToString(),
+                        ImageLink = taskToken["trader"]["imageLink"].ToString()
+                    },
+                    Objectives = new List<QuestObjective>()
+                };
+
+                var objectivesArray = taskToken["objectives"] as JArray;
+                foreach (var objectiveToken in objectivesArray)
+                {
+                    string type = objectiveToken["type"].ToString();
+                    if (type == "findItem" || type == "plantItem")
+                    {
+                        var itemsArray = objectiveToken["items"] as JArray;
+                        if (itemsArray != null)
+                        {
+                            var objective = new QuestObjective
+                            {
+                                Id = objectiveToken["id"].ToString(),
+                                Type = type,
+                                Description = objectiveToken["description"].ToString(),
+                                Items = new List<Item>(),
+                                Count = (int)objectiveToken["count"],
+                                FoundInRaid = (bool)objectiveToken["foundInRaid"]
+                            };
+
+                            foreach (var itemToken in itemsArray)
+                            {
+                                var item = new Item
+                                {
+                                    Id = itemToken["id"].ToString(),
+                                    Name = itemToken["name"].ToString(),
+                                    IconLink = itemToken["iconLink"].ToString()
+                                };
+                                objective.Items.Add(item);
+                            }
+
+                            quest.Objectives.Add(objective);
+                        }
+                    }
+                }
+
+                if (quest.Objectives.Any())
+                {
+                    Quests.Add(quest);
+                }
+            }
+        }
+
+        private static void ParseHideoutStations(JArray stationsArray)
+        {
+            HideoutStations.Clear();
+            foreach (var stationToken in stationsArray)
+            {
+                var station = new HideoutStation
+                {
+                    Id = stationToken["id"].ToString(),
+                    Name = stationToken["name"].ToString(),
+                    NormalizedName = stationToken["normalizedName"].ToString(),
+                    ImageLink = stationToken["imageLink"].ToString(),
+                    Levels = new List<HideoutStationLevel>()
+                };
+
+                var levelsArray = stationToken["levels"] as JArray;
+                foreach (var levelToken in levelsArray)
+                {
+                    var level = new HideoutStationLevel
+                    {
+                        Level = (int)levelToken["level"],
+                        ItemRequirements = new List<ItemRequirement>()
+                    };
+
+                    var itemRequirementsArray = levelToken["itemRequirements"] as JArray;
+                    foreach (var reqToken in itemRequirementsArray)
+                    {
+                        var itemToken = reqToken["item"];
+                        var item = new Item
+                        {
+                            Id = itemToken["id"].ToString(),
+                            Name = itemToken["name"].ToString(),
+                            IconLink = itemToken["iconLink"].ToString()
+                        };
+
+                        var itemRequirement = new ItemRequirement
+                        {
+                            Item = item,
+                            Count = (int)reqToken["count"]
+                        };
+
+                        level.ItemRequirements.Add(itemRequirement);
+                    }
+
+                    station.Levels.Add(level);
+                }
+
+                if (station.Levels.Any())
+                {
+                    HideoutStations.Add(station);
+                }
+            }
+        }
+    }
+
+    // Model Classes
+    public class Quest
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public Trader Trader { get; set; }
+        public List<QuestObjective> Objectives { get; set; }
+    }
+
+    public class Trader
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string ImageLink { get; set; }
+    }
+
+    public class QuestObjective
+    {
+        public string Id { get; set; }
+        public string Type { get; set; }
+        public string Description { get; set; }
+        public List<Item> Items { get; set; }
+        public int Count { get; set; }
+        public bool FoundInRaid { get; set; }
+    }
+
+    public class HideoutStation
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string NormalizedName { get; set; }
+        public string ImageLink { get; set; }
+        public List<HideoutStationLevel> Levels { get; set; }
+    }
+
+    public class HideoutStationLevel
+    {
+        public int Level { get; set; }
+        public List<ItemRequirement> ItemRequirements { get; set; }
+    }
+
+    public class ItemRequirement
+    {
+        public Item Item { get; set; }
+        public int Count { get; set; }
+    }
+
+    public class Item
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string IconLink { get; set; }
     }
 
     // Classes for deserialization remain unchanged
@@ -582,5 +823,147 @@ namespace EFT_OverlayAPP
         {
             throw new NotImplementedException();
         }
+    }
+
+    public class CompletionToBackgroundConverter : IValueConverter
+    {
+        public Brush CompletedBrush { get; set; } = Brushes.LightGreen;
+        public Brush DefaultBrush { get; set; } = Brushes.Transparent;
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is bool isComplete)
+            {
+                return isComplete ? CompletedBrush : DefaultBrush;
+            }
+            return DefaultBrush;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class CompletionToForegroundConverter : IValueConverter
+    {
+        public Brush CompletedBrush { get; set; } = Brushes.Green;
+        public Brush DefaultBrush { get; set; } = Brushes.Black;
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is bool isComplete)
+            {
+                return isComplete ? CompletedBrush : DefaultBrush;
+            }
+            return DefaultBrush;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class RequiredItemQuantity
+    {
+        public string Id { get; set; }
+        public int QuantityOwned { get; set; }
+    }
+
+    public class CombinedRequiredItemEntry : INotifyPropertyChanged
+    {
+        public Item Item { get; set; }
+        private int quantityNeeded;
+        public int QuantityNeeded
+        {
+            get => quantityNeeded;
+            set
+            {
+                if (quantityNeeded != value)
+                {
+                    quantityNeeded = value;
+                    OnPropertyChanged(nameof(QuantityNeeded));
+                    OnPropertyChanged(nameof(QuantityOwnedNeeded));
+                    OnPropertyChanged(nameof(IsComplete));
+                }
+            }
+        }
+        private int quantityOwned;
+        public int QuantityOwned
+        {
+            get => quantityOwned;
+            set
+            {
+                if (quantityOwned != value)
+                {
+                    quantityOwned = value;
+                    OnPropertyChanged(nameof(QuantityOwned));
+                    OnPropertyChanged(nameof(QuantityOwnedNeeded));
+                    OnPropertyChanged(nameof(IsComplete));
+                }
+            }
+        }
+        public string QuantityOwnedNeeded => $"{QuantityOwned} / {QuantityNeeded}";
+        public bool IsFoundInRaid { get; set; }
+        public string RequiredFor { get; set; }
+        public string GroupType { get; set; }
+        public bool IsComplete => QuantityOwned >= QuantityNeeded;
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        public void OnPropertyChanged(string name) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+    }
+
+    public class RequiredItemEntry : INotifyPropertyChanged
+    {
+        public string Id { get; set; }
+        public Item Item { get; set; }
+        private int quantityNeeded;
+        public int QuantityNeeded
+        {
+            get => quantityNeeded;
+            set
+            {
+                if (quantityNeeded != value)
+                {
+                    quantityNeeded = value;
+                    OnPropertyChanged(nameof(QuantityNeeded));
+                    OnPropertyChanged(nameof(QuantityOwnedNeeded));
+                    OnPropertyChanged(nameof(IsComplete));
+                }
+            }
+        }
+        private int quantityOwned;
+        public int QuantityOwned
+        {
+            get => quantityOwned;
+            set
+            {
+                if (quantityOwned != value)
+                {
+                    quantityOwned = value;
+                    OnPropertyChanged(nameof(QuantityOwned));
+                    OnPropertyChanged(nameof(QuantityOwnedNeeded));
+                    OnPropertyChanged(nameof(IsComplete));
+                }
+            }
+        }
+        public string QuantityOwnedNeeded => $"{QuantityOwned} / {QuantityNeeded}";
+        public bool IsFoundInRaid { get; set; }
+        public string SourceIcon { get; set; }
+        public string SourceName { get; set; }
+        public string SourceDetail { get; set; }
+        public string GroupType { get; set; } // "Quests" or "Hideout"
+        public bool IsComplete => QuantityOwned >= QuantityNeeded;
+
+        // For combined entries
+        public bool IsCombined { get; set; }
+        public RequiredItemEntry ParentEntry { get; set; }
+        public List<RequiredItemEntry> ChildEntries { get; set; }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        public void OnPropertyChanged(string name) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 }

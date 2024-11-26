@@ -1,0 +1,168 @@
+﻿<Window x:Class="EFT_OverlayAPP.RequiredItemsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:EFT_OverlayAPP"
+        mc:Ignorable="d"
+        Title="Required Items"
+        Height="600"
+        Width="800"
+        Topmost="True">
+    <Window.Resources>
+        <!-- Converters and Styles -->
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <local:CompletionToBackgroundConverter x:Key="CompletionToBackgroundConverter"/>
+        <local:CompletionToForegroundConverter x:Key="CompletionToForegroundConverter"/>
+    </Window.Resources>
+    <Grid>
+        <DockPanel>
+            <!-- Tabs -->
+            <TabControl x:Name="MainTabControl">
+                <!-- Required Items Tab -->
+                <TabItem Header="Required Items">
+                    <DockPanel>
+                        <!-- Search and Filters -->
+                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="5">
+                            <TextBox x:Name="SearchTextBox" Width="200" Margin="0,0,5,0" TextChanged="SearchTextBox_TextChanged"/>
+                            <ComboBox x:Name="TypeFilterComboBox" Width="150" Margin="0,0,5,0" SelectionChanged="TypeFilterComboBox_SelectionChanged"/>
+                            <ComboBox x:Name="CompletionFilterComboBox" Width="150" Margin="0,0,5,0" SelectionChanged="CompletionFilterComboBox_SelectionChanged"/>
+                            <ComboBox x:Name="SortOrderComboBox" Width="150" Margin="0,0,5,0" SelectionChanged="SortOrderComboBox_SelectionChanged"/>
+                        </StackPanel>
+
+                        <!-- Required Items List -->
+                        <ListView x:Name="RequiredItemsListView" Margin="5">
+                            <!-- Define ItemTemplate -->
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{Binding IsComplete, Converter={StaticResource CompletionToBackgroundConverter}}" Margin="0,0,0,5">
+                                        <StackPanel Orientation="Horizontal" Margin="5">
+                                            <!-- Item Icon -->
+                                            <Image Source="{Binding Item.IconLink}" Width="50" Height="50" Margin="0,0,5,0"/>
+                                            <!-- Item Details -->
+                                            <StackPanel Orientation="Vertical">
+                                                <TextBlock Text="{Binding Item.Name}" FontWeight="Bold"/>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="Quantity: "/>
+                                                    <TextBlock Text="{Binding QuantityOwnedNeeded}" Foreground="{Binding IsComplete, Converter={StaticResource CompletionToForegroundConverter}}"/>
+                                                    <Button Content="-" Width="20" Margin="5,0" Click="DecrementButton_Click"/>
+                                                    <Button Content="+" Width="20" Click="IncrementButton_Click"/>
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding SourceDetail}" FontStyle="Italic"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                            <!-- Grouping -->
+                            <ListView.GroupStyle>
+                                <GroupStyle>
+                                    <GroupStyle.HeaderTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" Background="LightGray">
+                                                <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="16" Padding="5"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </GroupStyle.HeaderTemplate>
+                                </GroupStyle>
+                            </ListView.GroupStyle>
+                        </ListView>
+                    </DockPanel>
+                </TabItem>
+
+                <!-- Combined Required Items Tab -->
+                <TabItem Header="Combined Required Items">
+                    <DockPanel>
+                        <!-- Search and Filters -->
+                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="5">
+                            <TextBox x:Name="CombinedSearchTextBox" Width="200" Margin="0,0,5,0" TextChanged="CombinedSearchTextBox_TextChanged"/>
+                            <ComboBox x:Name="CombinedCompletionFilterComboBox" Width="150" Margin="0,0,5,0" SelectionChanged="CombinedCompletionFilterComboBox_SelectionChanged"/>
+                            <!-- Sort Order ComboBox -->
+                            <ComboBox x:Name="CombinedSortOrderComboBox" Width="150" Margin="0,0,5,0" SelectionChanged="CombinedSortOrderComboBox_SelectionChanged"/>
+                        </StackPanel>
+
+                        <!-- Combined Required Items List -->
+                        <ListView x:Name="CombinedRequiredItemsListView" Margin="5">
+                            <!-- Define ItemTemplate -->
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{Binding IsComplete, Converter={StaticResource CompletionToBackgroundConverter}}" Margin="0,0,0,5">
+                                        <StackPanel Orientation="Horizontal" Margin="5">
+                                            <!-- Item Icon -->
+                                            <Image Source="{Binding Item.IconLink}" Width="50" Height="50" Margin="0,0,5,0"/>
+                                            <!-- Item Details -->
+                                            <StackPanel Orientation="Vertical">
+                                                <TextBlock Text="{Binding Item.Name}" FontWeight="Bold"/>
+                                                <TextBlock Text="{Binding QuantityOwnedNeeded}" Foreground="{Binding IsComplete, Converter={StaticResource CompletionToForegroundConverter}}"/>
+                                                <TextBlock Text="{Binding RequiredFor}" FontStyle="Italic"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                            <!-- Grouping -->
+                            <ListView.GroupStyle>
+                                <GroupStyle>
+                                    <GroupStyle.HeaderTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="16" Padding="5"/>
+                                        </DataTemplate>
+                                    </GroupStyle.HeaderTemplate>
+                                </GroupStyle>
+                            </ListView.GroupStyle>
+                        </ListView>
+                    </DockPanel>
+                </TabItem>
+
+                <!-- Manual Combined Required Items Tab -->
+                <TabItem Header="Manual Combined Required Items">
+                    <DockPanel>
+                        <!-- Search and Filters -->
+                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="5">
+                            <TextBox x:Name="ManualCombinedSearchTextBox" Width="200" Margin="0,0,5,0" TextChanged="ManualCombinedSearchTextBox_TextChanged"/>
+                            <!-- Completion Filter -->
+                            <ComboBox x:Name="ManualCombinedCompletionFilterComboBox" Width="150" Margin="0,0,5,0" SelectionChanged="ManualCombinedCompletionFilterComboBox_SelectionChanged"/>
+                            <!-- Sort Order -->
+                            <ComboBox x:Name="ManualCombinedSortOrderComboBox" Width="150" Margin="0,0,5,0" SelectionChanged="ManualCombinedSortOrderComboBox_SelectionChanged"/>
+                        </StackPanel>
+
+                        <!-- Manual Combined Required Items List -->
+                        <ListView x:Name="ManualCombinedRequiredItemsListView" Margin="5">
+                            <!-- Define ItemTemplate -->
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{Binding IsComplete, Converter={StaticResource CompletionToBackgroundConverter}}" Margin="0,0,0,5">
+                                        <StackPanel Orientation="Horizontal" Margin="5">
+                                            <!-- Item Icon -->
+                                            <Image Source="{Binding Item.IconLink}" Width="50" Height="50" Margin="0,0,5,0"/>
+                                            <!-- Item Details -->
+                                            <StackPanel Orientation="Vertical">
+                                                <TextBlock Text="{Binding Item.Name}" FontWeight="Bold"/>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding QuantityOwnedNeeded}" Foreground="{Binding IsComplete, Converter={StaticResource CompletionToForegroundConverter}}"/>
+                                                    <Button Content="-" Width="20" Margin="5,0" Click="ManualCombinedDecrementButton_Click"/>
+                                                    <Button Content="+" Width="20" Click="ManualCombinedIncrementButton_Click"/>
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding RequiredFor}" FontStyle="Italic"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                            <!-- Grouping -->
+                            <ListView.GroupStyle>
+                                <GroupStyle>
+                                    <GroupStyle.HeaderTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="16" Padding="5"/>
+                                        </DataTemplate>
+                                    </GroupStyle.HeaderTemplate>
+                                </GroupStyle>
+                            </ListView.GroupStyle>
+                        </ListView>
+                    </DockPanel>
+                </TabItem>
+            </TabControl>
+        </DockPanel>
+    </Grid>
+</Window>
