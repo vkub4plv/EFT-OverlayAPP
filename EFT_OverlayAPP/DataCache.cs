@@ -311,20 +311,44 @@ namespace EFT_OverlayAPP
               }
             }";
 
+
             try
             {
                 using (HttpClient client = new HttpClient())
                 {
-                    var content = new StringContent("{\"query\": \"" + query.Replace("\"", "\\\"") + "\"}", Encoding.UTF8, "application/json");
+                    // Create an anonymous object for the query
+                    var queryObject = new { query = query };
+                    var jsonContent = JsonConvert.SerializeObject(queryObject);
+                    var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
                     HttpResponseMessage response = await client.PostAsync("https://api.tarkov.dev/graphql", content);
+
                     string result = await response.Content.ReadAsStringAsync();
 
-                    JObject data = JObject.Parse(result)["data"] as JObject;
+                    // Log the response
+                    // MessageBox.Show(result, "API Response", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                    JObject responseObject = JObject.Parse(result);
+
+                    // Check for errors in the response
+                    if (responseObject["errors"] != null)
+                    {
+                        var errors = responseObject["errors"].ToString();
+                        MessageBox.Show($"API returned errors: {errors}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+
+                    JObject data = responseObject["data"] as JObject;
                     if (data != null)
                     {
                         ParseTasks(data["tasks"] as JArray);
                         ParseHideoutStations(data["hideoutStations"] as JArray);
                         IsRequiredItemsDataLoaded = true; // Set the flag after successful loading
+                    }
+                    else
+                    {
+                        // Handle the case where 'data' is null
+                        MessageBox.Show("API returned null data.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
             }
