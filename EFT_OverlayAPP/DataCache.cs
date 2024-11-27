@@ -381,7 +381,7 @@ namespace EFT_OverlayAPP
                 foreach (var objectiveToken in objectivesArray)
                 {
                     string type = objectiveToken["type"].ToString();
-                    if (type == "findItem" || type == "plantItem")
+                    if (type == "giveItem" || type == "plantItem")
                     {
                         var itemsArray = objectiveToken["items"] as JArray;
                         if (itemsArray != null)
