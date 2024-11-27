@@ -99,7 +99,11 @@ namespace EFT_OverlayAPP
                             var combinedEntry = new RequiredItemEntry
                             {
                                 Id = objective.Id,
-                                Item = new Item { Name = "Multiple Items" },
+                                Item = new Item
+                                {
+                                    Name = $"{quest.Name} - Multiple Items",
+                                    IconLink = quest.Trader.ImageLink
+                                },
                                 QuantityNeeded = objective.Count,
                                 QuantityOwned = 0,
                                 IsFoundInRaid = objective.FoundInRaid,

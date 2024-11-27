@@ -65,8 +65,30 @@
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock Text="Quantity: "/>
                                                         <TextBlock Text="{Binding QuantityOwnedNeeded}"/>
-                                                        <Button Content="-" Width="20" Margin="5,0" Click="DecrementButton_Click"/>
-                                                        <Button Content="+" Width="20" Click="IncrementButton_Click"/>
+                                                        <Button Content="-" Width="20" Margin="5,0" Click="DecrementButton_Click">
+                                                            <Button.Style>
+                                                                <Style TargetType="Button">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsCombined}" Value="True">
+                                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Button.Style>
+                                                        </Button>
+                                                        <Button Content="+" Width="20" Click="IncrementButton_Click">
+                                                            <Button.Style>
+                                                                <Style TargetType="Button">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsCombined}" Value="True">
+                                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Button.Style>
+                                                        </Button>
                                                     </StackPanel>
                                                     <!-- Source Info (Trader Icon and Quest Name or Hideout Station Icon and Level) -->
                                                     <StackPanel Orientation="Horizontal">
