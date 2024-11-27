@@ -196,5 +196,13 @@
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
+        <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+            <StackPanel>
+                <TextBlock Text="{Binding IsMatching, Converter={StaticResource BooleanToStringConverter}, ConverterParameter='Matching...,Not Matching'}" />
+                <TextBlock Text="{Binding IsInRaid, Converter={StaticResource BooleanToStringConverter}, ConverterParameter='In Raid,Not In Raid'}" />
+                <TextBlock Text="Current Map:" />
+                <TextBlock Text="{Binding CurrentMap}" />
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>
