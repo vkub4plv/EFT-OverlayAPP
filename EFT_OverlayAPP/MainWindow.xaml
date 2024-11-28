@@ -17,6 +17,7 @@
         d:DesignHeight="1080">
     <Window.Resources>
         <local:RemainingTimeToColorConverter x:Key="RemainingTimeToColorConverter"/>
+        <local:BooleanToStringConverter x:Key="BooleanToStringConverter"/>
         <Style x:Key="Clock" TargetType="TextBlock">
             <Setter Property="FontSize" Value="42"/>
             <Setter Property="Foreground" Value="#B6C1C7"/>
@@ -198,10 +199,10 @@
         </ItemsControl>
         <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
             <StackPanel>
-                <TextBlock Text="{Binding IsMatching, Converter={StaticResource BooleanToStringConverter}, ConverterParameter='Matching...,Not Matching'}" />
-                <TextBlock Text="{Binding IsInRaid, Converter={StaticResource BooleanToStringConverter}, ConverterParameter='In Raid,Not In Raid'}" />
-                <TextBlock Text="Current Map:" />
-                <TextBlock Text="{Binding CurrentMap}" />
+                <TextBlock Foreground ="White" Text="{Binding IsMatching, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BooleanToStringConverter}, ConverterParameter='Matching...,Not Matching'}" />
+                <TextBlock Foreground ="White" Text="{Binding IsInRaid, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BooleanToStringConverter}, ConverterParameter='In Raid,Not In Raid'}" />
+                <TextBlock Foreground ="White" Text="Current Map:" />
+                <TextBlock Foreground ="White" Text="{Binding CurrentMap, RelativeSource={RelativeSource AncestorType=Window}}" />
             </StackPanel>
         </Grid>
     </Grid>

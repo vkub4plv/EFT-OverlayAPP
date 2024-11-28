@@ -6,6 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Microsoft.Win32;
+using Ookii.Dialogs.Wpf;
+using System.Diagnostics;
+using System.Text.Json;
+using NLog;
 
 namespace EFT_OverlayAPP
 {
@@ -15,6 +20,7 @@ namespace EFT_OverlayAPP
 
     public class LogMonitor
     {
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         private readonly string logFilePath;
         private long lastFileSize;
         private FileSystemWatcher fileWatcher;
@@ -59,12 +65,19 @@ namespace EFT_OverlayAPP
             isMonitoring = false;
         }
 
-        private void OnLogFileChanged(object sender, FileSystemEventArgs e)
+        private async void OnLogFileChanged(object sender, FileSystemEventArgs e)
         {
-            Task.Run(() => ReadNewLogEntries());
+            try
+            {
+                await ReadNewLogEntriesAsync();
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Error in OnLogFileChanged");
+            }
         }
 
-        private void ReadNewLogEntries()
+        private async Task ReadNewLogEntriesAsync()
         {
             try
             {
@@ -77,21 +90,24 @@ namespace EFT_OverlayAPP
                     stream.Seek(lastFileSize, SeekOrigin.Begin);
                     using (var reader = new StreamReader(stream))
                     {
-                        string newEntries = reader.ReadToEnd();
+                        string newEntries = await reader.ReadToEndAsync();
                         lastFileSize = fileInfo.Length;
                         OnLogChanged(newEntries);
                     }
                 }
             }
-            catch (IOException)
+            catch (IOException ex)
             {
-                // Handle exceptions if necessary
+                // Handle exceptions
+                logger.Error(ex, "IO Exception");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error reading log file: {ex.Message}");
+                // Handle exceptions
+                logger.Error(ex, "Error reading log file");
             }
         }
+
 
         protected virtual void OnLogChanged(string newEntries)
         {
@@ -112,59 +128,124 @@ namespace EFT_OverlayAPP
 
     public class LogParser
     {
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         public event EventHandler MatchingStarted;
         public event EventHandler MatchingCancelled;
-        public event EventHandler<RaidEventArgs> RaidStarted;
+        public event EventHandler RaidStarted;
         public event EventHandler RaidEnded;
         public event EventHandler<RaidEventArgs> MapChanged;
 
         public void Parse(string logContent)
         {
+            logger.Info("Starting to parse log content");
             var lines = logContent.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
             foreach (var line in lines)
             {
                 ProcessLogLine(line);
             }
+            logger.Info("Finished parsing log content");
         }
+
+        // Ensure you store the last map name when MapChanged is invoked
+        private string lastMapName;
 
         private void ProcessLogLine(string line)
         {
-            if (line.Contains("Matching with group id"))
+            try
             {
-                MatchingStarted?.Invoke(this, EventArgs.Empty);
+                logger.Info($"Processing log line: {line}");
+
+                // Match matching started
+                if (Regex.IsMatch(line, @"Matching with group id"))
+                {
+                    MatchingStarted?.Invoke(this, EventArgs.Empty);
+                    return;
+                }
+
+                // Match matching cancelled or aborted
+                if (Regex.IsMatch(line, @"Network game matching (cancelled|aborted)"))
+                {
+                    MatchingCancelled?.Invoke(this, EventArgs.Empty);
+                    return;
+                }
+
+                // Match map loaded with new pattern
+                var mapLoadedMatch = Regex.Match(line, @"TRACE-NetworkGameCreate profileStatus: '(?<content>.*)'");
+                if (mapLoadedMatch.Success)
+                {
+                    string content = mapLoadedMatch.Groups["content"].Value;
+                    string mapName = ExtractMapNameFromProfileStatus(content);
+                    MapChanged?.Invoke(this, new RaidEventArgs(mapName));
+                    logger.Info($"Map changed to: {mapName}");
+                    return;
+                }
+
+                // Match raid started with new pattern
+                if (Regex.IsMatch(line, @"\|Info\|application\|GameStarted:"))
+                {
+                    logger.Info($"RaidStarted event: lastMapName = {lastMapName}");
+                    string mapName = lastMapName ?? "Unknown";
+                    RaidStarted?.Invoke(this, new RaidEventArgs(mapName));
+                    logger.Info($"RaidStarted event invoked with map: {mapName}");
+                    return;
+                }
+
+                // Match raid ended
+                if (Regex.IsMatch(line, @"\|Info\|application\|(SelectProfile ProfileId|GameLeft|LeaveGame)"))
+                {
+                    RaidEnded?.Invoke(this, EventArgs.Empty);
+                    logger.Info("RaidEnded event invoked due to raid end indicator");
+                    return;
+                }
+
+                // Match in-raid death
+                if (Regex.IsMatch(line, @"Player died"))
+                {
+                    // Handle player death
+                    // You can raise an event or update the state accordingly
+                }
+
+                // Match extraction
+                if (Regex.IsMatch(line, @"Player extracted"))
+                {
+                    // Handle player extraction
+                    // You can raise an event or update the state accordingly
+                }
+
+                if (mapLoadedMatch.Success)
+                {
+                    string content = mapLoadedMatch.Groups["content"].Value;
+                    string mapName = ExtractMapNameFromProfileStatus(content);
+                    lastMapName = mapName; // Store the map name
+                    MapChanged?.Invoke(this, new RaidEventArgs(mapName));
+                    logger.Info($"Map changed to: {mapName}");
+                    return;
+                }
+
+                // Add other patterns as needed
             }
-            else if (line.Contains("Network game matching cancelled") || line.Contains("Network game matching aborted"))
+            catch (Exception ex)
             {
-                MatchingCancelled?.Invoke(this, EventArgs.Empty);
-            }
-            else if (line.Contains("TRACE-NetworkGameCreate profileStatus"))
-            {
-                string mapName = ExtractMapName(line);
-                MapChanged?.Invoke(this, new RaidEventArgs(mapName));
-            }
-            else if (line.Contains("GameStarting"))
-            {
-                // Raid is about to start
-                // You can raise an event here if needed
-            }
-            else if (line.Contains("GameStarted"))
-            {
-                string mapName = ExtractMapName(line);
-                RaidStarted?.Invoke(this, new RaidEventArgs(mapName));
-            }
-            else if (line.Contains("OnGameSessionEnd"))
-            {
-                RaidEnded?.Invoke(this, EventArgs.Empty);
+                // Log exception
+                logger.Error(ex, "Error processing log line");
             }
         }
 
-        private string ExtractMapName(string line)
+        private string ExtractMapNameFromProfileStatus(string content)
         {
-            var match = Regex.Match(line, @"Location: (?<location>[^,]+),");
-            if (match.Success)
+            try
             {
-                string locationIdentifier = match.Groups["location"].Value;
-                return MapLocationIdentifierToName(locationIdentifier);
+                // Extract the Location field from the content
+                var locationMatch = Regex.Match(content, @"Location:\s*(?<location>[^,]+)");
+                if (locationMatch.Success)
+                {
+                    string locationIdentifier = locationMatch.Groups["location"].Value.Trim();
+                    return MapLocationIdentifierToName(locationIdentifier);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Error extracting map name from profile status");
             }
             return "Unknown";
         }
@@ -197,6 +278,7 @@ namespace EFT_OverlayAPP
 
     public class GameStateManager
     {
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         private readonly GameWatcher gameWatcher;
         private readonly LogParser logParser;
         private readonly GameState gameState;
@@ -227,12 +309,14 @@ namespace EFT_OverlayAPP
                 gameState.IsMatching = true;
                 gameState.IsInRaid = false;
                 gameState.CurrentMap = null;
+                logger.Info("Matching started");
                 OnGameStateChanged();
             };
 
             logParser.MatchingCancelled += (s, e) =>
             {
                 gameState.IsMatching = false;
+                logger.Info("Matching cancelled");
                 OnGameStateChanged();
             };
 
@@ -240,20 +324,24 @@ namespace EFT_OverlayAPP
             {
                 gameState.IsInRaid = true;
                 gameState.IsMatching = false;
-                gameState.CurrentMap = e.MapName;
+                // Do not update CurrentMap here
+                logger.Info($"Raid started on map: {gameState.CurrentMap}");
                 OnGameStateChanged();
             };
+
 
             logParser.RaidEnded += (s, e) =>
             {
                 gameState.IsInRaid = false;
                 gameState.CurrentMap = null;
+                logger.Info("Raid ended");
                 OnGameStateChanged();
             };
 
             logParser.MapChanged += (s, e) =>
             {
                 gameState.CurrentMap = e.MapName;
+                logger.Info($"Map changed to: {e.MapName}");
                 OnGameStateChanged();
             };
         }
@@ -274,37 +362,9 @@ namespace EFT_OverlayAPP
         }
     }
 
-    public class MainWindowViewModel : INotifyPropertyChanged
-    {
-        private readonly GameStateManager gameStateManager;
-
-        public bool IsMatching => gameStateManager.GameState.IsMatching;
-        public bool IsInRaid => gameStateManager.GameState.IsInRaid;
-        public string CurrentMap => gameStateManager.GameState.CurrentMap;
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        public MainWindowViewModel(string logFilePath)
-        {
-            gameStateManager = new GameStateManager(logFilePath);
-            gameStateManager.GameStateChanged += GameStateManager_GameStateChanged;
-        }
-
-        private void GameStateManager_GameStateChanged(object sender, EventArgs e)
-        {
-            OnPropertyChanged(nameof(IsMatching));
-            OnPropertyChanged(nameof(IsInRaid));
-            OnPropertyChanged(nameof(CurrentMap));
-        }
-
-        protected void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-    }
-
     public class GameWatcher
     {
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         private string logsDirectory;
         private Dictionary<GameLogType, LogMonitor> monitors = new();
         private FileSystemWatcher directoryWatcher;
@@ -336,8 +396,16 @@ namespace EFT_OverlayAPP
 
         private void StartMonitoringLatestLogFolder()
         {
-            string latestLogFolder = GetLatestLogFolder();
-            WatchLogsFolder(latestLogFolder);
+            try
+            {
+                string latestLogFolder = GetLatestLogFolder();
+                WatchLogsFolder(latestLogFolder);
+            }
+            catch (Exception ex)
+            {
+                // Handle exceptions
+                logger.Error(ex, "Error starting monitoring}");
+            }
         }
 
         private string GetLatestLogFolder()
@@ -389,12 +457,13 @@ namespace EFT_OverlayAPP
             monitors[logType] = monitor;
         }
 
-        private void OnLogFileCreated(object sender, FileSystemEventArgs e)
+        private async void OnLogFileCreated(object sender, FileSystemEventArgs e)
         {
             // Handle new log files or folders
             if (Directory.Exists(e.FullPath) && e.Name.StartsWith("log_"))
             {
-                StartMonitoringLatestLogFolder();
+                // Start monitoring latest log folder asynchronously
+                await Task.Run(() => StartMonitoringLatestLogFolder());
             }
         }
 
@@ -410,5 +479,111 @@ namespace EFT_OverlayAPP
         Application,
         Notifications,
         // Add other log types if needed
+    }
+
+    public static class GamePathHelper
+    {
+        public static string GetLogsDirectory()
+        {
+            string gameInstallPath = GetGameInstallPath();
+            if (string.IsNullOrEmpty(gameInstallPath))
+            {
+                throw new Exception("Game installation path not found in the registry.");
+            }
+
+            string logsDirectory = Path.Combine(gameInstallPath, "Logs");
+            if (Directory.Exists(logsDirectory))
+            {
+                return logsDirectory;
+            }
+            else
+            {
+                throw new Exception("Logs directory not found in the game installation path.");
+            }
+        }
+
+        public static string GetGameInstallPath()
+        {
+            string gamePath = Properties.Settings.Default.GameInstallPath;
+            if (!string.IsNullOrEmpty(gamePath) && Directory.Exists(gamePath))
+            {
+                return gamePath;
+            }
+            string uninstallKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\EscapeFromTarkov";
+
+            // Attempt to open the 64-bit registry key
+            using (RegistryKey key = Registry.LocalMachine.OpenSubKey(uninstallKey))
+            {
+                if (key != null)
+                {
+                    object path = key.GetValue("InstallLocation");
+                    if (path != null)
+                    {
+                        gamePath = path.ToString();
+                    }
+                }
+            }
+
+            // If not found, attempt to open the 32-bit registry key
+            if (string.IsNullOrEmpty(gamePath))
+            {
+                uninstallKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\EscapeFromTarkov";
+                using (RegistryKey key = Registry.LocalMachine.OpenSubKey(uninstallKey))
+                {
+                    if (key != null)
+                    {
+                        object path = key.GetValue("InstallLocation");
+                        if (path != null)
+                        {
+                            gamePath = path.ToString();
+                        }
+                    }
+                }
+            }
+
+            // If still not found, prompt the user
+            if (string.IsNullOrEmpty(gamePath))
+            {
+                // Prompt the user to select the game installation directory
+                string selectedPath = PromptForGamePath();
+                if (!string.IsNullOrEmpty(selectedPath))
+                {
+                    gamePath = selectedPath;
+                }
+                else
+                {
+                    throw new Exception("Game installation path not found.");
+                }
+            }
+
+            if (string.IsNullOrEmpty(gamePath))
+            {
+                gamePath = PromptForGamePath();
+                if (!string.IsNullOrEmpty(gamePath))
+                {
+                    Properties.Settings.Default.GameInstallPath = gamePath;
+                    Properties.Settings.Default.Save();
+                }
+            }
+
+            return gamePath;
+        }
+
+        private static string PromptForGamePath()
+        {
+            string selectedPath = null;
+            var dialog = new VistaFolderBrowserDialog
+            {
+                Description = "Escape from Tarkov installation directory not found automatically. Please select it manually."
+            };
+            bool? result = dialog.ShowDialog();
+
+            if (result == true && Directory.Exists(dialog.SelectedPath))
+            {
+                selectedPath = dialog.SelectedPath;
+            }
+
+            return selectedPath;
+        }
     }
 }

@@ -1024,4 +1024,26 @@ namespace EFT_OverlayAPP
         public string Icon { get; set; } // URL or path to the icon image
         public string Name { get; set; } // Quest name or hideout level
     }
+
+    public class BooleanToStringConverter : IValueConverter
+    {
+        // ConverterParameter format: "TrueValue,FalseValue"
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (parameter is string param && value is bool boolValue)
+            {
+                var values = param.Split(',');
+                if (values.Length == 2)
+                {
+                    return boolValue ? values[0].Trim() : values[1].Trim();
+                }
+            }
+            return DependencyProperty.UnsetValue;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }

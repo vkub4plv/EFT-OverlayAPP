@@ -15,10 +15,11 @@ using AForge.Imaging.Filters;
 using System.Text.RegularExpressions;
 using System.Collections.ObjectModel;
 using System.Windows.Media.Imaging;
+using Microsoft.Win32;
 
 namespace EFT_OverlayAPP
 {
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, INotifyPropertyChanged
     {
         public ObservableCollection<CraftTimerDisplayItem> ActiveCraftTimers { get; set; } = new ObservableCollection<CraftTimerDisplayItem>();
 
@@ -49,6 +50,18 @@ namespace EFT_OverlayAPP
 
             // Start loading data for RequiredItemsWindow
             StartLoadingRequiredItemsData();
+
+            try
+            {
+                string logsDirectory = GamePathHelper.GetLogsDirectory();
+                gameStateManager = new GameStateManager(logsDirectory);
+                gameStateManager.GameStateChanged += GameStateManager_GameStateChanged;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Close();
+            }
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -543,5 +556,63 @@ namespace EFT_OverlayAPP
                 }
             });
         }
+
+        private readonly GameStateManager gameStateManager;
+
+        private bool isMatching;
+        public bool IsMatching
+        {
+            get => isMatching;
+            set
+            {
+                if (isMatching != value)
+                {
+                    isMatching = value;
+                    OnPropertyChanged(nameof(IsMatching));
+                }
+            }
+        }
+
+        private bool isInRaid;
+        public bool IsInRaid
+        {
+            get => isInRaid;
+            set
+            {
+                if (isInRaid != value)
+                {
+                    isInRaid = value;
+                    OnPropertyChanged(nameof(IsInRaid));
+                }
+            }
+        }
+
+        private string currentMap;
+        public string CurrentMap
+        {
+            get => currentMap;
+            set
+            {
+                if (currentMap != value)
+                {
+                    currentMap = value;
+                    OnPropertyChanged(nameof(CurrentMap));
+                }
+            }
+        }
+
+        private void GameStateManager_GameStateChanged(object sender, EventArgs e)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                IsMatching = gameStateManager.GameState.IsMatching;
+                IsInRaid = gameStateManager.GameState.IsInRaid;
+                CurrentMap = gameStateManager.GameState.CurrentMap;
+            });
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string propertyName) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
