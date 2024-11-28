@@ -1047,20 +1047,6 @@ namespace EFT_OverlayAPP
         }
     }
 
-    public class NullOrEmptyToVisibilityConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            var strValue = value as string;
-            return string.IsNullOrEmpty(strValue) ? Visibility.Collapsed : Visibility.Visible;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
     public class InverseBooleanConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

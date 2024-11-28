@@ -4,7 +4,6 @@
              xmlns:local="clr-namespace:EFT_OverlayAPP"
              ShutdownMode="OnMainWindowClose">
     <Application.Resources>
-        <local:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisibilityConverter" />
         <local:RemainingTimeToBlackOrGreenConverter x:Key="RemainingTimeToBlackOrGreenConverter"/>
         <local:TimeSpanToStringConverter x:Key="TimeSpanToStringConverter"/>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>

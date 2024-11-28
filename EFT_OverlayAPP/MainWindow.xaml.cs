@@ -16,13 +16,14 @@ using System.Text.RegularExpressions;
 using System.Collections.ObjectModel;
 using System.Windows.Media.Imaging;
 using Microsoft.Win32;
+using NLog;
 
 namespace EFT_OverlayAPP
 {
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
         public ObservableCollection<CraftTimerDisplayItem> ActiveCraftTimers { get; set; } = new ObservableCollection<CraftTimerDisplayItem>();
-
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         private CraftingWindow craftingWindow;
         private WebViewWindow webViewWindow;
         private OthersWindow othersWindow;
@@ -91,7 +92,6 @@ namespace EFT_OverlayAPP
 
             // Create and show the WebView window
             webViewWindow = new WebViewWindow(this, gameStateManager.GameState);
-            webViewWindow.Show();
 
             // Show the OthersWindow
             othersWindow = new OthersWindow(this, gameStateManager.GameState);
@@ -312,11 +312,13 @@ namespace EFT_OverlayAPP
         {
             try
             {
+                var hiddenElements = false;
                 // Hide the overlay windows
                 this.Hide();
-                if (webViewWindow != null)
+                if (webViewWindow != null && webViewWindow.IsVisible)
                 {
                     webViewWindow.Hide();
+                    hiddenElements = true;
                 }
 
                 // Give the system time to refresh the screen without the overlay
@@ -327,7 +329,7 @@ namespace EFT_OverlayAPP
 
                 // Show the overlay windows again
                 this.Show();
-                if (webViewWindow != null)
+                if (webViewWindow != null && hiddenElements)
                 {
                     webViewWindow.Show();
                 }
@@ -628,13 +630,37 @@ namespace EFT_OverlayAPP
                 IsMatching = gameStateManager.GameState.IsMatching;
                 IsInRaid = gameStateManager.GameState.IsInRaid;
                 CurrentMap = gameStateManager.GameState.CurrentMap;
-            });
+            
 
-            // Hide the raid timer when not in raid
-            if (!IsInRaid)
-            {
-                IsRaidTimerVisible = false;
-            }
+                logger.Info($"GameState changed: IsInRaid={IsInRaid}, IsMatching={IsMatching}, CurrentMap='{CurrentMap}'");
+
+                // Show or hide the WebViewWindow based on CurrentMap
+                if (string.IsNullOrEmpty(CurrentMap))
+                {
+                    logger.Info("CurrentMap is null or empty, hiding WebViewWindow");
+                    // CurrentMap is null or empty, hide the WebViewWindow
+                    if (webViewWindow != null && webViewWindow.IsVisible)
+                    {
+                        webViewWindow.Hide();
+                    }
+                }
+                else
+                {
+                    logger.Info("CurrentMap is set, showing WebViewWindow");
+                    // CurrentMap is set, show the WebViewWindow
+                    if (webViewWindow != null && !webViewWindow.IsVisible)
+                    {
+                        webViewWindow.Show();
+                    }
+                }
+
+                // Hide the raid timer when not in raid
+                if (!IsInRaid)
+                {
+                    IsRaidTimerVisible = false;
+                }
+
+            });
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
