@@ -267,13 +267,100 @@ namespace EFT_OverlayAPP
                 _ => identifier
             };
         }
+
+        private string MapLocationIdentifierToMapGenieSegment(string locationIdentifier)
+        {
+            switch (locationIdentifier)
+            {
+                case "factory4_day":
+                case "factory4_night":
+                    return "factory";
+                case "bigmap":
+                    return "customs";
+                case "woods":
+                    return "woods";
+                case "interchange":
+                    return "interchange";
+                case "rezervbase":
+                    return "reserve";
+                case "shoreline":
+                    return "shoreline";
+                case "laboratory":
+                    return "lab";
+                case "tarkovstreets":
+                    return "streets";
+                case "lighthouse":
+                    return "lighthouse";
+                case "suburbs":
+                    return "ground-zero";
+                default:
+                    return null;
+            }
+        }
+
     }
 
-    public class GameState
+    public class GameState : INotifyPropertyChanged
     {
-        public bool IsMatching { get; set; }
-        public bool IsInRaid { get; set; }
-        public string CurrentMap { get; set; }
+        private string currentMap;
+        public string CurrentMap
+        {
+            get => currentMap;
+            set
+            {
+                if (currentMap != value)
+                {
+                    currentMap = value;
+                    OnPropertyChanged(nameof(CurrentMap));
+                }
+            }
+        }
+
+        private bool isInRaid;
+        public bool IsInRaid
+        {
+            get => isInRaid;
+            set
+            {
+                if (isInRaid != value)
+                {
+                    isInRaid = value;
+                    OnPropertyChanged(nameof(IsInRaid));
+                }
+            }
+        }
+
+        private bool isMatching;
+        public bool IsMatching
+        {
+            get => isMatching;
+            set
+            {
+                if (isMatching != value)
+                {
+                    isMatching = value;
+                    OnPropertyChanged(nameof(IsMatching));
+                }
+            }
+        }
+
+        private string overlayUrl;
+        public string OverlayUrl
+        {
+            get => overlayUrl;
+            set
+            {
+                if (overlayUrl != value)
+                {
+                    overlayUrl = value;
+                    OnPropertyChanged(nameof(OverlayUrl));
+                }
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string propertyName) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
     public class GameStateManager
@@ -282,6 +369,7 @@ namespace EFT_OverlayAPP
         private readonly GameWatcher gameWatcher;
         private readonly LogParser logParser;
         private readonly GameState gameState;
+        private string lastOverlayMapName = null; // Add this field
 
         public GameState GameState => gameState;
 
@@ -295,6 +383,9 @@ namespace EFT_OverlayAPP
 
             gameWatcher.LogChanged += GameWatcher_LogChanged;
             SubscribeToParserEvents();
+
+            // Initialize the overlay URL
+            UpdateOverlayUrl();
         }
 
         private void GameWatcher_LogChanged(object sender, LogChangedEventArgs e)
@@ -346,8 +437,79 @@ namespace EFT_OverlayAPP
             };
         }
 
+        private void UpdateOverlayUrl()
+        {
+            if (!string.IsNullOrEmpty(gameState.CurrentMap))
+            {
+                if (gameState.CurrentMap != lastOverlayMapName)
+                {
+                    // Map has changed, update the overlay URL
+                    string mapSegment = MapNameToMapGenieSegment(gameState.CurrentMap);
+                    if (!string.IsNullOrEmpty(mapSegment))
+                    {
+                        gameState.OverlayUrl = $"https://mapgenie.io/tarkov/maps/{mapSegment}";
+                    }
+                    else
+                    {
+                        // Map not recognized, set to default URL
+                        gameState.OverlayUrl = "https://mapgenie.io/tarkov";
+                    }
+
+                    // Update lastOverlayMapName
+                    lastOverlayMapName = gameState.CurrentMap;
+                }
+                else
+                {
+                    // Map hasn't changed, do not update OverlayUrl
+                    logger.Info("Map hasn't changed, not updating OverlayUrl");
+                }
+            }
+            else
+            {
+                // No current map, set overlay to default URL
+                if (lastOverlayMapName != null)
+                {
+                    gameState.OverlayUrl = "https://mapgenie.io/tarkov";
+                    lastOverlayMapName = null;
+                }
+            }
+        }
+
+        private string MapNameToMapGenieSegment(string mapName)
+        {
+            switch (mapName.ToLower())
+            {
+                case "factory":
+                    return "factory";
+                case "customs":
+                    return "customs";
+                case "woods":
+                    return "woods";
+                case "interchange":
+                    return "interchange";
+                case "reserve":
+                    return "reserve";
+                case "shoreline":
+                    return "shoreline";
+                case "the lab":
+                case "lab":
+                    return "lab";
+                case "lighthouse":
+                    return "lighthouse";
+                case "streets of tarkov":
+                case "streets":
+                    return "streets";
+                case "ground zero":
+                    return "ground-zero";
+                default:
+                    return null;
+            }
+        }
+
         protected virtual void OnGameStateChanged()
         {
+            UpdateOverlayUrl();
+            logger.Info($"GameState changed: IsInRaid={gameState.IsInRaid}, IsMatching={gameState.IsMatching}, CurrentMap={gameState.CurrentMap}, OverlayUrl={gameState.OverlayUrl}");
             GameStateChanged?.Invoke(this, EventArgs.Empty);
         }
     }

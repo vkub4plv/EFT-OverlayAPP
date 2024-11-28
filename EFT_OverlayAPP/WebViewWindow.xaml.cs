@@ -1,13 +1,17 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Windows;
 
 namespace EFT_OverlayAPP
 {
     public partial class WebViewWindow : Window
     {
-        public WebViewWindow(Window owner)
+        private GameState gameState;
+
+        public WebViewWindow(Window owner, GameState gameState)
         {
             InitializeComponent();
+            this.gameState = gameState;
             this.Loaded += WebViewWindow_Loaded;
 
             // Set the owner
@@ -19,17 +23,47 @@ namespace EFT_OverlayAPP
             this.Top = ownerPosition.Y;
             this.Width = 480;
             this.Height = 270;
-        }
 
+            // Set DataContext to GameState for data binding if needed
+            this.DataContext = this.gameState;
+
+            // Subscribe to PropertyChanged event to handle changes in OverlayUrl
+            this.gameState.PropertyChanged += GameState_PropertyChanged;
+        }
 
         private async void WebViewWindow_Loaded(object sender, RoutedEventArgs e)
         {
             await BrowserControl.EnsureCoreWebView2Async(null);
-            BrowserControl.Source = new Uri("https://mapgenie.io/tarkov/maps/customs");
+
+            // Set initial Source if necessary
+            // Set initial Source
+            if (!string.IsNullOrEmpty(gameState.OverlayUrl))
+            {
+                BrowserControl.Source = new Uri(gameState.OverlayUrl);
+            }
+            else
+            {
+                // Set to default URL if OverlayUrl is null or empty
+                BrowserControl.Source = new Uri("https://mapgenie.io/tarkov");
+            }
 
             // Ensure the WebView2 control fills the window
             BrowserControl.Width = this.ActualWidth;
             BrowserControl.Height = this.ActualHeight;
+        }
+
+        private void GameState_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(GameState.OverlayUrl))
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    if (!string.IsNullOrEmpty(gameState.OverlayUrl))
+                    {
+                        BrowserControl.Source = new Uri(gameState.OverlayUrl);
+                    }
+                });
+            }
         }
 
         protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
