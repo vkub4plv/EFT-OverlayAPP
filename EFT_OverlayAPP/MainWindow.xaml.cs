@@ -623,6 +623,20 @@ namespace EFT_OverlayAPP
             }
         }
 
+        private SessionMode sessionMode;
+        public SessionMode SessionMode
+        {
+            get => sessionMode;
+            set
+            {
+                if (sessionMode != value)
+                {
+                    sessionMode = value;
+                    OnPropertyChanged(nameof(SessionMode));
+                }
+            }
+        }
+
         private void GameStateManager_GameStateChanged(object sender, EventArgs e)
         {
             Dispatcher.Invoke(() =>
@@ -630,9 +644,9 @@ namespace EFT_OverlayAPP
                 IsMatching = gameStateManager.GameState.IsMatching;
                 IsInRaid = gameStateManager.GameState.IsInRaid;
                 CurrentMap = gameStateManager.GameState.CurrentMap;
-            
+                SessionMode = gameStateManager.GameState.SessionMode;
 
-                logger.Info($"GameState changed: IsInRaid={IsInRaid}, IsMatching={IsMatching}, CurrentMap='{CurrentMap}'");
+                logger.Info($"GameState changed: IsInRaid={IsInRaid}, IsMatching={IsMatching}, CurrentMap='{CurrentMap}', SessionMode='{SessionMode}'");
 
                 // Show or hide the WebViewWindow based on CurrentMap
                 if (string.IsNullOrEmpty(CurrentMap))

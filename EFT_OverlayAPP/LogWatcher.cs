@@ -134,6 +134,7 @@ namespace EFT_OverlayAPP
         public event EventHandler RaidStarted;
         public event EventHandler RaidEnded;
         public event EventHandler<RaidEventArgs> MapChanged;
+        public event EventHandler<SessionModeChangedEventArgs> SessionModeChanged;
 
         public void Parse(string logContent)
         {
@@ -198,18 +199,14 @@ namespace EFT_OverlayAPP
                     return;
                 }
 
-                // Match in-raid death
-                if (Regex.IsMatch(line, @"Player died"))
+                // Detect session mode changes
+                var sessionModeMatch = Regex.Match(line, @"\|Info\|application\|Session mode:\s*(?<mode>\w+)", RegexOptions.IgnoreCase);
+                if (sessionModeMatch.Success)
                 {
-                    // Handle player death
-                    // You can raise an event or update the state accordingly
-                }
-
-                // Match extraction
-                if (Regex.IsMatch(line, @"Player extracted"))
-                {
-                    // Handle player extraction
-                    // You can raise an event or update the state accordingly
+                    string sessionMode = sessionModeMatch.Groups["mode"].Value;
+                    logger.Info($"Session mode changed to: {sessionMode}");
+                    SessionModeChanged?.Invoke(this, new SessionModeChangedEventArgs(sessionMode));
+                    return;
                 }
 
                 if (mapLoadedMatch.Success)
@@ -358,6 +355,20 @@ namespace EFT_OverlayAPP
             }
         }
 
+        private SessionMode sessionMode;
+        public SessionMode SessionMode
+        {
+            get => sessionMode;
+            set
+            {
+                if (sessionMode != value)
+                {
+                    sessionMode = value;
+                    OnPropertyChanged(nameof(SessionMode));
+                }
+            }
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged(string propertyName) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -435,6 +446,21 @@ namespace EFT_OverlayAPP
                 logger.Info($"Map changed to: {e.MapName}");
                 OnGameStateChanged();
             };
+
+            logParser.SessionModeChanged += (s, e) =>
+            {
+                // Parse the session mode string to enum
+                if (Enum.TryParse(e.SessionMode, true, out SessionMode mode))
+                {
+                    GameState.SessionMode = mode;
+                    logger.Info($"Session mode updated to {mode}");
+                    OnGameStateChanged();
+                }
+                else
+                {
+                    logger.Warn($"Unknown session mode: {e.SessionMode}");
+                }
+            };
         }
 
         private void UpdateOverlayUrl()
@@ -509,7 +535,7 @@ namespace EFT_OverlayAPP
         protected virtual void OnGameStateChanged()
         {
             UpdateOverlayUrl();
-            logger.Info($"GameState changed: IsInRaid={gameState.IsInRaid}, IsMatching={gameState.IsMatching}, CurrentMap={gameState.CurrentMap}, OverlayUrl={gameState.OverlayUrl}");
+            logger.Info($"GameState changed: IsInRaid={gameState.IsInRaid}, IsMatching={gameState.IsMatching}, CurrentMap={gameState.CurrentMap}, SessionMode='{gameState.SessionMode}' OverlayUrl={gameState.OverlayUrl}");
             GameStateChanged?.Invoke(this, EventArgs.Empty);
         }
     }
@@ -747,5 +773,20 @@ namespace EFT_OverlayAPP
 
             return selectedPath;
         }
+    }
+    public class SessionModeChangedEventArgs : EventArgs
+    {
+        public string SessionMode { get; }
+
+        public SessionModeChangedEventArgs(string sessionMode)
+        {
+            SessionMode = sessionMode;
+        }
+    }
+
+    public enum SessionMode
+    {
+        Regular,
+        Pve
     }
 }
