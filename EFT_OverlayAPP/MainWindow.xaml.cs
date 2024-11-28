@@ -32,6 +32,20 @@ namespace EFT_OverlayAPP
         private DispatcherTimer timer;
         private TimeSpan remainingTime;
 
+        private bool isRaidTimerVisible;
+        public bool IsRaidTimerVisible
+        {
+            get => isRaidTimerVisible;
+            set
+            {
+                if (isRaidTimerVisible != value)
+                {
+                    isRaidTimerVisible = value;
+                    OnPropertyChanged(nameof(IsRaidTimerVisible));
+                }
+            }
+        }
+
         // Hotkey IDs
         private const int HOTKEY_ID_RAID_TIMER = 9001; // Unique ID for Raid Timer OCR hotkey
         private const int HOTKEY_ID_CRAFTING_WINDOW = 9002; // Unique ID for CraftingWindow hotkey
@@ -62,6 +76,8 @@ namespace EFT_OverlayAPP
                 MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 Close();
             }
+
+            IsRaidTimerVisible = false; // Initialize to false
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -78,7 +94,7 @@ namespace EFT_OverlayAPP
             webViewWindow.Show();
 
             // Show the OthersWindow
-            othersWindow = new OthersWindow(this);
+            othersWindow = new OthersWindow(this, gameStateManager.GameState);
             othersWindow.Show();
 
             // Register the global hotkeys
@@ -440,7 +456,11 @@ namespace EFT_OverlayAPP
                 {
                     // Update your application's timer
                     remainingTime = extractedTime;
-                    Dispatcher.Invoke(() => UpdateTimerText());
+                    Dispatcher.Invoke(() =>
+                    {
+                        UpdateTimerText();
+                        IsRaidTimerVisible = true; // Show the timer after OCR
+                    });
                 }
                 else
                 {
@@ -609,6 +629,12 @@ namespace EFT_OverlayAPP
                 IsInRaid = gameStateManager.GameState.IsInRaid;
                 CurrentMap = gameStateManager.GameState.CurrentMap;
             });
+
+            // Hide the raid timer when not in raid
+            if (!IsInRaid)
+            {
+                IsRaidTimerVisible = false;
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

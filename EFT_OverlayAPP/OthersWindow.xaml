@@ -15,6 +15,7 @@
         ShowInTaskbar="False"
         ResizeMode="NoResize"
         Loaded="Window_Loaded"
+        DataContext="{Binding GameState, RelativeSource={RelativeSource AncestorType=Window}}"
         >
     <Grid>
         <StackPanel Orientation="Horizontal">
@@ -29,7 +30,8 @@
                     Foreground="White"
                     BorderBrush="Gray"
                     BorderThickness="1"
-                    Opacity="0.8"/>
+                    Opacity="0.8"
+                    Visibility="{Binding IsInRaid, Converter={StaticResource InverseBooleanConverter}, ConverterParameter={}}"/>
             <!-- Open Required Items Window Button -->
             <Button x:Name="OpenRequiredItemsWindowButton"
                     Content="Required Items"
@@ -40,7 +42,8 @@
                     Foreground="White"
                     BorderBrush="Gray"
                     BorderThickness="1"
-                    Opacity="0.8"/>
+                    Opacity="0.8"
+                    Visibility="{Binding IsInRaid, Converter={StaticResource InverseBooleanConverter}, ConverterParameter={}}"/>
         </StackPanel>
     </Grid>
 </Window>

@@ -80,7 +80,8 @@
                 VerticalAlignment="Top"
                 Width="186"
                 Height="73.5"
-                Margin="0,5,5,0">
+                Margin="0,5,5,0"
+                Visibility="{Binding IsRaidTimerVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
             <TextBlock Style="{StaticResource Clock}"
                        x:Name="TimerTextBlock"
                        Text="8:88:88"
@@ -180,7 +181,8 @@
                       HorizontalAlignment="Center"
                       VerticalAlignment="Bottom"
                       Margin="0,0,0,20"
-                      ItemsSource="{Binding ActiveCraftTimers}">
+                      ItemsSource="{Binding ActiveCraftTimers}"
+                      Visibility="{Binding IsInRaid, Converter={StaticResource InverseBooleanConverter}}">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <StackPanel Orientation="Horizontal"/>

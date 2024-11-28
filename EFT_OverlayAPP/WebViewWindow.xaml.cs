@@ -25,7 +25,7 @@ namespace EFT_OverlayAPP
             this.Height = 270;
 
             // Set DataContext to GameState for data binding if needed
-            this.DataContext = this.gameState;
+            this.DataContext = gameState;
 
             // Subscribe to PropertyChanged event to handle changes in OverlayUrl
             this.gameState.PropertyChanged += GameState_PropertyChanged;

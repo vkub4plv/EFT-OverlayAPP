@@ -17,11 +17,14 @@ namespace EFT_OverlayAPP
     public partial class OthersWindow : Window
     {
         private MainWindow mainWindow;
+        private GameState gameState;
 
-        public OthersWindow(MainWindow mainWindow)
+        public OthersWindow(MainWindow mainWindow, GameState gameState)
         {
             InitializeComponent();
             this.mainWindow = mainWindow;
+            this.gameState = gameState;
+            this.DataContext = gameState; // Set DataContext
             this.Owner = mainWindow;
         }
 

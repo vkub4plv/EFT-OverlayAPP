@@ -5,7 +5,14 @@
              ShutdownMode="OnMainWindowClose">
     <Application.Resources>
         <local:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisibilityConverter" />
+        <local:RemainingTimeToBlackOrGreenConverter x:Key="RemainingTimeToBlackOrGreenConverter"/>
+        <local:TimeSpanToStringConverter x:Key="TimeSpanToStringConverter"/>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <local:StationNameToIconConverter x:Key="StationNameToIconConverter"/>
+        <local:RemainingTimeToColorConverter x:Key="RemainingTimeToColorConverter"/>
+        <local:BooleanToStringConverter x:Key="BooleanToStringConverter"/>
+        <local:CompletionToBackgroundConverter x:Key="CompletionToBackgroundConverter"/>
+        <local:CompletionToForegroundConverter x:Key="CompletionToForegroundConverter"/>
         <local:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
     </Application.Resources>
 </Application>
