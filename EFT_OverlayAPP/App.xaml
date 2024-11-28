@@ -4,6 +4,8 @@
              xmlns:local="clr-namespace:EFT_OverlayAPP"
              ShutdownMode="OnMainWindowClose">
     <Application.Resources>
-         
+        <local:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisibilityConverter" />
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <local:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
     </Application.Resources>
 </Application>
