@@ -199,13 +199,13 @@
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
-        <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+        <!-- <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
             <StackPanel>
                 <TextBlock Foreground ="White" Text="{Binding IsMatching, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BooleanToStringConverter}, ConverterParameter='Matching...,Not Matching'}" />
                 <TextBlock Foreground ="White" Text="{Binding IsInRaid, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BooleanToStringConverter}, ConverterParameter='In Raid,Not In Raid'}" />
                 <TextBlock Foreground ="White" Text="Current Map:" />
                 <TextBlock Foreground ="White" Text="{Binding CurrentMap, RelativeSource={RelativeSource AncestorType=Window}}" />
             </StackPanel>
-        </Grid>
+        </Grid> -->
     </Grid>
 </Window>

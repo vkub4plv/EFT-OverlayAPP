@@ -417,7 +417,7 @@ namespace EFT_OverlayAPP
                             // Display the extracted OCR text for debugging
                             Dispatcher.Invoke(() =>
                             {
-                                MessageBox.Show("Extracted OCR Text:\n" + text);
+                                logger.Info("Extracted OCR Text:\n" + text);
                             });
 
                             return text;
