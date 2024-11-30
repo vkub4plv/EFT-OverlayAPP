@@ -717,6 +717,26 @@ namespace EFT_OverlayAPP
         public string CraftableItemId { get; set; }
         public string Station { get; set; }
 
+        // Computed property for conditional timestamps in Logs
+        [JsonIgnore]
+        public string TimestampInfo
+        {
+            get
+            {
+                switch (Status)
+                {
+                    case CraftInstanceStatus.Completed:
+                        return $"Completed At: {CompletedTime?.ToString("MM/dd/yyyy HH:mm:ss") ?? "N/A"}, Finished At: {FinishedTime?.ToString("MM/dd/yyyy HH:mm:ss") ?? "N/A"}";
+                    case CraftInstanceStatus.Stopped:
+                        return $"Stopped At: {StoppedTime?.ToString("MM/dd/yyyy HH:mm:ss") ?? "N/A"}";
+                    case CraftInstanceStatus.Finished:
+                        return $"Finished At: {FinishedTime?.ToString("MM/dd/yyyy HH:mm:ss") ?? "N/A"}";
+                    default:
+                        return string.Empty;
+                }
+            }
+        }
+
         [JsonIgnore]
         public string AdditionalInfo
         {

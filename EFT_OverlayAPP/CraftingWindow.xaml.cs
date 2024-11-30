@@ -946,9 +946,16 @@ namespace EFT_OverlayAPP
         private void SetupLogsView()
         {
             LogsView = CollectionViewSource.GetDefaultView(CraftInstances);
+            LogsView.GroupDescriptions.Clear();
 
             // Group by Station
-            LogsView.GroupDescriptions.Add(new PropertyGroupDescription("CraftableItem.Station"));
+            var groupDescription = new PropertyGroupDescription("CraftableItem.Station");
+            LogsView.GroupDescriptions.Add(groupDescription);
+
+            // Ensure the groups follow the StaticCategoryOrder
+            LogsView.SortDescriptions.Clear();
+            LogsView.SortDescriptions.Add(new SortDescription("CraftableItem.StationIndex", ListSortDirection.Ascending));
+            LogsView.SortDescriptions.Add(new SortDescription("StartTime", ListSortDirection.Descending));
 
             LogsView.Filter = LogsFilter;
 
@@ -1066,9 +1073,16 @@ namespace EFT_OverlayAPP
         private void SetupStatsView()
         {
             StatsView = CollectionViewSource.GetDefaultView(CraftStatsCollection);
+            StatsView.GroupDescriptions.Clear();
 
             // Group by Station
-            StatsView.GroupDescriptions.Add(new PropertyGroupDescription("CraftableItem.Station"));
+            var groupDescription = new PropertyGroupDescription("CraftableItem.Station");
+            StatsView.GroupDescriptions.Add(groupDescription);
+
+            // Ensure the groups follow the StaticCategoryOrder
+            StatsView.SortDescriptions.Clear();
+            StatsView.SortDescriptions.Add(new SortDescription("CraftableItem.StationIndex", ListSortDirection.Ascending));
+            StatsView.SortDescriptions.Add(new SortDescription("TimesStarted", ListSortDirection.Descending));
 
             StatsView.Filter = StatsFilter;
 

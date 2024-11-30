@@ -256,6 +256,15 @@
                         </StackPanel>
                         <!-- ListView -->
                         <ListView x:Name="LogsListView" Grid.Row="1" ItemsSource="{Binding LogsView}">
+                            <ListView.GroupStyle>
+                                <GroupStyle>
+                                    <GroupStyle.HeaderTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="14" Background="LightGray" Padding="5"/>
+                                        </DataTemplate>
+                                    </GroupStyle.HeaderTemplate>
+                                </GroupStyle>
+                            </ListView.GroupStyle>
                             <ListView.ItemTemplate>
                                 <DataTemplate>
                                     <Border Margin="5" Padding="5" BorderBrush="Gray" BorderThickness="1">
@@ -282,8 +291,10 @@
                                             <!-- Timestamps -->
                                             <StackPanel Grid.Column="3" Orientation="Vertical" Margin="5">
                                                 <TextBlock Text="Started At:" FontWeight="Bold" />
-                                                <TextBlock Text="{Binding StartTime}" />
-                                                <!-- Conditional Timestamps -->
+                                                <TextBlock Text="{Binding StartTime, StringFormat=MM/dd/yyyy HH:mm:ss}" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="4" Orientation="Vertical" Margin="5">
+                                                <!-- Conditional Display -->
                                                 <TextBlock Text="{Binding TimestampInfo}" />
                                             </StackPanel>
                                         </Grid>
@@ -315,6 +326,15 @@
                         </StackPanel>
                         <!-- ListView -->
                         <ListView x:Name="StatsListView" Grid.Row="1" ItemsSource="{Binding StatsView}">
+                            <ListView.GroupStyle>
+                                <GroupStyle>
+                                    <GroupStyle.HeaderTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="14" Background="LightGray" Padding="5"/>
+                                        </DataTemplate>
+                                    </GroupStyle.HeaderTemplate>
+                                </GroupStyle>
+                            </ListView.GroupStyle>
                             <ListView.ItemTemplate>
                                 <DataTemplate>
                                     <Border Margin="5" Padding="5" BorderBrush="Gray" BorderThickness="1">
