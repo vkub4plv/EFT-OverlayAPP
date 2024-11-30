@@ -1067,12 +1067,19 @@ namespace EFT_OverlayAPP
                 var stats = new CraftStats
                 {
                     CraftableItem = craftableItem,
-                    TimesStarted = group.Count(ci => ci.Status == CraftInstanceStatus.Started || ci.Status == CraftInstanceStatus.Completed || ci.Status == CraftInstanceStatus.Finished),
+                    // Include all crafts that were started, regardless of their final status
+                    TimesStarted = group.Count(),
+                    // Count crafts that were stopped
                     TimesStopped = group.Count(ci => ci.Status == CraftInstanceStatus.Stopped),
+                    // Count crafts that were completed or finished
                     TimesCompleted = group.Count(ci => ci.Status == CraftInstanceStatus.Completed || ci.Status == CraftInstanceStatus.Finished),
+                    // Earliest start time
                     FirstStartedTime = group.Min(ci => ci.StartTime),
+                    // Latest start time
                     LastStartedTime = group.Max(ci => ci.StartTime),
+                    // Latest stopped time, if any
                     LastStoppedTime = group.Where(ci => ci.StoppedTime.HasValue).Any() ? group.Where(ci => ci.StoppedTime.HasValue).Max(ci => ci.StoppedTime) : null,
+                    // Latest completed time, if any
                     LastCompletedTime = group.Where(ci => ci.CompletedTime.HasValue).Any() ? group.Where(ci => ci.CompletedTime.HasValue).Max(ci => ci.CompletedTime) : null
                 };
                 CraftStatsCollection.Add(stats);
