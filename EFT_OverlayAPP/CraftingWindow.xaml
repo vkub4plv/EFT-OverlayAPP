@@ -333,12 +333,30 @@
                                             </StackPanel>
                                             <!-- Stats -->
                                             <StackPanel Grid.Column="2" Orientation="Vertical" Margin="5">
-                                                <TextBlock Text="Times Started: {Binding TimesStarted}" />
-                                                <TextBlock Text="Times Stopped: {Binding TimesStopped}" />
-                                                <TextBlock Text="Times Completed: {Binding TimesCompleted}" />
-                                                <TextBlock Text="Last Started: {Binding LastStartedTimeFormatted}" />
-                                                <TextBlock Text="Last Stopped: {Binding LastStoppedTimeFormatted}" />
-                                                <TextBlock Text="Last Completed: {Binding LastCompletedTimeFormatted}" />
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="Times Started: "/>
+                                                    <TextBlock Text="{Binding TimesStarted}" />
+                                                </StackPanel>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="Times Stopped: "/>
+                                                    <TextBlock Text="{Binding TimesStopped}" />
+                                                </StackPanel>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="Times Completed: "/>
+                                                    <TextBlock Text="{Binding TimesCompleted}" />
+                                                </StackPanel>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="Last Started: "/>
+                                                    <TextBlock Text="{Binding LastStartedTimeFormatted}" />
+                                                </StackPanel>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="Last Stopped: "/>
+                                                    <TextBlock Text="{Binding LastStoppedTimeFormatted}" />
+                                                </StackPanel>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="Last Completed: "/>
+                                                    <TextBlock Text="{Binding LastCompletedTimeFormatted}" />
+                                                </StackPanel>
                                             </StackPanel>
                                         </Grid>
                                     </Border>
