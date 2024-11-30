@@ -30,9 +30,17 @@ namespace EFT_OverlayAPP
         public ICollectionView ActiveCraftsView { get; set; }
         public ICollectionView ItemsView { get; set; }
         public ICollectionView FavoritesView { get; set; }
+        public ICollectionView LogsView { get; set; }
+
         // Dictionary to track active crafts per station
         private Dictionary<string, CraftableItem> activeCraftsPerStation = new Dictionary<string, CraftableItem>();
         private Dictionary<CraftableItem, DispatcherTimer> craftTimers = new Dictionary<CraftableItem, DispatcherTimer>();
+
+        public ObservableCollection<CraftInstance> CraftInstances { get; set; } = new ObservableCollection<CraftInstance>();
+        private int craftInstanceIndex = 0; // Index to assign to new craft instances
+
+        public ObservableCollection<CraftStats> CraftStatsCollection { get; set; } = new ObservableCollection<CraftStats>();
+        public ICollectionView StatsView { get; set; }
 
         private bool isLoading;
         public bool IsLoading
@@ -140,15 +148,42 @@ namespace EFT_OverlayAPP
             DataCache.LoadFavoriteItemOrder(FavoriteItems);
 
             // Set up views and filters
+            ComputeCraftStats();
             SetupItemsView();
             SetupFavoritesView();
             SetupActiveCraftsView();
+            SetupLogsView();
+            SetupStatsView();
             PopulateCategoryFilter();
             PopulateFavoritesCategoryFilter();
             PopulateActiveCraftsCategoryFilter();
+            PopulateLogsCategoryFilter();
+            PopulateStatsCategoryFilter();
 
             // Apply initial sorting based on the default selection
             ApplySorting();
+
+            // Load saved craft instances
+            var loadedCraftInstances = CraftingDataManager.LoadCraftInstancesData();
+            foreach (var craftInstance in loadedCraftInstances)
+            {
+                // Find the corresponding CraftableItem
+                var item = DataCache.CraftableItems.FirstOrDefault(c =>
+                    c.Id == craftInstance.CraftableItemId &&
+                    c.Station == craftInstance.Station);
+
+                if (item != null)
+                {
+                    craftInstance.CraftableItem = item;
+                    CraftInstances.Add(craftInstance);
+                }
+            }
+
+            // Set the craftInstanceIndex to continue from the last index
+            if (CraftInstances.Any())
+            {
+                craftInstanceIndex = CraftInstances.Max(ci => ci.Index) + 1;
+            }
 
             // Refresh views
             ItemsView?.Refresh();
@@ -163,6 +198,8 @@ namespace EFT_OverlayAPP
 
             ActiveCraftsSearchTextBox.TextChanged += ActiveCraftsSearchTextBox_TextChanged;
             ActiveCraftsCategoryFilterComboBox.SelectionChanged += ActiveCraftsCategoryFilterComboBox_SelectionChanged;
+
+            CraftInstances.CollectionChanged += CraftInstances_CollectionChanged;
         }
 
         private void SetupItemsView()
@@ -368,6 +405,17 @@ namespace EFT_OverlayAPP
             StartCraftTimer(item);
             MainWindow?.UpdateCraftDisplay(item, remove: false);
 
+            // Create and add a new CraftInstance
+            var craftInstance = new CraftInstance
+            {
+                Id = Guid.NewGuid().ToString(),
+                CraftableItem = item,
+                Status = CraftInstanceStatus.Started,
+                StartTime = DateTime.UtcNow,
+                Index = craftInstanceIndex++
+            };
+            CraftInstances.Add(craftInstance);
+
             // Save crafts data
             SaveCraftsState();
         }
@@ -393,6 +441,14 @@ namespace EFT_OverlayAPP
             activeCraftsPerStation.Remove(item.Station);
             ActiveCrafts.Remove(item);
             MainWindow?.UpdateCraftDisplay(item, remove: true);
+
+            // Update the corresponding CraftInstance
+            var craftInstance = FindActiveCraftInstance(item);
+            if (craftInstance != null)
+            {
+                craftInstance.Status = CraftInstanceStatus.Stopped;
+                craftInstance.StoppedTime = DateTime.UtcNow;
+            }
 
             // Save crafts data
             SaveCraftsState();
@@ -420,6 +476,16 @@ namespace EFT_OverlayAPP
             ActiveCrafts.Remove(item);
             MainWindow?.UpdateCraftDisplay(item, remove: true);
 
+            // Existing code to stop the timer and update item status...
+
+            // Update the corresponding CraftInstance
+            var craftInstance = FindActiveCraftInstance(item);
+            if (craftInstance != null)
+            {
+                craftInstance.Status = CraftInstanceStatus.Finished;
+                craftInstance.FinishedTime = DateTime.UtcNow;
+            }
+
             // Save crafts data
             SaveCraftsState();
         }
@@ -432,7 +498,20 @@ namespace EFT_OverlayAPP
                 .ToList();
 
             CraftingDataManager.SaveCraftsData(activeCrafts);
+
+            // Save craft instances
+            CraftingDataManager.SaveCraftInstancesData(CraftInstances.ToList());
         }
+
+        private CraftInstance FindActiveCraftInstance(CraftableItem item)
+        {
+            // Find the active CraftInstance for the given item
+            return CraftInstances.FirstOrDefault(ci =>
+                ci.CraftableItem.Id == item.Id &&
+                ci.CraftableItem.Station == item.Station &&
+                ci.Status == CraftInstanceStatus.Started);
+        }
+
 
         private void StartCraftTimer(CraftableItem item)
         {
@@ -455,8 +534,16 @@ namespace EFT_OverlayAPP
                     craftTimers.Remove(item);
 
                     item.CraftStatus = CraftStatus.Ready;
-                    item.CraftCompletedTime = item.CraftStartTime.Value.Add(item.CraftTime);
+                    item.CraftCompletedTime = item.CraftStartTime.Value.Add(item.CraftTime); 
                     item.OnPropertyChanged(nameof(CraftableItem.CraftCompletedTime));
+
+                    // Update the CraftInstance
+                    var craftInstance = FindActiveCraftInstance(item);
+                    if (craftInstance != null)
+                    {
+                        craftInstance.Status = CraftInstanceStatus.Completed;
+                        craftInstance.CompletedTime = DateTime.UtcNow;
+                    }
 
                     // Notify the main window to update the display
                     MainWindow?.UpdateCraftDisplay(item, remove: false);
@@ -842,6 +929,229 @@ namespace EFT_OverlayAPP
                     }
                 }
             }
+        }
+
+        private void SetupLogsView()
+        {
+            LogsView = CollectionViewSource.GetDefaultView(CraftInstances);
+
+            // Group by Station
+            LogsView.GroupDescriptions.Add(new PropertyGroupDescription("CraftableItem.Station"));
+
+            LogsView.Filter = LogsFilter;
+
+            LogsListView.ItemsSource = LogsView;
+        }
+
+        private void PopulateLogsCategoryFilter()
+        {
+            // Clear existing items
+            LogsCategoryFilterComboBox.Items.Clear();
+
+            // Add "All Categories" as the first item
+            LogsCategoryFilterComboBox.Items.Add("All Categories");
+            LogsCategoryFilterComboBox.SelectedIndex = 0;
+
+            // Get unique categories from the craft instances
+            var categories = new HashSet<string>(CraftInstances.Select(ci => ci.CraftableItem.Station));
+
+            // Add categories to the ComboBox in the static order
+            foreach (var category in DataCache.StaticCategoryOrder)
+            {
+                if (!string.IsNullOrEmpty(category) && categories.Contains(category))
+                {
+                    LogsCategoryFilterComboBox.Items.Add(category);
+                }
+            }
+        }
+
+        private bool LogsFilter(object item)
+        {
+            var craftInstance = item as CraftInstance;
+            if (craftInstance == null) return false;
+
+            string searchText = LogsSearchTextBox.Text?.ToLower() ?? string.Empty;
+            string selectedCategory = LogsCategoryFilterComboBox.SelectedItem as string ?? "All Categories";
+
+            bool matchesSearch = string.IsNullOrEmpty(searchText) ||
+                                 craftInstance.CraftableItem.RewardItems.Any(r => r.Name.ToLower().Contains(searchText));
+
+            bool matchesCategory = selectedCategory == "All Categories" ||
+                                   craftInstance.CraftableItem.Station == selectedCategory;
+
+            return matchesSearch && matchesCategory;
+        }
+
+        private void LogsSearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            LogsView?.Refresh();
+        }
+
+        private void LogsCategoryFilterComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            LogsView?.Refresh();
+        }
+
+        private void LogsSortingComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            ApplyLogsSorting();
+        }
+
+        private void ApplyLogsSorting()
+        {
+            if (LogsView == null)
+                return;
+
+            var selectedSorting = (LogsSortingComboBox.SelectedItem as ComboBoxItem)?.Content as string;
+
+            LogsView.SortDescriptions.Clear();
+            LogsView.SortDescriptions.Add(new SortDescription("CraftableItem.StationIndex", ListSortDirection.Ascending));
+
+            if (selectedSorting == "Most Recent")
+            {
+                LogsView.SortDescriptions.Add(new SortDescription("Index", ListSortDirection.Descending));
+            }
+            else if (selectedSorting == "Oldest")
+            {
+                LogsView.SortDescriptions.Add(new SortDescription("Index", ListSortDirection.Ascending));
+            }
+            else if (selectedSorting == "Name (A-Z)")
+            {
+                LogsView.SortDescriptions.Add(new SortDescription("CraftableItem.FirstRewardItemName", ListSortDirection.Ascending));
+            }
+            else if (selectedSorting == "Name (Z-A)")
+            {
+                LogsView.SortDescriptions.Add(new SortDescription("CraftableItem.FirstRewardItemName", ListSortDirection.Descending));
+            }
+
+            LogsView.Refresh();
+        }
+
+        private void ComputeCraftStats()
+        {
+            CraftStatsCollection.Clear();
+
+            var groupedByItem = CraftInstances.GroupBy(ci => ci.CraftableItem.Id);
+
+            foreach (var group in groupedByItem)
+            {
+                var craftableItem = group.First().CraftableItem;
+                var stats = new CraftStats
+                {
+                    CraftableItem = craftableItem,
+                    TimesStarted = group.Count(ci => ci.Status == CraftInstanceStatus.Started || ci.Status == CraftInstanceStatus.Completed || ci.Status == CraftInstanceStatus.Finished),
+                    TimesStopped = group.Count(ci => ci.Status == CraftInstanceStatus.Stopped),
+                    TimesCompleted = group.Count(ci => ci.Status == CraftInstanceStatus.Completed || ci.Status == CraftInstanceStatus.Finished),
+                    FirstStartedTime = group.Min(ci => ci.StartTime),
+                    LastStartedTime = group.Max(ci => ci.StartTime),
+                    LastStoppedTime = group.Where(ci => ci.StoppedTime.HasValue).Any() ? group.Where(ci => ci.StoppedTime.HasValue).Max(ci => ci.StoppedTime) : null,
+                    LastCompletedTime = group.Where(ci => ci.CompletedTime.HasValue).Any() ? group.Where(ci => ci.CompletedTime.HasValue).Max(ci => ci.CompletedTime) : null
+                };
+                CraftStatsCollection.Add(stats);
+            }
+        }
+
+        private void SetupStatsView()
+        {
+            StatsView = CollectionViewSource.GetDefaultView(CraftStatsCollection);
+
+            // Group by Station
+            StatsView.GroupDescriptions.Add(new PropertyGroupDescription("CraftableItem.Station"));
+
+            StatsView.Filter = StatsFilter;
+
+            StatsListView.ItemsSource = StatsView;
+        }
+
+        private void PopulateStatsCategoryFilter()
+        {
+            // Clear existing items
+            StatsCategoryFilterComboBox.Items.Clear();
+
+            // Add "All Categories" as the first item
+            StatsCategoryFilterComboBox.Items.Add("All Categories");
+            StatsCategoryFilterComboBox.SelectedIndex = 0;
+
+            // Get unique categories from the craft stats
+            var categories = new HashSet<string>(CraftStatsCollection.Select(cs => cs.CraftableItem.Station));
+
+            // Add categories to the ComboBox in the static order
+            foreach (var category in DataCache.StaticCategoryOrder)
+            {
+                if (!string.IsNullOrEmpty(category) && categories.Contains(category))
+                {
+                    StatsCategoryFilterComboBox.Items.Add(category);
+                }
+            }
+        }
+
+        private bool StatsFilter(object item)
+        {
+            var craftStats = item as CraftStats;
+            if (craftStats == null) return false;
+
+            string searchText = StatsSearchTextBox.Text?.ToLower() ?? string.Empty;
+            string selectedCategory = StatsCategoryFilterComboBox.SelectedItem as string ?? "All Categories";
+
+            bool matchesSearch = string.IsNullOrEmpty(searchText) ||
+                                 craftStats.CraftableItem.RewardItems.Any(r => r.Name.ToLower().Contains(searchText));
+
+            bool matchesCategory = selectedCategory == "All Categories" ||
+                                   craftStats.CraftableItem.Station == selectedCategory;
+
+            return matchesSearch && matchesCategory;
+        }
+
+        private void StatsSearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            StatsView?.Refresh();
+        }
+
+        private void StatsCategoryFilterComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            StatsView?.Refresh();
+        }
+
+        private void StatsSortingComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            ApplyStatsSorting();
+        }
+
+        private void ApplyStatsSorting()
+        {
+            if (StatsView == null)
+                return;
+
+            var selectedSorting = (StatsSortingComboBox.SelectedItem as ComboBoxItem)?.Content as string;
+
+            StatsView.SortDescriptions.Clear();
+            StatsView.SortDescriptions.Add(new SortDescription("CraftableItem.StationIndex", ListSortDirection.Ascending));
+
+            if (selectedSorting == "Most Recent")
+            {
+                StatsView.SortDescriptions.Add(new SortDescription("FirstStartedTime", ListSortDirection.Descending));
+            }
+            else if (selectedSorting == "Name (A-Z)")
+            {
+                StatsView.SortDescriptions.Add(new SortDescription("CraftableItem.FirstRewardItemName", ListSortDirection.Ascending));
+            }
+            else if (selectedSorting == "Name (Z-A)")
+            {
+                StatsView.SortDescriptions.Add(new SortDescription("CraftableItem.FirstRewardItemName", ListSortDirection.Descending));
+            }
+            else
+            {
+                // Default sorting by FirstStartedTime
+                StatsView.SortDescriptions.Add(new SortDescription("FirstStartedTime", ListSortDirection.Ascending));
+            }
+
+            StatsView.Refresh();
+        }
+
+        private void CraftInstances_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            ComputeCraftStats();
+            StatsView?.Refresh();
         }
     }
 }

@@ -692,4 +692,80 @@ namespace EFT_OverlayAPP
             return TimeSpan.Parse(timeSpanString);
         }
     }
+
+    public enum CraftInstanceStatus
+    {
+        Started,
+        Stopped,
+        Completed,
+        Finished
+    }
+
+    public class CraftInstance : INotifyPropertyChanged
+    {
+        public string Id { get; set; } // Unique identifier for the craft instance
+        [JsonIgnore]
+        public CraftableItem CraftableItem { get; set; } // Reference to the craftable item
+        public CraftInstanceStatus Status { get; set; } // Status of the craft instance
+        public DateTime StartTime { get; set; } // When the craft was started
+        public DateTime? CompletedTime { get; set; } // When the craft completed (timer ran out)
+        public DateTime? FinishedTime { get; set; } // When the user finished the craft (collected)
+        public DateTime? StoppedTime { get; set; } // When the craft was stopped or replaced
+        public int Index { get; set; } // Order in which the craft was started
+
+        // Add properties to store IDs for serialization
+        [JsonProperty("CraftableItemId")]
+        public string CraftableItemId => CraftableItem?.Id;
+
+        [JsonProperty("Station")]
+        public string Station => CraftableItem?.Station;
+
+        [JsonIgnore]
+        public string AdditionalInfo
+        {
+            get
+            {
+                if (Status == CraftInstanceStatus.Completed || Status == CraftInstanceStatus.Finished)
+                {
+                    return $"Completed At: {CompletedTime?.ToString() ?? "N/A"}, Finished At: {FinishedTime?.ToString() ?? "N/A"}";
+                }
+                else if (Status == CraftInstanceStatus.Stopped)
+                {
+                    return $"Stopped At: {StoppedTime?.ToString() ?? "N/A"}";
+                }
+                else
+                {
+                    return string.Empty;
+                }
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string name) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+    }
+
+    public class CraftStats : INotifyPropertyChanged
+    {
+        public CraftableItem CraftableItem { get; set; }
+        public int TimesStarted { get; set; }
+        public int TimesStopped { get; set; }
+        public int TimesCompleted { get; set; }
+        public DateTime? FirstStartedTime { get; set; }
+        public DateTime? LastStartedTime { get; set; }
+        public DateTime? LastStoppedTime { get; set; }
+        public DateTime? LastCompletedTime { get; set; }
+
+
+        [JsonIgnore]
+        public string LastStartedTimeFormatted => LastStartedTime?.ToString() ?? "Never";
+        [JsonIgnore]
+        public string LastStoppedTimeFormatted => LastStoppedTime?.ToString() ?? "Never";
+        [JsonIgnore]
+        public string LastCompletedTimeFormatted => LastCompletedTime?.ToString() ?? "Never";
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string name) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+    }
 }

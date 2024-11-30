@@ -65,5 +65,47 @@ namespace EFT_OverlayAPP
             }
             return new List<CraftableItem>();
         }
+
+        // File path for craft instances data
+        private static readonly string CraftInstancesDataFilePath = "craftInstancesData.json";
+
+        // Method to save craft instances data
+        public static void SaveCraftInstancesData(List<CraftInstance> craftInstances)
+        {
+            try
+            {
+                string json = JsonConvert.SerializeObject(craftInstances, SerializerSettings);
+                File.WriteAllText(CraftInstancesDataFilePath, json);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Error saving craft instances data.");
+            }
+        }
+
+        // Method to load craft instances data
+        public static List<CraftInstance> LoadCraftInstancesData()
+        {
+            try
+            {
+                if (File.Exists(CraftInstancesDataFilePath))
+                {
+                    string json = File.ReadAllText(CraftInstancesDataFilePath);
+                    var craftInstances = JsonConvert.DeserializeObject<List<CraftInstance>>(json, SerializerSettings);
+                    Logger.Info($"Loaded {craftInstances.Count} craft instances from craftInstancesData.json.");
+                    return craftInstances;
+                }
+                else
+                {
+                    Logger.Info("No craftInstancesData.json file found. Starting with empty craft instances.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Error loading craft instances data.");
+            }
+            return new List<CraftInstance>();
+        }
+
     }
 }

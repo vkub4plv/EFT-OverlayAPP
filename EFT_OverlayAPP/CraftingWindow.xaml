@@ -233,6 +233,118 @@
                         </ListView>
                     </DockPanel>
                 </TabItem>
+
+                <TabItem Header="Logs">
+                    <Grid>
+                        <!-- Similar layout to other tabs -->
+                        <StackPanel Orientation="Vertical">
+                            <StackPanel Orientation="Horizontal">
+                                <!-- Search Bar -->
+                                <TextBox x:Name="LogsSearchTextBox" Width="200" Margin="5" TextChanged="LogsSearchTextBox_TextChanged" />
+
+                                <!-- Filter ComboBoxes -->
+                                <ComboBox x:Name="LogsCategoryFilterComboBox" Width="200" Margin="5" SelectionChanged="LogsCategoryFilterComboBox_SelectionChanged" />
+                                <ComboBox x:Name="LogsSortingComboBox" Width="200" Margin="5" SelectionChanged="LogsSortingComboBox_SelectionChanged">
+                                    <ComboBoxItem Content="Most Recent" />
+                                    <ComboBoxItem Content="Oldest" />
+                                    <ComboBoxItem Content="Name (A-Z)" />
+                                    <ComboBoxItem Content="Name (Z-A)" />
+                                </ComboBox>
+                            </StackPanel>
+
+                            <!-- ListView to display logs -->
+                            <ListView x:Name="LogsListView" ItemsSource="{Binding LogsView}">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="5">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <!-- Icon -->
+                                            <Image Grid.Column="0" Source="{Binding CraftableItem.RewardItems[0].IconLink}" Width="40" Height="40" Margin="5"/>
+                                            <!-- Name -->
+                                            <TextBlock Grid.Column="1" Text="{Binding CraftableItem.FirstRewardItemName}" VerticalAlignment="Center" Margin="5"/>
+                                            <!-- Status -->
+                                            <TextBlock Grid.Column="2" Text="Status:" VerticalAlignment="Center" Margin="5"/>
+                                            <TextBlock Grid.Column="3" Text="{Binding Status}" VerticalAlignment="Center" Margin="5"/>
+                                            <!-- Started At -->
+                                            <TextBlock Grid.Column="4" Text="Started At:" VerticalAlignment="Center" Margin="5"/>
+                                            <TextBlock Grid.Column="5" Text="{Binding StartTime}" VerticalAlignment="Center" Margin="5"/>
+                                            <!-- Conditional Timestamps -->
+                                            <TextBlock Grid.Column="6" Text="{Binding AdditionalInfo}" VerticalAlignment="Center" Margin="5"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+
+                        </StackPanel>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="Stats">
+                    <Grid>
+                        <!-- Similar layout to Logs tab -->
+                        <StackPanel Orientation="Vertical">
+                            <StackPanel Orientation="Horizontal">
+                                <!-- Search Bar -->
+                                <TextBox x:Name="StatsSearchTextBox" Width="200" Margin="5" TextChanged="StatsSearchTextBox_TextChanged" />
+
+                                <!-- Filter ComboBoxes -->
+                                <ComboBox x:Name="StatsCategoryFilterComboBox" Width="200" Margin="5" SelectionChanged="StatsCategoryFilterComboBox_SelectionChanged" />
+                                <ComboBox x:Name="StatsSortingComboBox" Width="200" Margin="5" SelectionChanged="StatsSortingComboBox_SelectionChanged">
+                                    <ComboBoxItem Content="Most Recent" />
+                                    <ComboBoxItem Content="Name (A-Z)" />
+                                    <ComboBoxItem Content="Name (Z-A)" />
+                                </ComboBox>
+                            </StackPanel>
+
+                            <!-- ListView to display stats -->
+                            <ListView x:Name="StatsListView" ItemsSource="{Binding StatsView}">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="5">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <!-- Add more columns as needed -->
+                                            </Grid.ColumnDefinitions>
+                                            <!-- Icon -->
+                                            <Image Grid.Column="0" Source="{Binding CraftableItem.RewardItems[0].IconLink}" Width="40" Height="40" Margin="5"/>
+                                            <!-- Name -->
+                                            <TextBlock Grid.Column="1" Text="{Binding CraftableItem.FirstRewardItemName}" VerticalAlignment="Center" Margin="5"/>
+                                            <!-- Times Started -->
+                                            <TextBlock Grid.Column="2" Text="Times Started:" VerticalAlignment="Center" Margin="5"/>
+                                            <TextBlock Grid.Column="3" Text="{Binding TimesStarted}" VerticalAlignment="Center" Margin="5"/>
+                                            <!-- Times Stopped -->
+                                            <TextBlock Grid.Column="4" Text="Times Stopped:" VerticalAlignment="Center" Margin="5"/>
+                                            <TextBlock Grid.Column="5" Text="{Binding TimesStopped}" VerticalAlignment="Center" Margin="5"/>
+                                            <!-- Times Completed -->
+                                            <TextBlock Grid.Column="6" Text="Times Completed:" VerticalAlignment="Center" Margin="5"/>
+                                            <TextBlock Grid.Column="7" Text="{Binding TimesCompleted}" VerticalAlignment="Center" Margin="5"/>
+                                            <!-- Last Started -->
+                                            <TextBlock Grid.Column="8" Text="Last Started:" VerticalAlignment="Center" Margin="5"/>
+                                            <TextBlock Grid.Column="9" Text="{Binding LastStartedTimeFormatted}" VerticalAlignment="Center" Margin="5"/>
+                                            <!-- Last Stopped -->
+                                            <TextBlock Grid.Column="10" Text="Last Stopped:" VerticalAlignment="Center" Margin="5"/>
+                                            <TextBlock Grid.Column="11" Text="{Binding LastStoppedTimeFormatted}" VerticalAlignment="Center" Margin="5"/>
+                                            <!-- Last Completed -->
+                                            <TextBlock Grid.Column="12" Text="Last Completed:" VerticalAlignment="Center" Margin="5"/>
+                                            <TextBlock Grid.Column="13" Text="{Binding LastCompletedTimeFormatted}" VerticalAlignment="Center" Margin="5"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+
+                        </StackPanel>
+                    </Grid>
+                </TabItem>
+
             </TabControl>
         </DockPanel>
 
