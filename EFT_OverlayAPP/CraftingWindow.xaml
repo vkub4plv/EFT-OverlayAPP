@@ -248,7 +248,7 @@
                             <ComboBox x:Name="LogsCategoryFilterComboBox" Width="200" Margin="5" SelectionChanged="LogsCategoryFilterComboBox_SelectionChanged" />
                             <!-- Sorting ComboBox -->
                             <ComboBox x:Name="LogsSortingComboBox" Width="200" Margin="5" SelectionChanged="LogsSortingComboBox_SelectionChanged">
-                                <ComboBoxItem Content="Most Recent" />
+                                <ComboBoxItem Content="Most Recent" IsSelected="True"/>
                                 <ComboBoxItem Content="Oldest" />
                                 <ComboBoxItem Content="Name (A-Z)" />
                                 <ComboBoxItem Content="Name (Z-A)" />
@@ -261,7 +261,7 @@
                             </ListView.GroupStyle>
                             <ListView.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Margin="5" Padding="5" BorderBrush="Gray" BorderThickness="1">
+                                    <Border Margin="5" Padding="5">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto" />
@@ -272,35 +272,34 @@
                                             </Grid.ColumnDefinitions>
                                             <!-- Icon -->
                                             <Image Grid.Column="0" Source="{Binding CraftableItem.RewardItems[0].IconLink}" Width="50" Height="50" Margin="5"/>
-                                            <!-- Name and Station -->
-                                            <StackPanel Grid.Column="1" Orientation="Vertical" Margin="5">
+                                            <!-- Name -->
+                                            <StackPanel Grid.Column="1" Orientation="Vertical" Margin="5" VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding CraftableItem.FirstRewardItemName}" FontWeight="Bold" />
-                                                <TextBlock Text="{Binding CraftableItem.Station}" FontStyle="Italic" />
                                             </StackPanel>
                                             <!-- Status -->
-                                            <StackPanel Grid.Column="2" Orientation="Vertical" Margin="5">
+                                            <StackPanel VerticalAlignment="Center" Grid.Column="2" Orientation="Vertical" Margin="5">
                                                 <TextBlock Text="Status:" FontWeight="Bold" />
                                                 <TextBlock Text="{Binding Status}" />
                                             </StackPanel>
                                             <!-- Started At -->
-                                            <StackPanel Grid.Column="3" Orientation="Vertical" Margin="5">
+                                            <StackPanel VerticalAlignment="Center" Grid.Column="3" Orientation="Vertical" Margin="5">
                                                 <TextBlock Text="Started At:" FontWeight="Bold" />
                                                 <TextBlock Text="{Binding StartTime, StringFormat=MM/dd/yyyy HH:mm:ss}" />
                                             </StackPanel>
                                             <!-- Additional Timestamps -->
-                                            <StackPanel Grid.Column="4" Orientation="Vertical" Margin="5">
+                                            <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center">
                                                 <!-- Stopped At -->
-                                                <StackPanel Orientation="Vertical" Visibility="{Binding StoppedTime, Converter={StaticResource NullToVisibilityConverter}}">
+                                                <StackPanel Margin="5" Orientation="Vertical" Visibility="{Binding StoppedTime, Converter={StaticResource NullToVisibilityConverter}}">
                                                     <TextBlock Text="Stopped At:" FontWeight="Bold" />
                                                     <TextBlock Text="{Binding StoppedTime, StringFormat=MM/dd/yyyy HH:mm:ss}" />
                                                 </StackPanel>
                                                 <!-- Completed At -->
-                                                <StackPanel Orientation="Vertical" Visibility="{Binding CompletedTime, Converter={StaticResource NullToVisibilityConverter}}">
+                                                <StackPanel Margin="5" Orientation="Vertical" Visibility="{Binding CompletedTime, Converter={StaticResource NullToVisibilityConverter}}">
                                                     <TextBlock Text="Completed At:" FontWeight="Bold" />
                                                     <TextBlock Text="{Binding CompletedTime, StringFormat=MM/dd/yyyy HH:mm:ss}" />
                                                 </StackPanel>
                                                 <!-- Finished At -->
-                                                <StackPanel Orientation="Vertical" Visibility="{Binding FinishedTime, Converter={StaticResource NullToVisibilityConverter}}">
+                                                <StackPanel Margin="5" Orientation="Vertical" Visibility="{Binding FinishedTime, Converter={StaticResource NullToVisibilityConverter}}">
                                                     <TextBlock Text="Finished At:" FontWeight="Bold" />
                                                     <TextBlock Text="{Binding FinishedTime, StringFormat=MM/dd/yyyy HH:mm:ss}" />
                                                 </StackPanel>
@@ -328,6 +327,7 @@
                             <!-- Sorting ComboBox -->
                             <ComboBox x:Name="StatsSortingComboBox" Width="200" Margin="5" SelectionChanged="StatsSortingComboBox_SelectionChanged">
                                 <ComboBoxItem Content="Most Recent" />
+                                <ComboBoxItem Content="Oldest" IsSelected="True"/>
                                 <ComboBoxItem Content="Name (A-Z)" />
                                 <ComboBoxItem Content="Name (Z-A)" />
                             </ComboBox>
@@ -339,7 +339,7 @@
                             </ListView.GroupStyle>
                             <ListView.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Margin="5" Padding="5" BorderBrush="Gray" BorderThickness="1">
+                                    <Border Margin="5" Padding="5">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto" />
@@ -348,10 +348,9 @@
                                             </Grid.ColumnDefinitions>
                                             <!-- Icon -->
                                             <Image Grid.Column="0" Source="{Binding CraftableItem.RewardItems[0].IconLink}" Width="50" Height="50" Margin="5"/>
-                                            <!-- Name and Station -->
-                                            <StackPanel Grid.Column="1" Orientation="Vertical" Margin="5">
+                                            <!-- Name -->
+                                            <StackPanel Grid.Column="1" Orientation="Vertical" Margin="5" VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding CraftableItem.FirstRewardItemName}" FontWeight="Bold" />
-                                                <TextBlock Text="{Binding CraftableItem.Station}" FontStyle="Italic" />
                                             </StackPanel>
                                             <!-- Stats -->
                                             <StackPanel Grid.Column="2" Orientation="Vertical" Margin="5">

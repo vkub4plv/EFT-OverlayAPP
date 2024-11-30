@@ -503,6 +503,11 @@ namespace EFT_OverlayAPP
             {
                 craftInstance.Status = CraftInstanceStatus.Finished;
                 craftInstance.FinishedTime = DateTime.UtcNow;
+                Logger.Info($"CraftInstance Updated: ID={craftInstance.Id}, Status={craftInstance.Status}, FinishedTime={craftInstance.FinishedTime}");
+            }
+            else
+            {
+                Logger.Warn($"No active CraftInstance found for item ID {item.Id} at station {item.Station} to set FinishedTime.");
             }
 
             // Save crafts data
@@ -527,11 +532,11 @@ namespace EFT_OverlayAPP
 
         private CraftInstance FindActiveCraftInstance(CraftableItem item)
         {
-            // Find the active CraftInstance for the given item
-            return CraftInstances.FirstOrDefault(ci =>
-                ci.CraftableItem.Id == item.Id &&
-                ci.CraftableItem.Station == item.Station &&
-                ci.Status == CraftInstanceStatus.Started);
+            // Find the most recent CraftInstance for the given item that is either Started or Completed
+            return CraftInstances
+                .Where(ci => ci.CraftableItem.Id == item.Id && ci.CraftableItem.Station == item.Station)
+                .OrderByDescending(ci => ci.Index) // Ensure we get the latest instance
+                .FirstOrDefault(ci => ci.Status == CraftInstanceStatus.Started || ci.Status == CraftInstanceStatus.Completed);
         }
 
 
@@ -1178,6 +1183,10 @@ namespace EFT_OverlayAPP
             if (selectedSorting == "Most Recent")
             {
                 StatsView.SortDescriptions.Add(new SortDescription("FirstStartedTime", ListSortDirection.Descending));
+            }
+            else if (selectedSorting == "Oldest")
+            {
+                StatsView.SortDescriptions.Add(new SortDescription("FirstStartedTime", ListSortDirection.Ascending));
             }
             else if (selectedSorting == "Name (A-Z)")
             {
