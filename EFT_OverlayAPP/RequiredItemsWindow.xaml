@@ -264,8 +264,8 @@
             </DockPanel>
         </Grid>
         <!-- Loading Indicator -->
-        <Grid x:Name="LoadingGrid">
-            <TextBlock Text="Loading..." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="24"/>
+        <Grid x:Name="LoadingGrid" Background="#AA000000">
+            <TextBlock Text="Loading..." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="24" Foreground="White"/>
         </Grid>
     </Grid>
 </Window>
