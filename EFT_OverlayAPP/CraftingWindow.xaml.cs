@@ -1,4 +1,5 @@
 ﻿using EFT_OverlayAPP;
+using NLog;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -19,6 +20,8 @@ namespace EFT_OverlayAPP
 {
     public partial class CraftingWindow : Window, INotifyPropertyChanged
     {
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
         // Reference to MainWindow to update overlay
         public MainWindow MainWindow { get; set; }
         public ObservableCollection<CraftableItem> CraftableItems { get; set; }
@@ -29,6 +32,7 @@ namespace EFT_OverlayAPP
         public ICollectionView FavoritesView { get; set; }
         // Dictionary to track active crafts per station
         private Dictionary<string, CraftableItem> activeCraftsPerStation = new Dictionary<string, CraftableItem>();
+        private Dictionary<CraftableItem, DispatcherTimer> craftTimers = new Dictionary<CraftableItem, DispatcherTimer>();
 
         private bool isLoading;
         public bool IsLoading
@@ -76,6 +80,7 @@ namespace EFT_OverlayAPP
             // Subscribe to event handlers after initialization
             SortingComboBox.SelectionChanged += SortingComboBox_SelectionChanged;
 
+            Logger.Info("Initializing active crafts from loaded data.");
             // Subscribe to property changes to update the UI
             foreach (var item in DataCache.CraftableItems)
             {
@@ -84,7 +89,14 @@ namespace EFT_OverlayAPP
                 // If the craft is in progress or ready, update the display
                 if (item.CraftStatus != CraftStatus.NotStarted)
                 {
-                    mainWindow.UpdateCraftDisplay(item, false);
+                    Logger.Info($"Adding active craft: Item ID {item.Id}, Station {item.Station}, Status {item.CraftStatus}");
+                    activeCraftsPerStation[item.Station] = item;
+                    ActiveCrafts.Add(item);
+                    mainWindow.UpdateCraftDisplay(item, remove: false);
+
+                    // Start the timer for this craft
+                    StartCraftTimer(item);
+                    ActiveCraftsView?.Refresh(); // Refresh the view
                 }
             }
         }
@@ -310,6 +322,7 @@ namespace EFT_OverlayAPP
 
         private void StartCraft(CraftableItem item)
         {
+            Logger.Info($"Attempting to start craft: Item ID {item.Id}, Station {item.Station}");
             // Check for existing craft in the same station
             if (activeCraftsPerStation.TryGetValue(item.Station, out var existingItem))
             {
@@ -361,6 +374,14 @@ namespace EFT_OverlayAPP
 
         private void StopCraft(CraftableItem item)
         {
+            Logger.Info($"Stopping craft: Item ID {item.Id}, Station {item.Station}");
+            // Stop the timer
+            if (craftTimers.TryGetValue(item, out var timer))
+            {
+                timer.Stop();
+                craftTimers.Remove(item);
+            }
+
             // Stop and remove the craft
             item.CraftStatus = CraftStatus.NotStarted;
             item.CraftStoppedTime = DateTime.Now;
@@ -379,20 +400,21 @@ namespace EFT_OverlayAPP
 
         private void FinishCraft(CraftableItem item)
         {
+            Logger.Info($"Finishing craft: Item ID {item.Id}, Station {item.Station}");
+            // Stop the timer
+            if (craftTimers.TryGetValue(item, out var timer))
+            {
+                timer.Stop();
+                craftTimers.Remove(item);
+            }
+
             // Finish and remove the craft
             item.CraftStatus = CraftStatus.NotStarted;
             item.CraftFinishedTime = DateTime.Now;
 
-            // If the craft has not yet been marked as completed, set the completed time
-            if (!item.CraftCompletedTime.HasValue)
-            {
-                item.CraftCompletedTime = item.CraftStartTime?.Add(item.CraftTime);
-            }
-
             // Notify property changes
             item.OnPropertyChanged(nameof(item.CraftStatus));
             item.OnPropertyChanged(nameof(item.CraftFinishedTime));
-            item.OnPropertyChanged(nameof(item.CraftCompletedTime));
 
             activeCraftsPerStation.Remove(item.Station);
             ActiveCrafts.Remove(item);
@@ -414,35 +436,37 @@ namespace EFT_OverlayAPP
 
         private void StartCraftTimer(CraftableItem item)
         {
-            var timer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromSeconds(1)
-            };
+            Logger.Info($"Starting timer for craft: Item ID {item.Id}, Station {item.Station}");
+            // If a timer already exists for this item, don't create a new one
+            if (craftTimers.ContainsKey(item))
+                return;
 
-            timer.Tick += (s, e) =>
+            DispatcherTimer timer = new DispatcherTimer();
+            timer.Interval = TimeSpan.FromSeconds(1);
+
+            timer.Tick += (sender, e) =>
             {
-                if (item.CraftStatus == CraftStatus.InProgress)
-                {
-                    if (item.RemainingTime <= TimeSpan.Zero)
-                    {
-                        item.CraftStatus = CraftStatus.Ready;
-                        // Raise PropertyChanged for RemainingTime and RemainingTimeString
-                        item.OnPropertyChanged(nameof(CraftableItem.RemainingTime));
-                        item.OnPropertyChanged(nameof(CraftableItem.RemainingTimeString));
-                        timer.Stop();
-                    }
-                    else
-                    {
-                        item.OnPropertyChanged(nameof(CraftableItem.RemainingTime));
-                    }
-                }
-                else
+                item.OnPropertyChanged(nameof(CraftableItem.RemainingTime));
+                item.OnPropertyChanged(nameof(CraftableItem.RemainingTimeString));
+
+                if (item.RemainingTime <= TimeSpan.Zero)
                 {
                     timer.Stop();
+                    craftTimers.Remove(item);
+
+                    item.CraftStatus = CraftStatus.Ready;
+                    item.CraftCompletedTime = item.CraftStartTime.Value.Add(item.CraftTime);
+                    item.OnPropertyChanged(nameof(CraftableItem.CraftCompletedTime));
+
+                    // Notify the main window to update the display
+                    MainWindow?.UpdateCraftDisplay(item, remove: false);
+
+                    SaveCraftsState();
                 }
             };
 
             timer.Start();
+            craftTimers[item] = timer;
         }
 
         private void SetupActiveCraftsView()
@@ -810,11 +834,11 @@ namespace EFT_OverlayAPP
                 {
                     if (item.CraftStatus == CraftStatus.InProgress || item.CraftStatus == CraftStatus.Ready)
                     {
-                        MainWindow.UpdateCraftDisplay(item, remove: false);
+                        MainWindow?.UpdateCraftDisplay(item, remove: false);
                     }
                     else if (item.CraftStatus == CraftStatus.NotStarted)
                     {
-                        MainWindow.UpdateCraftDisplay(item, remove: true);
+                        MainWindow?.UpdateCraftDisplay(item, remove: true);
                     }
                 }
             }

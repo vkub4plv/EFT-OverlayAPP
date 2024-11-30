@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NLog;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -21,6 +22,8 @@ namespace EFT_OverlayAPP
 {
     public static class DataCache
     {
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
         // Define the static category order
         public static readonly List<string> StaticCategoryOrder = new List<string>
         {
@@ -227,13 +230,18 @@ namespace EFT_OverlayAPP
         {
             if (!IsDataLoaded)
             {
+                Logger.Info("Starting data load.");
+
                 LoadFavorites();
 
                 // Load crafts data
+                Logger.Info("Loading saved crafts data.");
                 var savedCrafts = CraftingDataManager.LoadCraftsData();
 
+                Logger.Info("Fetching craftable items from API.");
                 CraftableItems = await FetchCraftableItemsAsync();
 
+                Logger.Info("Matching saved crafts with fetched craftable items.");
                 foreach (var item in CraftableItems)
                 {
                     item.IsFavorite = favoriteIds.Contains(item.Id);
@@ -242,6 +250,7 @@ namespace EFT_OverlayAPP
                     var savedItem = savedCrafts.FirstOrDefault(c => c.Id == item.Id && c.Station == item.Station);
                     if (savedItem != null)
                     {
+                        Logger.Info($"Restoring saved craft for Item ID: {item.Id}, Station: {item.Station}");
                         item.CraftStatus = savedItem.CraftStatus;
                         item.CraftStartTime = savedItem.CraftStartTime;
                         item.CraftCompletedTime = savedItem.CraftCompletedTime;
@@ -275,6 +284,8 @@ namespace EFT_OverlayAPP
                 LoadFavoriteItemOrder(new ObservableCollection<CraftableItem>(favoriteItems));
 
                 IsDataLoaded = true;
+
+                Logger.Info("Data load completed.");
 
                 DataLoaded?.Invoke();
             }

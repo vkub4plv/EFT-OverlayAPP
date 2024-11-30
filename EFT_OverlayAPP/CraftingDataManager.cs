@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -9,6 +10,8 @@ namespace EFT_OverlayAPP
 {
     public static class CraftingDataManager
     {
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
         private static readonly string CraftsDataFilePath = "craftsData.json";
 
         // Create serializer settings with appropriate converters
@@ -46,12 +49,17 @@ namespace EFT_OverlayAPP
                 {
                     string json = File.ReadAllText(CraftsDataFilePath);
                     var crafts = JsonConvert.DeserializeObject<List<CraftableItem>>(json, SerializerSettings);
+                    Logger.Info($"Loaded {crafts.Count} crafts from craftsData.json.");
                     return crafts;
+                }
+                else
+                {
+                    Logger.Info("No craftsData.json file found. Starting with no saved crafts.");
                 }
             }
             catch (Exception ex)
             {
-                // Log or handle exceptions
+                Logger.Error(ex, "Error loading crafts data.");
             }
             return new List<CraftableItem>();
         }

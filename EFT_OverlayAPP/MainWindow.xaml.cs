@@ -22,6 +22,7 @@ namespace EFT_OverlayAPP
 {
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         public ObservableCollection<CraftTimerDisplayItem> ActiveCraftTimers { get; set; } = new ObservableCollection<CraftTimerDisplayItem>();
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         private CraftingWindow craftingWindow;
@@ -560,6 +561,7 @@ namespace EFT_OverlayAPP
             {
                 if (remove)
                 {
+                    Logger.Info($"Removing craft display for Station {item.Station}");
                     var displayItem = ActiveCraftTimers.FirstOrDefault(x => x.Station == item.Station);
                     if (displayItem != null)
                     {
@@ -568,6 +570,7 @@ namespace EFT_OverlayAPP
                 }
                 else
                 {
+                    Logger.Info($"Updating craft display for Station {item.Station}");
                     var displayItem = ActiveCraftTimers.FirstOrDefault(x => x.Station == item.Station);
                     if (displayItem == null)
                     {
