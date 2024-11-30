@@ -31,6 +31,7 @@ namespace EFT_OverlayAPP
         private IntPtr hwnd;
 
         private DispatcherTimer timer;
+        private DispatcherTimer craftsTimer;
         private TimeSpan remainingTime;
 
         private bool isRaidTimerVisible;
@@ -65,6 +66,9 @@ namespace EFT_OverlayAPP
 
             // Initialize your existing timer or other overlay content here
             InitializeTimer();
+
+            // Initialize the crafts timer
+            InitializeCraftsTimer();
 
             // Start loading data for RequiredItemsWindow
             StartLoadingRequiredItemsData();
@@ -300,6 +304,14 @@ namespace EFT_OverlayAPP
             timer.Start();
         }
 
+        private void InitializeCraftsTimer()
+        {
+            craftsTimer = new DispatcherTimer();
+            craftsTimer.Interval = TimeSpan.FromSeconds(1);
+            craftsTimer.Tick += CraftsTimer_Tick;
+            craftsTimer.Start();
+        }
+
         private void Timer_Tick(object sender, EventArgs e)
         {
             // Decrease the remaining time
@@ -312,6 +324,14 @@ namespace EFT_OverlayAPP
                 remainingTime = TimeSpan.Zero;
             }
             UpdateTimerText();
+        }
+
+        private void CraftsTimer_Tick(object sender, EventArgs e)
+        {
+            foreach (var displayItem in ActiveCraftTimers)
+            {
+                displayItem.CraftItem.UpdateRemainingTime();
+            }
         }
 
         // Update the TextBlock with the remaining time
@@ -560,21 +580,13 @@ namespace EFT_OverlayAPP
                         }
                         else
                         {
-                            // Handle missing icon - use a default icon or leave it null
-                            // You can add a default icon to your project and use it here
+                            // Handle missing icon - use a default icon
                             var defaultIconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "StationIcons", "default.png");
                             if (File.Exists(defaultIconPath))
                             {
                                 icon = new BitmapImage(new Uri(defaultIconPath));
                             }
-                            else
-                            {
-                                // Optionally, log or notify that the icon is missing
-                                // For now, we'll just proceed without an icon
-                                icon = null;
-                            }
                         }
-
 
                         displayItem = new CraftTimerDisplayItem
                         {

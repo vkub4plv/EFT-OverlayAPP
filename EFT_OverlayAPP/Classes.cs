@@ -266,6 +266,12 @@ namespace EFT_OverlayAPP
             }
         }
 
+        public void UpdateRemainingTime()
+        {
+            OnPropertyChanged(nameof(RemainingTime));
+            OnPropertyChanged(nameof(RemainingTimeString));
+        }
+
         // Implement INotifyPropertyChanged
         public event PropertyChangedEventHandler PropertyChanged;
         public void OnPropertyChanged(string name) =>
