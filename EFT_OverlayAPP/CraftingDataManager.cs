@@ -19,12 +19,14 @@ namespace EFT_OverlayAPP
         {
             TypeNameHandling = TypeNameHandling.Auto,
             Formatting = Formatting.Indented,
+            DateTimeZoneHandling = DateTimeZoneHandling.Utc, // Ensure UTC is used
             Converters = new List<JsonConverter>
-            {
-                new EFT_OverlayAPP.TimeSpanConverter(),
-                new IsoDateTimeConverter { DateTimeFormat = "o" } // Use ISO 8601 format
-            }
+                {
+                    new EFT_OverlayAPP.TimeSpanConverter(),
+                    new IsoDateTimeConverter { DateTimeFormat = "o" } // Use ISO 8601 format
+                }
         };
+
 
         // Method to save crafts data
         public static void SaveCraftsData(List<CraftableItem> crafts)

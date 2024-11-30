@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NLog;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -121,6 +122,7 @@ namespace EFT_OverlayAPP
 
     public class CraftableItem : INotifyPropertyChanged
     {
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         public string Id { get; set; } // Unique identifier
         public string Station { get; set; } // Crafting station (category)
 
@@ -192,7 +194,7 @@ namespace EFT_OverlayAPP
                     // Update timestamps based on status
                     if (craftStatus == CraftStatus.InProgress)
                     {
-                        CraftStartTime = DateTime.Now;
+                        CraftStartTime = DateTime.Now; // Use UtcNow
                         CraftCompletedTime = null;
                         CraftStoppedTime = null;
                         CraftFinishedTime = null;
@@ -203,7 +205,7 @@ namespace EFT_OverlayAPP
                     }
                     else if (craftStatus == CraftStatus.NotStarted)
                     {
-                        CraftStoppedTime = DateTime.Now;
+                        CraftStoppedTime = DateTime.Now; // Use UtcNow
                     }
 
                     // Raise PropertyChanged for timestamps
@@ -245,8 +247,10 @@ namespace EFT_OverlayAPP
             {
                 if (CraftStatus == CraftStatus.InProgress && CraftStartTime.HasValue)
                 {
-                    var elapsed = DateTime.Now - CraftStartTime.Value;
+                    var now = DateTime.Now;
+                    var elapsed = DateTime.Now - CraftStartTime.Value; // Use UtcNow
                     var remaining = CraftTime - elapsed;
+
                     return remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero;
                 }
                 else if (CraftStatus == CraftStatus.Ready)
