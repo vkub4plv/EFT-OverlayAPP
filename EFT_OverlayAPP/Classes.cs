@@ -714,11 +714,8 @@ namespace EFT_OverlayAPP
         public int Index { get; set; } // Order in which the craft was started
 
         // Add properties to store IDs for serialization
-        [JsonProperty("CraftableItemId")]
-        public string CraftableItemId => CraftableItem?.Id;
-
-        [JsonProperty("Station")]
-        public string Station => CraftableItem?.Station;
+        public string CraftableItemId { get; set; }
+        public string Station { get; set; }
 
         [JsonIgnore]
         public string AdditionalInfo

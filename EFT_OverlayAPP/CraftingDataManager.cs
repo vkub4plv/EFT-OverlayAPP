@@ -19,11 +19,12 @@ namespace EFT_OverlayAPP
         {
             TypeNameHandling = TypeNameHandling.Auto,
             Formatting = Formatting.Indented,
-            DateTimeZoneHandling = DateTimeZoneHandling.Utc, // Ensure UTC is used
+            DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+            PreserveReferencesHandling = PreserveReferencesHandling.Objects,
             Converters = new List<JsonConverter>
                 {
                     new EFT_OverlayAPP.TimeSpanConverter(),
-                    new IsoDateTimeConverter { DateTimeFormat = "o" } // Use ISO 8601 format
+                    new IsoDateTimeConverter { DateTimeFormat = "o" }
                 }
         };
 

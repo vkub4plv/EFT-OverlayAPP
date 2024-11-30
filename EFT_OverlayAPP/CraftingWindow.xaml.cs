@@ -177,6 +177,10 @@ namespace EFT_OverlayAPP
                     craftInstance.CraftableItem = item;
                     CraftInstances.Add(craftInstance);
                 }
+                else
+                {
+                    Logger.Warn($"CraftableItem not found for CraftInstance ID: {craftInstance.Id}");
+                }
             }
 
             // Set the craftInstanceIndex to continue from the last index
@@ -184,6 +188,9 @@ namespace EFT_OverlayAPP
             {
                 craftInstanceIndex = CraftInstances.Max(ci => ci.Index) + 1;
             }
+
+            // Recompute stats after loading
+            ComputeCraftStats();
 
             // Refresh views
             ItemsView?.Refresh();
@@ -410,6 +417,8 @@ namespace EFT_OverlayAPP
             {
                 Id = Guid.NewGuid().ToString(),
                 CraftableItem = item,
+                CraftableItemId = item.Id,
+                Station = item.Station,
                 Status = CraftInstanceStatus.Started,
                 StartTime = DateTime.UtcNow,
                 Index = craftInstanceIndex++
@@ -724,6 +733,9 @@ namespace EFT_OverlayAPP
 
             // Hide the window instead of closing
             this.Hide();
+
+            // Save crafts and craft instances data
+            SaveCraftsState();
 
             // Unsubscribe from events to prevent multiple subscriptions
             DataCache.DataLoaded -= OnDataLoaded;
