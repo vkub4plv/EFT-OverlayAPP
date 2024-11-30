@@ -158,6 +158,13 @@ namespace EFT_OverlayAPP
             get => RewardItems.FirstOrDefault()?.Name ?? string.Empty;
         }
 
+        // Add properties for tracking timestamps
+        public DateTime? CraftStartTime { get; set; } // When the craft was started
+        public DateTime? CraftCompletedTime { get; set; } // When the craft completed (timer ran out)
+        public DateTime? CraftFinishedTime { get; set; } // When the user finished the craft (collected)
+        public DateTime? CraftStoppedTime { get; set; } // When the craft was stopped or replaced
+
+        // Modify the CraftStatus property to update timestamps
         private CraftStatus craftStatus;
         public CraftStatus CraftStatus
         {
@@ -170,23 +177,28 @@ namespace EFT_OverlayAPP
                     OnPropertyChanged(nameof(CraftStatus));
                     OnPropertyChanged(nameof(CraftButtonText));
 
-                    // Raise PropertyChanged for RemainingTime and RemainingTimeString
-                    OnPropertyChanged(nameof(RemainingTime));
-                    OnPropertyChanged(nameof(RemainingTimeString));
-                }
-            }
-        }
+                    // Update timestamps based on status
+                    if (craftStatus == CraftStatus.InProgress)
+                    {
+                        CraftStartTime = DateTime.Now;
+                        CraftCompletedTime = null;
+                        CraftStoppedTime = null;
+                        CraftFinishedTime = null;
+                    }
+                    else if (craftStatus == CraftStatus.Ready)
+                    {
+                        CraftCompletedTime = CraftStartTime?.Add(CraftTime);
+                    }
+                    else if (craftStatus == CraftStatus.NotStarted)
+                    {
+                        CraftStoppedTime = DateTime.Now;
+                    }
 
-        private DateTime craftStartTime;
-        public DateTime CraftStartTime
-        {
-            get => craftStartTime;
-            set
-            {
-                if (craftStartTime != value)
-                {
-                    craftStartTime = value;
+                    // Raise PropertyChanged for timestamps
                     OnPropertyChanged(nameof(CraftStartTime));
+                    OnPropertyChanged(nameof(CraftCompletedTime));
+                    OnPropertyChanged(nameof(CraftStoppedTime));
+                    OnPropertyChanged(nameof(CraftFinishedTime));
                 }
             }
         }
@@ -221,7 +233,7 @@ namespace EFT_OverlayAPP
             {
                 if (CraftStatus == CraftStatus.InProgress)
                 {
-                    var elapsed = DateTime.Now - CraftStartTime;
+                    var elapsed = DateTime.Now - CraftStartTime.GetValueOrDefault();
                     var remaining = CraftTime - elapsed;
                     return remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero;
                 }

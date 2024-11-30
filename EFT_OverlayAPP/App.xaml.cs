@@ -18,5 +18,17 @@ namespace EFT_OverlayAPP
             MainWindow = mainWindow; // Set the main window
             mainWindow.Show();
         }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            base.OnExit(e);
+
+            // Save crafts data
+            var activeCrafts = DataCache.CraftableItems
+                .Where(c => c.CraftStatus != CraftStatus.NotStarted)
+                .ToList();
+
+            CraftingDataManager.SaveCraftsData(activeCrafts);
+        }
     }
 }

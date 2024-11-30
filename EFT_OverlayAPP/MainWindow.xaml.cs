@@ -60,6 +60,9 @@ namespace EFT_OverlayAPP
             this.Closed += MainWindow_Closed;
             DataContext = this;
 
+            // Subscribe to DataLoaded event
+            DataCache.DataLoaded += OnDataLoaded;
+
             // Initialize your existing timer or other overlay content here
             InitializeTimer();
 
@@ -144,6 +147,24 @@ namespace EFT_OverlayAPP
         {
             await DataCache.LoadRequiredItemsData();
         }
+
+        private void OnDataLoaded()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                // Subscribe to property changes and update the UI
+                foreach (var item in DataCache.CraftableItems)
+                {
+                    item.PropertyChanged += CraftableItem_PropertyChanged;
+
+                    if (item.CraftStatus != CraftStatus.NotStarted)
+                    {
+                        UpdateCraftDisplay(item, remove: false);
+                    }
+                }
+            });
+        }
+
 
         // P/Invoke declarations
         private const int GWL_EXSTYLE = -20;
@@ -680,5 +701,25 @@ namespace EFT_OverlayAPP
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged(string propertyName) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+        private void CraftableItem_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            var item = sender as CraftableItem;
+            if (item != null)
+            {
+                if (e.PropertyName == nameof(CraftableItem.CraftStatus))
+                {
+                    if (item.CraftStatus == CraftStatus.InProgress || item.CraftStatus == CraftStatus.Ready)
+                    {
+                        UpdateCraftDisplay(item, remove: false);
+                    }
+                    else if (item.CraftStatus == CraftStatus.NotStarted)
+                    {
+                        UpdateCraftDisplay(item, remove: true);
+                    }
+                }
+            }
+        }
+
     }
 }

@@ -75,6 +75,18 @@ namespace EFT_OverlayAPP
 
             // Subscribe to event handlers after initialization
             SortingComboBox.SelectionChanged += SortingComboBox_SelectionChanged;
+
+            // Subscribe to property changes to update the UI
+            foreach (var item in DataCache.CraftableItems)
+            {
+                item.PropertyChanged += CraftableItem_PropertyChanged;
+
+                // If the craft is in progress or ready, update the display
+                if (item.CraftStatus != CraftStatus.NotStarted)
+                {
+                    mainWindow.UpdateCraftDisplay(item, false);
+                }
+            }
         }
 
         private void OnDataLoaded()
@@ -322,6 +334,16 @@ namespace EFT_OverlayAPP
             // Start the new craft
             item.CraftStatus = CraftStatus.InProgress;
             item.CraftStartTime = DateTime.Now;
+            item.CraftCompletedTime = null;
+            item.CraftStoppedTime = null;
+            item.CraftFinishedTime = null;
+
+            // Notify property changes
+            item.OnPropertyChanged(nameof(item.CraftStartTime));
+            item.OnPropertyChanged(nameof(item.CraftCompletedTime));
+            item.OnPropertyChanged(nameof(item.CraftStoppedTime));
+            item.OnPropertyChanged(nameof(item.CraftFinishedTime));
+
             activeCraftsPerStation[item.Station] = item;
 
             if (!ActiveCrafts.Contains(item))
@@ -332,26 +354,62 @@ namespace EFT_OverlayAPP
 
             StartCraftTimer(item);
             MainWindow?.UpdateCraftDisplay(item, remove: false);
+
+            // Save crafts data
+            SaveCraftsState();
         }
 
         private void StopCraft(CraftableItem item)
         {
             // Stop and remove the craft
             item.CraftStatus = CraftStatus.NotStarted;
-            item.CraftStartTime = DateTime.MinValue;
+            item.CraftStoppedTime = DateTime.Now;
+
+            // Notify property changes
+            item.OnPropertyChanged(nameof(item.CraftStatus));
+            item.OnPropertyChanged(nameof(item.CraftStoppedTime));
+
             activeCraftsPerStation.Remove(item.Station);
             ActiveCrafts.Remove(item);
             MainWindow?.UpdateCraftDisplay(item, remove: true);
+
+            // Save crafts data
+            SaveCraftsState();
         }
 
         private void FinishCraft(CraftableItem item)
         {
             // Finish and remove the craft
             item.CraftStatus = CraftStatus.NotStarted;
-            item.CraftStartTime = DateTime.MinValue;
+            item.CraftFinishedTime = DateTime.Now;
+
+            // If the craft has not yet been marked as completed, set the completed time
+            if (!item.CraftCompletedTime.HasValue)
+            {
+                item.CraftCompletedTime = item.CraftStartTime?.Add(item.CraftTime);
+            }
+
+            // Notify property changes
+            item.OnPropertyChanged(nameof(item.CraftStatus));
+            item.OnPropertyChanged(nameof(item.CraftFinishedTime));
+            item.OnPropertyChanged(nameof(item.CraftCompletedTime));
+
             activeCraftsPerStation.Remove(item.Station);
             ActiveCrafts.Remove(item);
             MainWindow?.UpdateCraftDisplay(item, remove: true);
+
+            // Save crafts data
+            SaveCraftsState();
+        }
+
+        private void SaveCraftsState()
+        {
+            // Get all crafts that have been started (including those that are Ready)
+            var activeCrafts = DataCache.CraftableItems
+                .Where(c => c.CraftStatus != CraftStatus.NotStarted)
+                .ToList();
+
+            CraftingDataManager.SaveCraftsData(activeCrafts);
         }
 
         private void StartCraftTimer(CraftableItem item)
@@ -740,6 +798,25 @@ namespace EFT_OverlayAPP
             for (int i = 0; i < unknownCategoryItems.Count; i++)
             {
                 unknownCategoryItems[i].FavoriteSortOrder = i;
+            }
+        }
+
+        private void CraftableItem_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            var item = sender as CraftableItem;
+            if (item != null)
+            {
+                if (e.PropertyName == nameof(CraftableItem.CraftStatus))
+                {
+                    if (item.CraftStatus == CraftStatus.InProgress || item.CraftStatus == CraftStatus.Ready)
+                    {
+                        MainWindow.UpdateCraftDisplay(item, remove: false);
+                    }
+                    else if (item.CraftStatus == CraftStatus.NotStarted)
+                    {
+                        MainWindow.UpdateCraftDisplay(item, remove: true);
+                    }
+                }
             }
         }
     }

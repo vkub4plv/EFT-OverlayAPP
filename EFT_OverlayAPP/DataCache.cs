@@ -229,12 +229,37 @@ namespace EFT_OverlayAPP
             {
                 LoadFavorites();
 
+                // Load crafts data
+                var savedCrafts = CraftingDataManager.LoadCraftsData();
+
                 CraftableItems = await FetchCraftableItemsAsync();
 
                 foreach (var item in CraftableItems)
                 {
                     item.IsFavorite = favoriteIds.Contains(item.Id);
-                    // No need to subscribe to PropertyChanged here
+
+                    // Check if this item is in savedCrafts
+                    var savedItem = savedCrafts.FirstOrDefault(c => c.Id == item.Id && c.Station == item.Station);
+                    if (savedItem != null)
+                    {
+                        // Restore saved properties
+                        item.CraftStatus = savedItem.CraftStatus;
+                        item.CraftStartTime = savedItem.CraftStartTime;
+                        item.CraftCompletedTime = savedItem.CraftCompletedTime;
+                        item.CraftFinishedTime = savedItem.CraftFinishedTime;
+                        item.CraftStoppedTime = savedItem.CraftStoppedTime;
+                    }
+
+                    if (item.CraftStatus == CraftStatus.InProgress)
+                    {
+                        var elapsed = DateTime.Now - item.CraftStartTime.GetValueOrDefault();
+                        if (elapsed >= item.CraftTime)
+                        {
+                            // Craft has completed while the app was closed
+                            item.CraftStatus = CraftStatus.Ready;
+                            item.CraftCompletedTime = item.CraftStartTime.GetValueOrDefault().Add(item.CraftTime);
+                        }
+                    }
                 }
 
                 // Initialize FavoriteSortOrder for favorites
