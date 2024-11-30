@@ -195,6 +195,8 @@ namespace EFT_OverlayAPP
             // Refresh views
             ItemsView?.Refresh();
             FavoritesView?.Refresh();
+            LogsView?.Refresh();
+            StatsView?.Refresh();
 
             // Subscribe to event handlers
             SearchTextBox.TextChanged += SearchTextBox_TextChanged;
@@ -509,6 +511,9 @@ namespace EFT_OverlayAPP
 
         private void SaveCraftsState()
         {
+            LogsView?.Refresh();
+            StatsView?.Refresh();
+
             // Get all crafts that have been started (including those that are Ready)
             var activeCrafts = DataCache.CraftableItems
                 .Where(c => c.CraftStatus != CraftStatus.NotStarted)

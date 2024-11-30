@@ -13,5 +13,6 @@
         <local:CompletionToBackgroundConverter x:Key="CompletionToBackgroundConverter"/>
         <local:CompletionToForegroundConverter x:Key="CompletionToForegroundConverter"/>
         <local:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+        <local:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
     </Application.Resources>
 </Application>
