@@ -123,7 +123,10 @@ namespace EFT_OverlayAPP
     {
         public string Id { get; set; } // Unique identifier
         public string Station { get; set; } // Crafting station (category)
+
+        [JsonProperty]
         public TimeSpan CraftTime { get; set; }
+
         public int StationIndex { get; set; }
         public string CraftTimeString => CraftTime.ToString(@"hh\:mm\:ss");
 
@@ -159,13 +162,22 @@ namespace EFT_OverlayAPP
         }
 
         // Add properties for tracking timestamps
+        [JsonProperty]
         public DateTime? CraftStartTime { get; set; } // When the craft was started
+
+        [JsonProperty]
         public DateTime? CraftCompletedTime { get; set; } // When the craft completed (timer ran out)
+
+        [JsonProperty]
         public DateTime? CraftFinishedTime { get; set; } // When the user finished the craft (collected)
+
+        [JsonProperty]
         public DateTime? CraftStoppedTime { get; set; } // When the craft was stopped or replaced
 
         // Modify the CraftStatus property to update timestamps
         private CraftStatus craftStatus;
+
+        [JsonProperty]
         public CraftStatus CraftStatus
         {
             get => craftStatus;
@@ -231,9 +243,9 @@ namespace EFT_OverlayAPP
         {
             get
             {
-                if (CraftStatus == CraftStatus.InProgress)
+                if (CraftStatus == CraftStatus.InProgress && CraftStartTime.HasValue)
                 {
-                    var elapsed = DateTime.Now - CraftStartTime.GetValueOrDefault();
+                    var elapsed = DateTime.Now - CraftStartTime.Value;
                     var remaining = CraftTime - elapsed;
                     return remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero;
                 }
@@ -628,6 +640,22 @@ namespace EFT_OverlayAPP
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
+        }
+    }
+
+    public class TimeSpanConverter : JsonConverter<TimeSpan>
+    {
+        // Serialize TimeSpan to a string
+        public override void WriteJson(JsonWriter writer, TimeSpan value, JsonSerializer serializer)
+        {
+            writer.WriteValue(value.ToString("c")); // "c" format is "hh:mm:ss"
+        }
+
+        // Deserialize TimeSpan from a string
+        public override TimeSpan ReadJson(JsonReader reader, Type objectType, TimeSpan existingValue, bool hasExistingValue, JsonSerializer serializer)
+        {
+            string timeSpanString = (string)reader.Value;
+            return TimeSpan.Parse(timeSpanString);
         }
     }
 }

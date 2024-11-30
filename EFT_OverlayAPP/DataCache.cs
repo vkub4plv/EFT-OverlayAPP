@@ -238,26 +238,28 @@ namespace EFT_OverlayAPP
                 {
                     item.IsFavorite = favoriteIds.Contains(item.Id);
 
-                    // Check if this item is in savedCrafts
+                    // Restore saved properties from saved crafts
                     var savedItem = savedCrafts.FirstOrDefault(c => c.Id == item.Id && c.Station == item.Station);
                     if (savedItem != null)
                     {
-                        // Restore saved properties
                         item.CraftStatus = savedItem.CraftStatus;
                         item.CraftStartTime = savedItem.CraftStartTime;
                         item.CraftCompletedTime = savedItem.CraftCompletedTime;
                         item.CraftFinishedTime = savedItem.CraftFinishedTime;
                         item.CraftStoppedTime = savedItem.CraftStoppedTime;
-                    }
 
-                    if (item.CraftStatus == CraftStatus.InProgress)
-                    {
-                        var elapsed = DateTime.Now - item.CraftStartTime.GetValueOrDefault();
-                        if (elapsed >= item.CraftTime)
+                        // Check if the craft should now be marked as Ready
+                        if (item.CraftStatus == CraftStatus.InProgress && item.CraftStartTime.HasValue)
                         {
-                            // Craft has completed while the app was closed
-                            item.CraftStatus = CraftStatus.Ready;
-                            item.CraftCompletedTime = item.CraftStartTime.GetValueOrDefault().Add(item.CraftTime);
+                            var elapsed = DateTime.Now - item.CraftStartTime.Value;
+                            if (elapsed >= item.CraftTime)
+                            {
+                                // Craft has completed while the app was closed
+                                item.CraftStatus = CraftStatus.Ready;
+                                item.CraftCompletedTime = item.CraftStartTime.Value.Add(item.CraftTime);
+                                item.OnPropertyChanged(nameof(item.CraftStatus));
+                                item.OnPropertyChanged(nameof(item.CraftCompletedTime));
+                            }
                         }
                     }
                 }

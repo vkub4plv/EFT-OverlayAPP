@@ -1,6 +1,8 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 
 namespace EFT_OverlayAPP
@@ -9,22 +11,29 @@ namespace EFT_OverlayAPP
     {
         private static readonly string CraftsDataFilePath = "craftsData.json";
 
+        // Create serializer settings with appropriate converters
+        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
+        {
+            TypeNameHandling = TypeNameHandling.Auto,
+            Formatting = Formatting.Indented,
+            Converters = new List<JsonConverter>
+            {
+                new EFT_OverlayAPP.TimeSpanConverter(),
+                new IsoDateTimeConverter { DateTimeFormat = "o" } // Use ISO 8601 format
+            }
+        };
+
         // Method to save crafts data
         public static void SaveCraftsData(List<CraftableItem> crafts)
         {
             try
             {
-                string json = JsonConvert.SerializeObject(crafts, Formatting.Indented, new JsonSerializerSettings
-                {
-                    // Exclude properties that should not be serialized
-                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                    TypeNameHandling = TypeNameHandling.Auto
-                });
+                string json = JsonConvert.SerializeObject(crafts, SerializerSettings);
                 File.WriteAllText(CraftsDataFilePath, json);
             }
             catch (Exception ex)
             {
-                // Handle exceptions
+                // Log or handle exceptions
             }
         }
 
@@ -36,19 +45,13 @@ namespace EFT_OverlayAPP
                 if (File.Exists(CraftsDataFilePath))
                 {
                     string json = File.ReadAllText(CraftsDataFilePath);
-                    var crafts = JsonConvert.DeserializeObject<List<CraftableItem>>(json, new JsonSerializerSettings
-                    {
-                        // Handle circular references if any
-                        PreserveReferencesHandling = PreserveReferencesHandling.Objects,
-                        TypeNameHandling = TypeNameHandling.Auto
-                    });
+                    var crafts = JsonConvert.DeserializeObject<List<CraftableItem>>(json, SerializerSettings);
                     return crafts;
                 }
             }
             catch (Exception ex)
             {
                 // Log or handle exceptions
-                // For example: MessageBox.Show($"Error loading crafts data: {ex.Message}");
             }
             return new List<CraftableItem>();
         }
