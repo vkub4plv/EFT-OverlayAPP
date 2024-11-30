@@ -192,7 +192,7 @@
                 <DataTemplate>
                     <StackPanel Orientation="Vertical" Margin="10,0">
                         <Image Source="{Binding StationIcon}" Width="50" Height="50"/>
-                        <TextBlock Text="{Binding RemainingTimeString}"
+                        <TextBlock Text="{Binding RemainingTime, Converter={StaticResource TimeSpanToStringConverter}}"
                                    Foreground="{Binding RemainingTime, Converter={StaticResource RemainingTimeToColorConverter}}"
                                    HorizontalAlignment="Center"/>
                     </StackPanel>

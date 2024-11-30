@@ -194,7 +194,7 @@ namespace EFT_OverlayAPP
                     // Update timestamps based on status
                     if (craftStatus == CraftStatus.InProgress)
                     {
-                        CraftStartTime = DateTime.Now; // Use UtcNow
+                        CraftStartTime = DateTime.UtcNow; // Use UtcNow
                         CraftCompletedTime = null;
                         CraftStoppedTime = null;
                         CraftFinishedTime = null;
@@ -205,7 +205,7 @@ namespace EFT_OverlayAPP
                     }
                     else if (craftStatus == CraftStatus.NotStarted)
                     {
-                        CraftStoppedTime = DateTime.Now; // Use UtcNow
+                        CraftStoppedTime = DateTime.UtcNow; // Use UtcNow
                     }
 
                     // Raise PropertyChanged for timestamps
@@ -247,8 +247,8 @@ namespace EFT_OverlayAPP
             {
                 if (CraftStatus == CraftStatus.InProgress && CraftStartTime.HasValue)
                 {
-                    var now = DateTime.Now;
-                    var elapsed = DateTime.Now - CraftStartTime.Value; // Use UtcNow
+                    var now = DateTime.UtcNow;
+                    var elapsed = DateTime.UtcNow - CraftStartTime.Value;
                     var remaining = CraftTime - elapsed;
 
                     return remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero;

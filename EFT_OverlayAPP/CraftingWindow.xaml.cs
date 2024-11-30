@@ -346,7 +346,7 @@ namespace EFT_OverlayAPP
 
             // Start the new craft
             item.CraftStatus = CraftStatus.InProgress;
-            item.CraftStartTime = DateTime.Now;
+            item.CraftStartTime = DateTime.UtcNow;
             item.CraftCompletedTime = null;
             item.CraftStoppedTime = null;
             item.CraftFinishedTime = null;
@@ -384,7 +384,7 @@ namespace EFT_OverlayAPP
 
             // Stop and remove the craft
             item.CraftStatus = CraftStatus.NotStarted;
-            item.CraftStoppedTime = DateTime.Now;
+            item.CraftStoppedTime = DateTime.UtcNow;
 
             // Notify property changes
             item.OnPropertyChanged(nameof(item.CraftStatus));
@@ -410,7 +410,7 @@ namespace EFT_OverlayAPP
 
             // Finish and remove the craft
             item.CraftStatus = CraftStatus.NotStarted;
-            item.CraftFinishedTime = DateTime.Now;
+            item.CraftFinishedTime = DateTime.UtcNow;
 
             // Notify property changes
             item.OnPropertyChanged(nameof(item.CraftStatus));
