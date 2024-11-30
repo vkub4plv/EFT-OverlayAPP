@@ -257,13 +257,7 @@
                         <!-- ListView -->
                         <ListView x:Name="LogsListView" Grid.Row="1" ItemsSource="{Binding LogsView}">
                             <ListView.GroupStyle>
-                                <GroupStyle>
-                                    <GroupStyle.HeaderTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="14" Background="LightGray" Padding="5"/>
-                                        </DataTemplate>
-                                    </GroupStyle.HeaderTemplate>
-                                </GroupStyle>
+                                <StaticResource ResourceKey="StationGroupStyle"/>
                             </ListView.GroupStyle>
                             <ListView.ItemTemplate>
                                 <DataTemplate>
@@ -327,13 +321,7 @@
                         <!-- ListView -->
                         <ListView x:Name="StatsListView" Grid.Row="1" ItemsSource="{Binding StatsView}">
                             <ListView.GroupStyle>
-                                <GroupStyle>
-                                    <GroupStyle.HeaderTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="14" Background="LightGray" Padding="5"/>
-                                        </DataTemplate>
-                                    </GroupStyle.HeaderTemplate>
-                                </GroupStyle>
+                                <StaticResource ResourceKey="StationGroupStyle"/>
                             </ListView.GroupStyle>
                             <ListView.ItemTemplate>
                                 <DataTemplate>

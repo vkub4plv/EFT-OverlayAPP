@@ -207,6 +207,14 @@ namespace EFT_OverlayAPP
             ActiveCraftsCategoryFilterComboBox.SelectionChanged += ActiveCraftsCategoryFilterComboBox_SelectionChanged;
 
             CraftInstances.CollectionChanged += CraftInstances_CollectionChanged;
+
+            // Compute and set up Logs and Stats views
+            SetupLogsView();
+            PopulateLogsCategoryFilter();
+
+            ComputeCraftStats();
+            SetupStatsView();
+            PopulateStatsCategoryFilter();
         }
 
         private void SetupItemsView()
@@ -962,6 +970,7 @@ namespace EFT_OverlayAPP
             LogsListView.ItemsSource = LogsView;
         }
 
+        // Method to populate LogsCategoryFilterComboBox
         private void PopulateLogsCategoryFilter()
         {
             // Clear existing items
@@ -971,10 +980,10 @@ namespace EFT_OverlayAPP
             LogsCategoryFilterComboBox.Items.Add("All Categories");
             LogsCategoryFilterComboBox.SelectedIndex = 0;
 
-            // Get unique categories from the craft instances
+            // Get unique categories from the CraftInstances
             var categories = new HashSet<string>(CraftInstances.Select(ci => ci.CraftableItem.Station));
 
-            // Add categories to the ComboBox in the static order
+            // Add categories to the ComboBox in the StaticCategoryOrder
             foreach (var category in DataCache.StaticCategoryOrder)
             {
                 if (!string.IsNullOrEmpty(category) && categories.Contains(category))
@@ -1089,6 +1098,7 @@ namespace EFT_OverlayAPP
             StatsListView.ItemsSource = StatsView;
         }
 
+        // Method to populate StatsCategoryFilterComboBox
         private void PopulateStatsCategoryFilter()
         {
             // Clear existing items
@@ -1098,10 +1108,10 @@ namespace EFT_OverlayAPP
             StatsCategoryFilterComboBox.Items.Add("All Categories");
             StatsCategoryFilterComboBox.SelectedIndex = 0;
 
-            // Get unique categories from the craft stats
+            // Get unique categories from the CraftStatsCollection
             var categories = new HashSet<string>(CraftStatsCollection.Select(cs => cs.CraftableItem.Station));
 
-            // Add categories to the ComboBox in the static order
+            // Add categories to the ComboBox in the StaticCategoryOrder
             foreach (var category in DataCache.StaticCategoryOrder)
             {
                 if (!string.IsNullOrEmpty(category) && categories.Contains(category))
@@ -1174,10 +1184,16 @@ namespace EFT_OverlayAPP
             StatsView.Refresh();
         }
 
+        // Event handler when CraftInstances change
         private void CraftInstances_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             ComputeCraftStats();
+            LogsView?.Refresh();
             StatsView?.Refresh();
+
+            // Update category filters
+            PopulateLogsCategoryFilter();
+            PopulateStatsCategoryFilter();
         }
     }
 }
