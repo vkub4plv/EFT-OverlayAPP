@@ -17,6 +17,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Runtime.Serialization; // Required for StreamingContext
 
 namespace EFT_OverlayAPP
 {
@@ -120,7 +121,7 @@ namespace EFT_OverlayAPP
         Ready
     }
 
-    public class CraftableItem : INotifyPropertyChanged
+    public class CraftableItem : INotifyPropertyChanged, IDeserializationCallback
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         public string Id { get; set; } // Unique identifier
@@ -163,6 +164,26 @@ namespace EFT_OverlayAPP
             get => RewardItems.FirstOrDefault()?.Name ?? string.Empty;
         }
 
+        [JsonIgnore]
+        private bool _isDeserializing = false;
+
+        [OnDeserializing]
+        internal void OnDeserializingMethod(StreamingContext context)
+        {
+            _isDeserializing = true;
+        }
+
+        [OnDeserialized]
+        internal void OnDeserializedMethod(StreamingContext context)
+        {
+            _isDeserializing = false;
+        }
+
+        public void OnDeserialization(object sender)
+        {
+            _isDeserializing = false;
+        }
+
         // Add properties for tracking timestamps
         [JsonProperty]
         public DateTime? CraftStartTime { get; set; } // When the craft was started
@@ -187,25 +208,32 @@ namespace EFT_OverlayAPP
             {
                 if (craftStatus != value)
                 {
+                    var oldStatus = craftStatus;
                     craftStatus = value;
                     OnPropertyChanged(nameof(CraftStatus));
                     OnPropertyChanged(nameof(CraftButtonText));
 
-                    // Update timestamps based on status
-                    if (craftStatus == CraftStatus.InProgress)
+                    if (!_isDeserializing)
                     {
-                        CraftStartTime = DateTime.UtcNow; // Use UtcNow
-                        CraftCompletedTime = null;
-                        CraftStoppedTime = null;
-                        CraftFinishedTime = null;
-                    }
-                    else if (craftStatus == CraftStatus.Ready)
-                    {
-                        CraftCompletedTime = CraftStartTime?.Add(CraftTime);
-                    }
-                    else if (craftStatus == CraftStatus.NotStarted)
-                    {
-                        CraftStoppedTime = DateTime.UtcNow; // Use UtcNow
+                        // Update timestamps based on status transitions
+                        if (oldStatus == CraftStatus.NotStarted && craftStatus == CraftStatus.InProgress)
+                        {
+                            // Starting a new craft
+                            CraftStartTime = DateTime.UtcNow;
+                            CraftCompletedTime = null;
+                            CraftStoppedTime = null;
+                            CraftFinishedTime = null;
+                        }
+                        else if (oldStatus == CraftStatus.InProgress && craftStatus == CraftStatus.NotStarted)
+                        {
+                            // Stopping an active craft
+                            CraftStoppedTime = DateTime.UtcNow;
+                        }
+                        else if (craftStatus == CraftStatus.Ready)
+                        {
+                            // Craft has completed
+                            CraftCompletedTime = CraftStartTime?.Add(CraftTime);
+                        }
                     }
 
                     // Raise PropertyChanged for timestamps
@@ -216,6 +244,8 @@ namespace EFT_OverlayAPP
                 }
             }
         }
+
+
 
         public string RemainingTimeString
         {
