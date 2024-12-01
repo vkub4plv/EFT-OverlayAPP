@@ -180,7 +180,7 @@
         <ItemsControl x:Name="CraftTimersControl"
                       HorizontalAlignment="Center"
                       VerticalAlignment="Bottom"
-                      Margin="0,0,0,20"
+                      Margin="0,0,730,10"
                       ItemsSource="{Binding ActiveCraftTimers}"
                       Visibility="{Binding IsInRaid, Converter={StaticResource InverseBooleanConverter}}">
             <ItemsControl.ItemsPanel>
