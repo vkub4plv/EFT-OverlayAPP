@@ -199,7 +199,7 @@
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
-        <!-- <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+        <!-- <Grid HorizontalAlignment="Right" VerticalAlignment="Center">
             <StackPanel>
                 <TextBlock Foreground ="White" Text="{Binding IsMatching, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BooleanToStringConverter}, ConverterParameter='Matching...,Not Matching'}" />
                 <TextBlock Foreground ="White" Text="{Binding IsInRaid, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BooleanToStringConverter}, ConverterParameter='In Raid,Not In Raid'}" />

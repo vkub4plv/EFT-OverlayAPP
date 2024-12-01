@@ -25,8 +25,12 @@ namespace EFT_OverlayAPP
         private long lastFileSize;
         private FileSystemWatcher fileWatcher;
         private bool isMonitoring;
+        private readonly object readLock = new();
+        private readonly CancellationTokenSource cancellationTokenSource = new();
+        private readonly TimeSpan pollingInterval = TimeSpan.FromSeconds(5); // Adjust as needed
 
         public event EventHandler<LogChangedEventArgs> LogChanged;
+        public event EventHandler<ExceptionEventArgs> ExceptionOccurred;
 
         public LogMonitor(string logFilePath)
         {
@@ -38,19 +42,44 @@ namespace EFT_OverlayAPP
             if (isMonitoring)
                 return;
 
-            lastFileSize = new FileInfo(logFilePath).Length;
-
-            fileWatcher = new FileSystemWatcher
+            try
             {
-                Path = Path.GetDirectoryName(logFilePath),
-                Filter = Path.GetFileName(logFilePath),
-                NotifyFilter = NotifyFilters.Size | NotifyFilters.LastWrite
-            };
+                if (!File.Exists(logFilePath))
+                {
+                    logger.Warn($"Log file does not exist: {logFilePath}");
+                }
+                else
+                {
+                    lastFileSize = new FileInfo(logFilePath).Length;
+                }
 
-            fileWatcher.Changed += OnLogFileChanged;
-            fileWatcher.EnableRaisingEvents = true;
+                // Initialize FileSystemWatcher
+                fileWatcher = new FileSystemWatcher
+                {
+                    Path = Path.GetDirectoryName(logFilePath),
+                    Filter = Path.GetFileName(logFilePath),
+                    NotifyFilter = NotifyFilters.Size | NotifyFilters.LastWrite | NotifyFilters.FileName
+                };
 
-            isMonitoring = true;
+                fileWatcher.Changed += OnLogFileChanged;
+                fileWatcher.Renamed += OnLogFileRenamed;
+                fileWatcher.Created += OnLogFileCreated;
+                fileWatcher.Deleted += OnLogFileDeleted;
+                fileWatcher.Error += OnFileWatcherError;
+
+                fileWatcher.EnableRaisingEvents = true;
+
+                // Start polling
+                Task.Run(() => PollLogFileAsync(cancellationTokenSource.Token));
+
+                isMonitoring = true;
+                logger.Info($"Started monitoring log file: {logFilePath}");
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Failed to start LogMonitor for {logFilePath}");
+                ExceptionOccurred?.Invoke(this, new ExceptionEventArgs(ex, "Starting LogMonitor"));
+            }
         }
 
         public void Stop()
@@ -58,11 +87,38 @@ namespace EFT_OverlayAPP
             if (!isMonitoring)
                 return;
 
-            fileWatcher.EnableRaisingEvents = false;
-            fileWatcher.Dispose();
-            fileWatcher = null;
+            try
+            {
+                cancellationTokenSource.Cancel();
+                fileWatcher.EnableRaisingEvents = false;
+                fileWatcher.Dispose();
+                fileWatcher = null;
+                isMonitoring = false;
+                logger.Info($"Stopped monitoring log file: {logFilePath}");
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Failed to stop LogMonitor for {logFilePath}");
+                ExceptionOccurred?.Invoke(this, new ExceptionEventArgs(ex, "Stopping LogMonitor"));
+            }
+        }
 
-            isMonitoring = false;
+        private async Task PollLogFileAsync(CancellationToken token)
+        {
+            while (!token.IsCancellationRequested)
+            {
+                try
+                {
+                    await ReadNewLogEntriesAsync();
+                }
+                catch (Exception ex)
+                {
+                    logger.Error(ex, $"Error during polling of {logFilePath}");
+                    ExceptionOccurred?.Invoke(this, new ExceptionEventArgs(ex, "Polling LogMonitor"));
+                }
+
+                await Task.Delay(pollingInterval, token);
+            }
         }
 
         private async void OnLogFileChanged(object sender, FileSystemEventArgs e)
@@ -77,41 +133,96 @@ namespace EFT_OverlayAPP
             }
         }
 
+        private void OnLogFileRenamed(object sender, RenamedEventArgs e)
+        {
+            logger.Info($"Log file renamed from {e.OldFullPath} to {e.FullPath}");
+            // Reset read position if necessary
+            lock (readLock)
+            {
+                lastFileSize = 0;
+            }
+        }
+
+        private void OnLogFileCreated(object sender, FileSystemEventArgs e)
+        {
+            logger.Info($"Log file created: {e.FullPath}");
+            // Reset read position
+            lock (readLock)
+            {
+                lastFileSize = 0;
+            }
+        }
+
+        private void OnLogFileDeleted(object sender, FileSystemEventArgs e)
+        {
+            logger.Warn($"Log file deleted: {e.FullPath}");
+            // Handle deletion if necessary
+        }
+
+        private void OnFileWatcherError(object sender, ErrorEventArgs e)
+        {
+            logger.Error(e.GetException(), $"FileSystemWatcher encountered an error for {logFilePath}");
+            ExceptionOccurred?.Invoke(this, new ExceptionEventArgs(e.GetException(), "FileSystemWatcher Error"));
+            // Optionally, restart the watcher or switch to exclusive polling
+        }
+
         private async Task ReadNewLogEntriesAsync()
         {
             try
             {
-                var fileInfo = new FileInfo(logFilePath);
-                if (fileInfo.Length == lastFileSize)
-                    return;
-
-                using (var stream = new FileStream(logFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                if (!File.Exists(logFilePath))
                 {
-                    stream.Seek(lastFileSize, SeekOrigin.Begin);
-                    using (var reader = new StreamReader(stream))
+                    logger.Warn($"Log file does not exist during read: {logFilePath}");
+                    return;
+                }
+
+                var fileInfo = new FileInfo(logFilePath);
+                long currentFileSize = fileInfo.Length;
+
+                lock (readLock)
+                {
+                    if (currentFileSize < lastFileSize)
                     {
-                        string newEntries = await reader.ReadToEndAsync();
-                        lastFileSize = fileInfo.Length;
-                        OnLogChanged(newEntries);
+                        // Log rotation detected
+                        logger.Info($"Log rotation detected for {logFilePath}. Resetting read position.");
+                        lastFileSize = 0;
+                    }
+                }
+
+                if (currentFileSize > lastFileSize)
+                {
+                    string newEntries;
+
+                    lock (readLock)
+                    {
+                        using (var fs = new FileStream(logFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                        {
+                            fs.Seek(lastFileSize, SeekOrigin.Begin);
+                            using (var reader = new StreamReader(fs, Encoding.UTF8))
+                            {
+                                newEntries = reader.ReadToEnd();
+                                lastFileSize = fs.Position;
+                            }
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(newEntries))
+                    {
+                        LogChanged?.Invoke(this, new LogChangedEventArgs(newEntries));
+                        logger.Debug($"Read {newEntries.Length} new bytes from log file: {logFilePath}");
                     }
                 }
             }
             catch (IOException ex)
             {
-                // Handle exceptions
-                logger.Error(ex, "IO Exception");
+                logger.Error(ex, $"IO Exception while reading log file: {logFilePath}");
+                ExceptionOccurred?.Invoke(this, new ExceptionEventArgs(ex, "Reading LogMonitor"));
             }
             catch (Exception ex)
             {
-                // Handle exceptions
-                logger.Error(ex, "Error reading log file");
+                logger.Error(ex, $"Unexpected error while reading log file: {logFilePath}");
+                ExceptionOccurred?.Invoke(this, new ExceptionEventArgs(ex, "Reading LogMonitor"));
             }
-        }
-
-
-        protected virtual void OnLogChanged(string newEntries)
-        {
-            LogChanged?.Invoke(this, new LogChangedEventArgs(newEntries));
         }
     }
 
@@ -123,6 +234,18 @@ namespace EFT_OverlayAPP
         public LogChangedEventArgs(string newEntries)
         {
             NewEntries = newEntries;
+        }
+    }
+
+    public class ExceptionEventArgs : EventArgs
+    {
+        public Exception Exception { get; }
+        public string Context { get; }
+
+        public ExceptionEventArgs(Exception exception, string context)
+        {
+            Exception = exception;
+            Context = context;
         }
     }
 
@@ -138,13 +261,13 @@ namespace EFT_OverlayAPP
 
         public void Parse(string logContent)
         {
-            logger.Info("Starting to parse log content");
+            logger.Debug("Starting to parse log content");
             var lines = logContent.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
             foreach (var line in lines)
             {
                 ProcessLogLine(line);
             }
-            logger.Info("Finished parsing log content");
+            logger.Debug("Finished parsing log content");
         }
 
         // Ensure you store the last map name when MapChanged is invoked
@@ -154,12 +277,13 @@ namespace EFT_OverlayAPP
         {
             try
             {
-                logger.Info($"Processing log line: {line}");
+                logger.Debug($"Processing log line: {line}");
 
                 // Match matching started
                 if (Regex.IsMatch(line, @"Matching with group id"))
                 {
                     MatchingStarted?.Invoke(this, EventArgs.Empty);
+                    logger.Info("Matching started");
                     return;
                 }
 
@@ -167,6 +291,7 @@ namespace EFT_OverlayAPP
                 if (Regex.IsMatch(line, @"Network game matching (cancelled|aborted)"))
                 {
                     MatchingCancelled?.Invoke(this, EventArgs.Empty);
+                    logger.Info("Matching cancelled");
                     return;
                 }
 
@@ -176,18 +301,20 @@ namespace EFT_OverlayAPP
                 {
                     string content = mapLoadedMatch.Groups["content"].Value;
                     string mapName = ExtractMapNameFromProfileStatus(content);
-                    MapChanged?.Invoke(this, new RaidEventArgs(mapName));
-                    logger.Info($"Map changed to: {mapName}");
+                    if (!string.IsNullOrEmpty(mapName))
+                    {
+                        MapChanged?.Invoke(this, new RaidEventArgs(mapName));
+                        lastMapName = mapName;
+                        logger.Info($"Map changed to: {mapName}");
+                    }
                     return;
                 }
 
-                // Match raid started with new pattern
+                // Match raid started
                 if (Regex.IsMatch(line, @"\|Info\|application\|GameStarted:"))
                 {
-                    logger.Info($"RaidStarted event: lastMapName = {lastMapName}");
-                    string mapName = lastMapName ?? "Unknown";
-                    RaidStarted?.Invoke(this, new RaidEventArgs(mapName));
-                    logger.Info($"RaidStarted event invoked with map: {mapName}");
+                    RaidStarted?.Invoke(this, EventArgs.Empty);
+                    logger.Info("Raid started");
                     return;
                 }
 
@@ -195,7 +322,7 @@ namespace EFT_OverlayAPP
                 if (Regex.IsMatch(line, @"\|Info\|application\|(SelectProfile ProfileId|GameLeft|LeaveGame)"))
                 {
                     RaidEnded?.Invoke(this, EventArgs.Empty);
-                    logger.Info("RaidEnded event invoked due to raid end indicator");
+                    logger.Info("Raid ended");
                     return;
                 }
 
@@ -204,18 +331,15 @@ namespace EFT_OverlayAPP
                 if (sessionModeMatch.Success)
                 {
                     string sessionMode = sessionModeMatch.Groups["mode"].Value;
-                    logger.Info($"Session mode changed to: {sessionMode}");
-                    SessionModeChanged?.Invoke(this, new SessionModeChangedEventArgs(sessionMode));
-                    return;
-                }
-
-                if (mapLoadedMatch.Success)
-                {
-                    string content = mapLoadedMatch.Groups["content"].Value;
-                    string mapName = ExtractMapNameFromProfileStatus(content);
-                    lastMapName = mapName; // Store the map name
-                    MapChanged?.Invoke(this, new RaidEventArgs(mapName));
-                    logger.Info($"Map changed to: {mapName}");
+                    if (Enum.TryParse(sessionMode, true, out SessionMode mode))
+                    {
+                        SessionModeChanged?.Invoke(this, new SessionModeChangedEventArgs(mode));
+                        logger.Info($"Session mode changed to: {mode}");
+                    }
+                    else
+                    {
+                        logger.Warn($"Unknown session mode: {sessionMode}");
+                    }
                     return;
                 }
 
@@ -223,7 +347,6 @@ namespace EFT_OverlayAPP
             }
             catch (Exception ex)
             {
-                // Log exception
                 logger.Error(ex, "Error processing log line");
             }
         }
@@ -249,7 +372,7 @@ namespace EFT_OverlayAPP
 
         private string MapLocationIdentifierToName(string identifier)
         {
-            return identifier switch
+            return identifier.ToLower() switch
             {
                 "factory4_day" => "Factory",
                 "factory4_night" => "Factory (Night)",
@@ -261,40 +384,10 @@ namespace EFT_OverlayAPP
                 "laboratory" => "The Lab",
                 "lighthouse" => "Lighthouse",
                 "tarkovstreets" => "Streets of Tarkov",
+                "suburbs" => "Ground Zero",
                 _ => identifier
             };
         }
-
-        private string MapLocationIdentifierToMapGenieSegment(string locationIdentifier)
-        {
-            switch (locationIdentifier)
-            {
-                case "factory4_day":
-                case "factory4_night":
-                    return "factory";
-                case "bigmap":
-                    return "customs";
-                case "woods":
-                    return "woods";
-                case "interchange":
-                    return "interchange";
-                case "rezervbase":
-                    return "reserve";
-                case "shoreline":
-                    return "shoreline";
-                case "laboratory":
-                    return "lab";
-                case "tarkovstreets":
-                    return "streets";
-                case "lighthouse":
-                    return "lighthouse";
-                case "suburbs":
-                    return "ground-zero";
-                default:
-                    return null;
-            }
-        }
-
     }
 
     public class GameState : INotifyPropertyChanged
@@ -393,7 +486,13 @@ namespace EFT_OverlayAPP
             gameState = new GameState();
 
             gameWatcher.LogChanged += GameWatcher_LogChanged;
-            SubscribeToParserEvents();
+            gameWatcher.ExceptionOccurred += GameWatcher_ExceptionOccurred;
+            logParser.MatchingStarted += LogParser_MatchingStarted;
+            logParser.MatchingCancelled += LogParser_MatchingCancelled;
+            logParser.RaidStarted += LogParser_RaidStarted;
+            logParser.RaidEnded += LogParser_RaidEnded;
+            logParser.MapChanged += LogParser_MapChanged;
+            logParser.SessionModeChanged += LogParser_SessionModeChanged;
 
             // Initialize the overlay URL
             UpdateOverlayUrl();
@@ -404,63 +503,59 @@ namespace EFT_OverlayAPP
             logParser.Parse(e.NewEntries);
         }
 
-        private void SubscribeToParserEvents()
+        private void GameWatcher_ExceptionOccurred(object sender, ExceptionEventArgs e)
         {
-            logParser.MatchingStarted += (s, e) =>
-            {
-                gameState.IsMatching = true;
-                gameState.IsInRaid = false;
-                gameState.CurrentMap = null;
-                logger.Info("Matching started");
-                OnGameStateChanged();
-            };
+            // Handle exceptions from LogWatcher
+            logger.Error(e.Exception, $"Exception in GameWatcher: {e.Context}");
+            // Optionally, propagate the exception or handle it accordingly
+        }
 
-            logParser.MatchingCancelled += (s, e) =>
-            {
-                gameState.IsMatching = false;
-                logger.Info("Matching cancelled");
-                OnGameStateChanged();
-            };
+        private void LogParser_MatchingStarted(object sender, EventArgs e)
+        {
+            gameState.IsMatching = true;
+            gameState.IsInRaid = false;
+            gameState.CurrentMap = null;
+            logger.Info("Matching started");
+            OnGameStateChanged();
+        }
 
-            logParser.RaidStarted += (s, e) =>
-            {
-                gameState.IsInRaid = true;
-                gameState.IsMatching = false;
-                // Do not update CurrentMap here
-                logger.Info($"Raid started on map: {gameState.CurrentMap}");
-                OnGameStateChanged();
-            };
+        private void LogParser_MatchingCancelled(object sender, EventArgs e)
+        {
+            gameState.IsMatching = false;
+            logger.Info("Matching cancelled");
+            OnGameStateChanged();
+        }
 
+        private void LogParser_RaidStarted(object sender, EventArgs e)
+        {
+            gameState.IsInRaid = true;
+            gameState.IsMatching = false;
+            // Do not update CurrentMap here; it should be updated via MapChanged event
+            logger.Info("Raid started");
+            OnGameStateChanged();
+        }
 
-            logParser.RaidEnded += (s, e) =>
-            {
-                gameState.IsInRaid = false;
-                gameState.CurrentMap = null;
-                logger.Info("Raid ended");
-                OnGameStateChanged();
-            };
+        private void LogParser_RaidEnded(object sender, EventArgs e)
+        {
+            gameState.IsInRaid = false;
+            gameState.CurrentMap = null;
+            logger.Info("Raid ended");
+            OnGameStateChanged();
+        }
 
-            logParser.MapChanged += (s, e) =>
-            {
-                gameState.CurrentMap = e.MapName;
-                logger.Info($"Map changed to: {e.MapName}");
-                OnGameStateChanged();
-            };
+        private void LogParser_MapChanged(object sender, RaidEventArgs e)
+        {
+            gameState.CurrentMap = e.MapName;
+            logger.Info($"Map changed to: {e.MapName}");
+            UpdateOverlayUrl();
+            OnGameStateChanged();
+        }
 
-            logParser.SessionModeChanged += (s, e) =>
-            {
-                // Parse the session mode string to enum
-                if (Enum.TryParse(e.SessionMode, true, out SessionMode mode))
-                {
-                    GameState.SessionMode = mode;
-                    logger.Info($"Session mode updated to {mode}");
-                    OnGameStateChanged();
-                }
-                else
-                {
-                    logger.Warn($"Unknown session mode: {e.SessionMode}");
-                }
-            };
+        private void LogParser_SessionModeChanged(object sender, SessionModeChangedEventArgs e)
+        {
+            gameState.SessionMode = e.SessionMode;
+            logger.Info($"Session mode changed to: {e.SessionMode}");
+            OnGameStateChanged();
         }
 
         private void UpdateOverlayUrl()
@@ -487,7 +582,7 @@ namespace EFT_OverlayAPP
                 else
                 {
                     // Map hasn't changed, do not update OverlayUrl
-                    logger.Info("Map hasn't changed, not updating OverlayUrl");
+                    logger.Debug("Map hasn't changed, not updating OverlayUrl");
                 }
             }
             else
@@ -534,9 +629,18 @@ namespace EFT_OverlayAPP
 
         protected virtual void OnGameStateChanged()
         {
-            UpdateOverlayUrl();
-            logger.Info($"GameState changed: IsInRaid={gameState.IsInRaid}, IsMatching={gameState.IsMatching}, CurrentMap={gameState.CurrentMap}, SessionMode='{gameState.SessionMode}' OverlayUrl={gameState.OverlayUrl}");
+            logger.Debug($"GameState changed: IsInRaid={gameState.IsInRaid}, IsMatching={gameState.IsMatching}, CurrentMap={gameState.CurrentMap}, SessionMode={gameState.SessionMode}, OverlayUrl={gameState.OverlayUrl}");
             GameStateChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        public void Start()
+        {
+            gameWatcher.StartAllMonitors();
+        }
+
+        public void Stop()
+        {
+            gameWatcher.StopAllMonitors();
         }
     }
 
@@ -558,27 +662,31 @@ namespace EFT_OverlayAPP
         private FileSystemWatcher directoryWatcher;
 
         public event EventHandler<LogChangedEventArgs> LogChanged;
+        public event EventHandler<ExceptionEventArgs> ExceptionOccurred;
 
         public GameWatcher(string logsDirectory)
         {
             this.logsDirectory = logsDirectory;
-            Initialize();
-        }
-
-        private void Initialize()
-        {
+            // Initialize FileSystemWatcher to monitor the logs directory for new log folders
             directoryWatcher = new FileSystemWatcher
             {
                 Path = logsDirectory,
-                Filter = "*.*",
-                NotifyFilter = NotifyFilters.DirectoryName | NotifyFilters.FileName,
-                IncludeSubdirectories = true
+                Filter = "log_*",
+                NotifyFilter = NotifyFilters.DirectoryName
             };
 
-            directoryWatcher.Created += OnLogFileCreated;
-            directoryWatcher.Deleted += OnLogFileDeleted;
+            directoryWatcher.Created += OnLogFolderCreated;
+            directoryWatcher.Deleted += OnLogFolderDeleted;
+            directoryWatcher.Renamed += OnLogFolderRenamed;
+            directoryWatcher.Error += OnDirectoryWatcherError;
             directoryWatcher.EnableRaisingEvents = true;
 
+            // Start monitoring the latest log folder
+            StartMonitoringLatestLogFolder();
+        }
+
+        public void StartAllMonitors()
+        {
             StartMonitoringLatestLogFolder();
         }
 
@@ -591,74 +699,113 @@ namespace EFT_OverlayAPP
             }
             catch (Exception ex)
             {
-                // Handle exceptions
-                logger.Error(ex, "Error starting monitoring}");
+                logger.Error(ex, "Error starting monitoring of the latest log folder.");
+                ExceptionOccurred?.Invoke(this, new ExceptionEventArgs(ex, "StartMonitoringLatestLogFolder"));
             }
         }
 
         private string GetLatestLogFolder()
         {
             var logFolders = Directory.GetDirectories(logsDirectory, "log_*");
+            var latestLogFolder = new DirectoryInfo(logFolders[0]);
 
-            var latestLogFolder = logFolders
-                .Select(dir => new DirectoryInfo(dir))
-                .OrderByDescending(dir => dir.CreationTime)
-                .FirstOrDefault();
-
-            if (latestLogFolder != null)
+            foreach (var folder in logFolders)
             {
-                return latestLogFolder.FullName;
+                var dirInfo = new DirectoryInfo(folder);
+                if (dirInfo.CreationTime > latestLogFolder.CreationTime)
+                {
+                    latestLogFolder = dirInfo;
+                }
             }
 
-            throw new DirectoryNotFoundException("No log folders found.");
+            logger.Info($"Latest log folder identified: {latestLogFolder.FullName}");
+            return latestLogFolder.FullName;
         }
 
         private void WatchLogsFolder(string folderPath)
         {
-            var logFiles = Directory.GetFiles(folderPath);
-
-            foreach (var file in logFiles)
+            try
             {
-                if (file.EndsWith("application.log"))
+                var logFiles = Directory.GetFiles(folderPath);
+
+                foreach (var file in logFiles)
                 {
-                    StartNewMonitor(file, GameLogType.Application);
+                    if (file.EndsWith("application.log", StringComparison.OrdinalIgnoreCase))
+                    {
+                        StartNewMonitor(file, GameLogType.Application);
+                    }
+                    else if (file.EndsWith("notifications.log", StringComparison.OrdinalIgnoreCase))
+                    {
+                        StartNewMonitor(file, GameLogType.Notifications);
+                    }
+                    // Add other log types if necessary
                 }
-                else if (file.EndsWith("notifications.log"))
-                {
-                    StartNewMonitor(file, GameLogType.Notifications);
-                }
-                // Add other log types if needed
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Error watching logs folder: {folderPath}");
+                ExceptionOccurred?.Invoke(this, new ExceptionEventArgs(ex, "WatchLogsFolder"));
             }
         }
 
         private void StartNewMonitor(string filePath, GameLogType logType)
         {
-            if (monitors.ContainsKey(logType))
+            try
             {
-                monitors[logType].Stop();
-                monitors.Remove(logType);
-            }
+                if (monitors.ContainsKey(logType))
+                {
+                    monitors[logType].Stop();
+                    monitors.Remove(logType);
+                }
 
-            var monitor = new LogMonitor(filePath);
-            monitor.LogChanged += (s, e) => LogChanged?.Invoke(this, e);
-            monitor.Start();
-            monitors[logType] = monitor;
+                var monitor = new LogMonitor(filePath);
+                monitor.LogChanged += (s, e) => LogChanged?.Invoke(this, e);
+                monitor.ExceptionOccurred += (s, e) => ExceptionOccurred?.Invoke(this, e);
+                monitor.Start();
+                monitors[logType] = monitor;
+
+                logger.Info($"Started LogMonitor for {logType}: {filePath}");
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Failed to start LogMonitor for {filePath}");
+                ExceptionOccurred?.Invoke(this, new ExceptionEventArgs(ex, "StartNewMonitor"));
+            }
         }
 
-        private async void OnLogFileCreated(object sender, FileSystemEventArgs e)
+        private void OnLogFolderCreated(object sender, FileSystemEventArgs e)
         {
-            // Handle new log files or folders
-            if (Directory.Exists(e.FullPath) && e.Name.StartsWith("log_"))
-            {
-                // Start monitoring latest log folder asynchronously
-                await Task.Run(() => StartMonitoringLatestLogFolder());
-            }
+            logger.Info($"New log folder created: {e.FullPath}");
+            WatchLogsFolder(e.FullPath);
         }
 
-        private void OnLogFileDeleted(object sender, FileSystemEventArgs e)
+        private void OnLogFolderDeleted(object sender, FileSystemEventArgs e)
         {
-            // Handle deletion of log files or folders
-            // You may need to adjust monitors accordingly
+            logger.Warn($"Log folder deleted: {e.FullPath}");
+            // Optionally, stop monitors related to this folder
+        }
+
+        private void OnLogFolderRenamed(object sender, RenamedEventArgs e)
+        {
+            logger.Info($"Log folder renamed from {e.OldFullPath} to {e.FullPath}");
+            // Handle renaming if necessary
+        }
+
+        private void OnDirectoryWatcherError(object sender, ErrorEventArgs e)
+        {
+            logger.Error(e.GetException(), $"DirectoryWatcher encountered an error for {logsDirectory}");
+            ExceptionOccurred?.Invoke(this, new ExceptionEventArgs(e.GetException(), "DirectoryWatcher Error"));
+            // Optionally, restart the watcher or switch to exclusive polling
+        }
+
+        public void StopAllMonitors()
+        {
+            foreach (var monitor in monitors.Values)
+            {
+                monitor.Stop();
+            }
+            monitors.Clear();
+            logger.Info("All LogMonitors have been stopped.");
         }
     }
 
@@ -776,9 +923,9 @@ namespace EFT_OverlayAPP
     }
     public class SessionModeChangedEventArgs : EventArgs
     {
-        public string SessionMode { get; }
+        public SessionMode SessionMode { get; }
 
-        public SessionModeChangedEventArgs(string sessionMode)
+        public SessionModeChangedEventArgs(SessionMode sessionMode)
         {
             SessionMode = sessionMode;
         }
