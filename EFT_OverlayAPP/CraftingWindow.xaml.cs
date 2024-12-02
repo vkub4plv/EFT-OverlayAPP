@@ -400,7 +400,7 @@ namespace EFT_OverlayAPP
 
             // Start the new craft
             item.CraftStatus = CraftStatus.InProgress;
-            item.CraftStartTime = DateTime.UtcNow;
+            item.CraftStartTime = DateTime.Now;
             item.CraftCompletedTime = null;
             item.CraftStoppedTime = null;
             item.CraftFinishedTime = null;
@@ -430,7 +430,7 @@ namespace EFT_OverlayAPP
                 CraftableItemId = item.Id,
                 Station = item.Station,
                 Status = CraftInstanceStatus.Started,
-                StartTime = DateTime.UtcNow,
+                StartTime = DateTime.Now,
                 Index = craftInstanceIndex++
             };
             CraftInstances.Add(craftInstance);
@@ -451,7 +451,7 @@ namespace EFT_OverlayAPP
 
             // Stop and remove the craft
             item.CraftStatus = CraftStatus.NotStarted;
-            item.CraftStoppedTime = DateTime.UtcNow;
+            item.CraftStoppedTime = DateTime.Now;
 
             // Notify property changes
             item.OnPropertyChanged(nameof(item.CraftStatus));
@@ -466,7 +466,7 @@ namespace EFT_OverlayAPP
             if (craftInstance != null)
             {
                 craftInstance.Status = CraftInstanceStatus.Stopped;
-                craftInstance.StoppedTime = DateTime.UtcNow;
+                craftInstance.StoppedTime = DateTime.Now;
             }
 
             // Save crafts data
@@ -485,7 +485,7 @@ namespace EFT_OverlayAPP
 
             // Finish and remove the craft
             item.CraftStatus = CraftStatus.NotStarted;
-            item.CraftFinishedTime = DateTime.UtcNow;
+            item.CraftFinishedTime = DateTime.Now;
 
             // Notify property changes
             item.OnPropertyChanged(nameof(item.CraftStatus));
@@ -502,7 +502,7 @@ namespace EFT_OverlayAPP
             if (craftInstance != null)
             {
                 craftInstance.Status = CraftInstanceStatus.Finished;
-                craftInstance.FinishedTime = DateTime.UtcNow;
+                craftInstance.FinishedTime = DateTime.Now;
                 Logger.Info($"CraftInstance Updated: ID={craftInstance.Id}, Status={craftInstance.Status}, FinishedTime={craftInstance.FinishedTime}");
             }
             else
@@ -569,7 +569,7 @@ namespace EFT_OverlayAPP
                     if (craftInstance != null)
                     {
                         craftInstance.Status = CraftInstanceStatus.Completed;
-                        craftInstance.CompletedTime = DateTime.UtcNow;
+                        craftInstance.CompletedTime = DateTime.Now;
                     }
 
                     // Notify the main window to update the display

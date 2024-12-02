@@ -219,7 +219,7 @@ namespace EFT_OverlayAPP
                         if (oldStatus == CraftStatus.NotStarted && craftStatus == CraftStatus.InProgress)
                         {
                             // Starting a new craft
-                            CraftStartTime = DateTime.UtcNow;
+                            CraftStartTime = DateTime.Now;
                             CraftCompletedTime = null;
                             CraftStoppedTime = null;
                             CraftFinishedTime = null;
@@ -227,7 +227,7 @@ namespace EFT_OverlayAPP
                         else if (oldStatus == CraftStatus.InProgress && craftStatus == CraftStatus.NotStarted)
                         {
                             // Stopping an active craft
-                            CraftStoppedTime = DateTime.UtcNow;
+                            CraftStoppedTime = DateTime.Now;
                         }
                         else if (craftStatus == CraftStatus.Ready)
                         {
@@ -277,8 +277,8 @@ namespace EFT_OverlayAPP
             {
                 if (CraftStatus == CraftStatus.InProgress && CraftStartTime.HasValue)
                 {
-                    var now = DateTime.UtcNow;
-                    var elapsed = DateTime.UtcNow - CraftStartTime.Value;
+                    var now = DateTime.Now;
+                    var elapsed = DateTime.Now - CraftStartTime.Value;
                     var remaining = CraftTime - elapsed;
 
                     return remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero;
