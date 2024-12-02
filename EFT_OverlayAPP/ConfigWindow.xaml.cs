@@ -106,24 +106,28 @@ namespace EFT_OverlayAPP
         // Hideout Modules Tab Events
         private void HideoutSourceRadioButton_Checked(object sender, RoutedEventArgs e)
         {
-            try
+            if (ManualHideoutSourceRadioButton == null)
             {
-                // Placeholder: Enable or disable Hideout Modules settings based on source selection
-                if (ManualHideoutSourceRadioButton.IsChecked == true)
-                {
-                    HideoutModulesListView.IsEnabled = true;
-                    // Additional UI adjustments
-                }
-                else
-                {
-                    HideoutModulesListView.IsEnabled = false;
-                    // Additional UI adjustments
-                }
+                MessageBox.Show("ManualHideoutSourceRadioButton is null.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
             }
-            catch (Exception ex)
+
+            if (HideoutModulesListView == null)
             {
-                MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                // Optionally log the exception
+                MessageBox.Show("HideoutModulesListView is null.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            // Placeholder: Enable or disable Hideout Modules settings based on source selection
+            if (ManualHideoutSourceRadioButton.IsChecked == true)
+            {
+                HideoutModulesListView.IsEnabled = true;
+                // Additional UI adjustments
+            }
+            else
+            {
+                HideoutModulesListView.IsEnabled = false;
+                // Additional UI adjustments
             }
         }
 
