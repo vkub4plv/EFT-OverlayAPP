@@ -28,6 +28,7 @@ namespace EFT_OverlayAPP
         private WebViewWindow webViewWindow;
         private OthersWindow othersWindow;
         private RequiredItemsWindow requiredItemsWindow;
+        private ConfigWindow configWindow;
         private IntPtr hwnd;
 
         private DispatcherTimer timer;
@@ -277,6 +278,26 @@ namespace EFT_OverlayAPP
             else
             {
                 requiredItemsWindow.Activate();
+            }
+        }
+
+        public void OpenConfigWindow()
+        {
+            if (configWindow == null)
+            {
+                configWindow = new ConfigWindow
+                {
+                    Owner = this
+                };
+            }
+
+            if (!configWindow.IsVisible)
+            {
+                configWindow.Show();
+            }
+            else
+            {
+                configWindow.Activate();
             }
         }
 

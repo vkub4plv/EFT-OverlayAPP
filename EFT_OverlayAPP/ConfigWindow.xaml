@@ -1,0 +1,372 @@
+﻿<Window x:Class="EFT_OverlayAPP.ConfigWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:EFT_OverlayAPP"
+        mc:Ignorable="d"
+        Title="Configuration"
+        Height="800"
+        Width="600"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="CanResize"
+        >
+    <Grid Margin="10">
+        <TabControl>
+
+            <!-- Keybinds Tab -->
+            <TabItem Header="Keybinds">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Instructions -->
+                    <TextBlock Text="Assign keybinds for various functionalities:" 
+                               FontWeight="Bold" 
+                               Margin="0,0,0,10"/>
+
+                    <!-- Keybinds List -->
+                    <ListView x:Name="KeybindsListView" Grid.Row="1" Margin="0,0,0,10">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Functionality" Width="200" DisplayMemberBinding="{Binding Functionality}" />
+                                <GridViewColumn Header="Keybind" Width="100">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBox Text="{Binding Keybind, UpdateSourceTrigger=PropertyChanged}" 
+                                                     Width="80" 
+                                                     HorizontalAlignment="Left"/>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+
+                    <!-- Reset Keybinds Button -->
+                    <Button Content="Reset to Default" 
+                            Grid.Row="2" 
+                            Width="120" 
+                            HorizontalAlignment="Right" 
+                            Click="ResetKeybindsButton_Click"/>
+                </Grid>
+            </TabItem>
+
+            <!-- Map Settings Tab -->
+            <TabItem Header="Map Settings">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Tarkov Tracker API -->
+                    <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,10">
+                        <CheckBox x:Name="EnableTarkovTrackerApiCheckBox" Content="Enable Tarkov Tracker API" 
+                                  VerticalAlignment="Center" Margin="0,0,10,0" Checked="EnableTarkovTrackerApiCheckBox_Checked" Unchecked="EnableTarkovTrackerApiCheckBox_Unchecked"/>
+                        <TextBox x:Name="TarkovTrackerApiTextBox" Width="300" 
+                                 IsEnabled="False" 
+                                 />
+                    </StackPanel>
+
+                    <!-- Map Selection -->
+                    <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,10">
+                        <TextBlock Text="Select Map:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <ComboBox x:Name="MapSelectionComboBox" Width="150">
+                            <ComboBoxItem Content="Map Genie"/>
+                            <ComboBoxItem Content="tarkov.dev"/>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <!-- Minimap Settings -->
+                    <GroupBox Header="Minimap Settings" Grid.Row="2" Margin="0,0,0,10">
+                        <StackPanel Margin="10">
+                            <CheckBox x:Name="ToggleMinimapVisibilityCheckBox" Content="Toggle Minimap Visibility" />
+                            <CheckBox x:Name="AutoSetActiveMinimapCheckBox" Content="Automatically set active minimap to current map on raid start" 
+                                      IsChecked="True" Margin="0,5,0,0"/>
+                        </StackPanel>
+                    </GroupBox>
+
+                    <!-- Additional Map Settings can be added here -->
+                </Grid>
+            </TabItem>
+
+            <!-- Hideout Modules Tab -->
+            <TabItem Header="Hideout Modules">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Source of Hideout Station Levels -->
+                    <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,10">
+                        <TextBlock Text="Source of Hideout Station Levels:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <RadioButton x:Name="ManualHideoutSourceRadioButton" Content="Manual (In-App)" GroupName="HideoutSource" IsChecked="True" Checked="HideoutSourceRadioButton_Checked"/>
+                        <RadioButton x:Name="TarkovTrackerHideoutSourceRadioButton" Content="Tarkov Tracker" GroupName="HideoutSource" Margin="20,0,0,0" Checked="HideoutSourceRadioButton_Checked"/>
+                    </StackPanel>
+
+                    <!-- Hideout Modules List -->
+                    <ListView x:Name="HideoutModulesListView" Grid.Row="1" Margin="0,0,0,10">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Module" Width="200" DisplayMemberBinding="{Binding ModuleName}" />
+                                <GridViewColumn Header="Level" Width="100">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <ComboBox SelectedItem="{Binding ModuleLevel, UpdateSourceTrigger=PropertyChanged}" Width="80">
+                                                <ComboBoxItem Content="1"/>
+                                                <ComboBoxItem Content="2"/>
+                                                <ComboBoxItem Content="3"/>
+                                                <ComboBoxItem Content="4"/>
+                                                <ComboBoxItem Content="5"/>
+                                                <ComboBoxItem Content="6"/>
+                                            </ComboBox>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+
+                    <!-- Source Toggle Button -->
+                    <Button Content="Refresh Modules" 
+                            Grid.Row="2" 
+                            Width="120" 
+                            HorizontalAlignment="Right" 
+                            Click="RefreshHideoutModulesButton_Click"/>
+                </Grid>
+            </TabItem>
+
+            <!-- Crafting Settings Tab -->
+            <TabItem Header="Crafting Settings">
+                <ScrollViewer Margin="10">
+                    <StackPanel>
+                        <!-- Crafting Recipe Filters -->
+                        <GroupBox Header="Crafting Recipe Filters" Margin="0,0,0,10">
+                            <StackPanel Margin="10">
+                                <CheckBox x:Name="FilterBasedOnHideoutLevelsCheckBox" 
+                                          Content="Show available crafting recipes based on hideout modules levels" 
+                                          IsChecked="False" 
+                                          Checked="FilterBasedOnHideoutLevelsCheckBox_Checked" 
+                                          Unchecked="FilterBasedOnHideoutLevelsCheckBox_Unchecked"/>
+
+                                <CheckBox x:Name="ShowUnlockedQuestRecipesCheckBox" 
+                                          Content="Show unlocked quest-related recipes" 
+                                          IsChecked="False" 
+                                          Margin="0,5,0,0" 
+                                          Checked="ShowUnlockedQuestRecipesCheckBox_Checked" 
+                                          Unchecked="ShowUnlockedQuestRecipesCheckBox_Unchecked"/>
+
+                                <!-- Source Selection for Unlocked Quest Recipes -->
+                                <StackPanel Orientation="Horizontal" Margin="20,5,0,0">
+                                    <TextBlock Text="Source:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                    <RadioButton x:Name="ManualCraftSourceRadioButton" Content="Manual" GroupName="CraftSource" IsChecked="True" Checked="CraftSourceRadioButton_Checked"/>
+                                    <RadioButton x:Name="TarkovTrackerCraftSourceRadioButton" Content="Tarkov Tracker" GroupName="CraftSource" Margin="20,0,0,0" Checked="CraftSourceRadioButton_Checked"/>
+                                </StackPanel>
+
+                                <!-- List of Unlockable Crafts -->
+                                <ListView x:Name="UnlockableCraftsListView" Margin="0,10,0,0">
+                                    <ListView.View>
+                                        <GridView>
+                                            <GridViewColumn Header="Craft" Width="300" DisplayMemberBinding="{Binding CraftName}" />
+                                            <GridViewColumn Header="Unlocked" Width="100">
+                                                <GridViewColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <CheckBox IsChecked="{Binding IsUnlocked, UpdateSourceTrigger=PropertyChanged}" 
+                                                                  IsEnabled="{Binding IsFromTracker, Converter={StaticResource InverseBooleanConverter}}"/>
+                                                    </DataTemplate>
+                                                </GridViewColumn.CellTemplate>
+                                            </GridViewColumn>
+                                        </GridView>
+                                    </ListView.View>
+                                </ListView>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- Additional Crafting Settings can be added here -->
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Display Settings Tab -->
+            <TabItem Header="Display Settings">
+                <ScrollViewer Margin="10">
+                    <StackPanel>
+                        <!-- Hide Markers and Jammers -->
+                        <CheckBox x:Name="HideMarkersAndJammersCheckBox" Content="Hide markers and jammers in Required Items Window" 
+                                  IsChecked="False" Margin="0,0,0,10"/>
+
+                        <!-- Overlay Items Positions -->
+                        <GroupBox Header="Overlay Items Positions" Margin="0,0,0,10">
+                            <StackPanel Margin="10">
+                                <Button Content="Unlock/Save Positions" Width="150" Click="UnlockSavePositionsButton_Click" Margin="0,0,0,5"/>
+                                <Button Content="Reset Positions to Default" Width="200" Click="ResetPositionsButton_Click"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- Starting Tabs Selection -->
+                        <GroupBox Header="Starting Tabs" Margin="0,0,0,10">
+                            <StackPanel Margin="10">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                    <TextBlock Text="Crafting Window Starting Tab:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                    <ComboBox x:Name="CraftingStartingTabComboBox" Width="200"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Required Items Window Starting Tab:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                    <ComboBox x:Name="RequiredItemsStartingTabComboBox" Width="200"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- Hide Quests/Hideout Stations from Combined Required Items -->
+                        <GroupBox Header="Combined Required Items Visibility" Margin="0,0,0,10">
+                            <StackPanel Margin="10">
+                                <CheckBox x:Name="HideQuestsFromCombinedCheckBox" 
+                                          Content="Hide Quests from Combined Required Items" 
+                                          IsChecked="False" 
+                                          Margin="0,0,0,5"/>
+                                <CheckBox x:Name="HideHideoutStationsFromCombinedCheckBox" 
+                                          Content="Hide Hideout Stations from Combined Required Items" 
+                                          IsChecked="False"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- Hide Required Items for Built Hideout Stations -->
+                        <CheckBox x:Name="HideBuiltHideoutStationsCheckBox" 
+                                  Content="Hide required items for already built hideout stations" 
+                                  IsChecked="True" 
+                                  Margin="0,0,0,10"/>
+
+                        <!-- Additional Display Settings can be added here -->
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Profile Settings Tab -->
+            <TabItem Header="Profile Settings">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Current Profile Mode Display -->
+                    <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,10">
+                        <TextBlock Text="Current Profile Mode:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBlock x:Name="CurrentProfileModeTextBlock" Text="Regular (PVP)" FontWeight="Bold"/>
+                    </StackPanel>
+
+                    <!-- Change Profile Mode -->
+                    <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,10">
+                        <TextBlock Text="Change Profile Mode:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <ComboBox x:Name="ProfileModeComboBox" Width="150">
+                            <ComboBoxItem Content="Regular (PVP)"/>
+                            <ComboBoxItem Content="PVE"/>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <!-- Automatic Profile Switching -->
+                    <CheckBox x:Name="AutoSwitchProfileCheckBox" 
+                              Content="Automatically switch between PVP and PVE profiles based on game state" 
+                              IsChecked="True" 
+                              Grid.Row="2"/>
+                </Grid>
+            </TabItem>
+
+            <!-- Paths Settings Tab -->
+            <TabItem Header="Paths">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- EFT Logs Path -->
+                    <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,10">
+                        <TextBlock Text="EFT Logs Path:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBox x:Name="EftLogsPathTextBox" Width="300" IsReadOnly="True"/>
+                        <Button Content="Browse" Click="BrowseEftLogsPathButton_Click" Margin="10,0,0,0"/>
+                    </StackPanel>
+
+                    <!-- Custom EFT Logs Path -->
+                    <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,10">
+                        <CheckBox x:Name="UseCustomEftLogsPathCheckBox" Content="Use Custom EFT Logs Path" 
+                                  Checked="UseCustomEftLogsPathCheckBox_Checked" 
+                                  Unchecked="UseCustomEftLogsPathCheckBox_Unchecked"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- Monitor Settings Tab -->
+            <TabItem Header="Monitor Settings">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Current Monitor Display -->
+                    <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,10">
+                        <TextBlock Text="Current Monitor:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBlock x:Name="CurrentMonitorTextBlock" Text="Monitor 1"/>
+                    </StackPanel>
+
+                    <!-- Select Monitor from List -->
+                    <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,10">
+                        <TextBlock Text="Select Monitor:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <ComboBox x:Name="MonitorSelectionComboBox" Width="200">
+                            <!-- Dynamically populate monitor list -->
+                            <ComboBoxItem Content="Monitor 1"/>
+                            <ComboBoxItem Content="Monitor 2"/>
+                            <!-- Add more monitors as needed -->
+                        </ComboBox>
+                    </StackPanel>
+
+                    <!-- Screen Resolution Settings -->
+                    <GroupBox Header="Screen Resolution" Grid.Row="2" Margin="0,0,0,10">
+                        <StackPanel Margin="10">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                <TextBlock Text="Detected Resolution:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBlock x:Name="DetectedResolutionTextBlock" Text="1920x1080"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <CheckBox x:Name="UseCustomResolutionCheckBox" Content="Use Custom Resolution" 
+                                          Checked="UseCustomResolutionCheckBox_Checked" 
+                                          Unchecked="UseCustomResolutionCheckBox_Unchecked"/>
+                                <ComboBox x:Name="CustomResolutionComboBox" Width="150" Margin="10,0,0,0" IsEnabled="False">
+                                    <ComboBoxItem Content="1920x1080"/>
+                                    <ComboBoxItem Content="1280x720"/>
+                                    <ComboBoxItem Content="1600x900"/>
+                                    <!-- Add more resolutions as needed -->
+                                </ComboBox>
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+
+            <!-- Advanced Settings Tab -->
+            <TabItem Header="Advanced Settings">
+                <ScrollViewer Margin="10">
+                    <StackPanel>
+                        <!-- Additional advanced settings can be added here -->
+                        <TextBlock Text="Advanced settings will be implemented here." 
+                                   FontStyle="Italic" 
+                                   Foreground="Gray" 
+                                   Margin="0,0,0,10"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+        </TabControl>
+    </Grid>
+</Window>

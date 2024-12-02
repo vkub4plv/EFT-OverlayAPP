@@ -38,7 +38,7 @@ namespace EFT_OverlayAPP
             AdjustForDpi();
 
             // Set the window size to fit the content
-            this.Width = (OpenCraftingWindowButton.Width + OpenRequiredItemsWindowButton.Width + 5); // 5 is the margin between buttons
+            this.Width = (OpenCraftingWindowButton.Width + OpenRequiredItemsWindowButton.Width + OpenConfigWindowButton.Width + 10); // 5 * 2 = 10 is the margin between buttons
             this.Height = OpenCraftingWindowButton.Height;
         }
 
@@ -66,6 +66,11 @@ namespace EFT_OverlayAPP
         private void OpenRequiredItemsWindowButton_Click(object sender, RoutedEventArgs e)
         {
             mainWindow.OpenRequiredItemsWindow();
+        }
+
+        private void OpenConfigWindowButton_Click(object sender, RoutedEventArgs e)
+        {
+            mainWindow.OpenConfigWindow();
         }
     }
 }
