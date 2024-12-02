@@ -19,7 +19,7 @@ namespace EFT_OverlayAPP
         {
             TypeNameHandling = TypeNameHandling.Auto,
             Formatting = Formatting.Indented,
-            DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+            DateTimeZoneHandling = DateTimeZoneHandling.Local,
             PreserveReferencesHandling = PreserveReferencesHandling.Objects,
             Converters = new List<JsonConverter>
                 {
