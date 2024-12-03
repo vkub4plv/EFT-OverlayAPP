@@ -707,10 +707,16 @@ namespace EFT_OverlayAPP
                 // Show or hide the WebViewWindow based on CurrentMap
                 if (string.IsNullOrEmpty(CurrentMap))
                 {
-                    logger.Info("CurrentMap is null or empty, hiding WebViewWindow");
-                    // CurrentMap is null or empty, hide the WebViewWindow
-                    if (webViewWindow != null && webViewWindow.IsVisible)
+                    // CurrentMap is null or empty, but is in raid, show the WebViewWindow
+                    if (webViewWindow != null && !webViewWindow.IsVisible && IsInRaid)
                     {
+                        logger.Info("CurrentMap is null or empty, but is in raid, showing WebViewWindow");
+                        webViewWindow.Show();
+                    }
+                    // CurrentMap is null or empty and isn't in raid, hide the WebViewWindow
+                    if (webViewWindow != null && webViewWindow.IsVisible && !IsInRaid)
+                    {
+                        logger.Info("CurrentMap is null or empty, hiding WebViewWindow");
                         webViewWindow.Hide();
                     }
                 }
