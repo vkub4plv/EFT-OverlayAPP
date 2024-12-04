@@ -82,6 +82,63 @@ namespace EFT_OverlayAPP
             }
         }
 
+        public async void Start(bool processExistingEntries = false)
+        {
+            if (isMonitoring)
+                return;
+
+            try
+            {
+                if (!File.Exists(logFilePath))
+                {
+                    logger.Warn($"Log file does not exist: {logFilePath}");
+                }
+                else
+                {
+                    if (processExistingEntries)
+                    {
+                        // Read and process existing log entries
+                        await ReadExistingEntriesAsync();
+                    }
+                    else
+                    {
+                        // Initialize lastFileSize to current size to skip existing entries
+                        lock (readLock)
+                        {
+                            lastFileSize = new FileInfo(logFilePath).Length;
+                        }
+                    }
+                }
+
+                // Initialize FileSystemWatcher
+                fileWatcher = new FileSystemWatcher
+                {
+                    Path = Path.GetDirectoryName(logFilePath),
+                    Filter = Path.GetFileName(logFilePath),
+                    NotifyFilter = NotifyFilters.Size | NotifyFilters.LastWrite | NotifyFilters.FileName
+                };
+
+                fileWatcher.Changed += OnLogFileChanged;
+                fileWatcher.Renamed += OnLogFileRenamed;
+                fileWatcher.Created += OnLogFileCreated;
+                fileWatcher.Deleted += OnLogFileDeleted;
+                fileWatcher.Error += OnFileWatcherError;
+
+                fileWatcher.EnableRaisingEvents = true;
+
+                // Start polling
+                Task.Run(() => PollLogFileAsync(cancellationTokenSource.Token));
+
+                isMonitoring = true;
+                logger.Info($"Started monitoring log file: {logFilePath}");
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Failed to start LogMonitor for {logFilePath}");
+                ExceptionOccurred?.Invoke(this, new ExceptionEventArgs(ex, "Starting LogMonitor"));
+            }
+        }
+
         public void Stop()
         {
             if (!isMonitoring)
@@ -191,26 +248,23 @@ namespace EFT_OverlayAPP
 
                 if (currentFileSize > lastFileSize)
                 {
-                    string newEntries;
-
-                    lock (readLock)
+                    using (var fs = new FileStream(logFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    using (var reader = new StreamReader(fs))
                     {
-                        using (var fs = new FileStream(logFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                        fs.Seek(lastFileSize, SeekOrigin.Begin);
+                        string line;
+                        while ((line = await reader.ReadLineAsync()) != null)
                         {
-                            fs.Seek(lastFileSize, SeekOrigin.Begin);
-                            using (var reader = new StreamReader(fs, Encoding.UTF8))
-                            {
-                                newEntries = reader.ReadToEnd();
-                                lastFileSize = fs.Position;
-                            }
+                            LogChanged?.Invoke(this, new LogChangedEventArgs(line));
+                        }
+
+                        lock (readLock)
+                        {
+                            lastFileSize = fs.Position;
                         }
                     }
 
-                    if (!string.IsNullOrEmpty(newEntries))
-                    {
-                        LogChanged?.Invoke(this, new LogChangedEventArgs(newEntries));
-                        logger.Debug($"Read {newEntries.Length} new bytes from log file: {logFilePath}");
-                    }
+                    logger.Debug($"Read new entries from log file: {logFilePath}");
                 }
             }
             catch (IOException ex)
@@ -222,6 +276,48 @@ namespace EFT_OverlayAPP
             {
                 logger.Error(ex, $"Unexpected error while reading log file: {logFilePath}");
                 ExceptionOccurred?.Invoke(this, new ExceptionEventArgs(ex, "Reading LogMonitor"));
+            }
+        }
+
+        // New method to read existing log entries
+        public async Task ReadExistingEntriesAsync()
+        {
+            try
+            {
+                if (!File.Exists(logFilePath))
+                {
+                    logger.Warn($"Log file does not exist: {logFilePath}");
+                    return;
+                }
+
+                using (var fs = new FileStream(logFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (var reader = new StreamReader(fs))
+                {
+                    string line;
+                    while ((line = await reader.ReadLineAsync()) != null)
+                    {
+                        // Emit each line as a LogChanged event
+                        LogChanged?.Invoke(this, new LogChangedEventArgs(line));
+                    }
+
+                    // Update lastFileSize to current position
+                    lock (readLock)
+                    {
+                        lastFileSize = fs.Position;
+                    }
+                }
+
+                logger.Info($"Processed existing log entries for {logFilePath}");
+            }
+            catch (IOException ex)
+            {
+                logger.Error(ex, $"IO Exception while reading existing log file: {logFilePath}");
+                ExceptionOccurred?.Invoke(this, new ExceptionEventArgs(ex, "Reading Existing LogMonitor"));
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Unexpected error while reading existing log file: {logFilePath}");
+                ExceptionOccurred?.Invoke(this, new ExceptionEventArgs(ex, "Reading Existing LogMonitor"));
             }
         }
     }
@@ -259,15 +355,11 @@ namespace EFT_OverlayAPP
         public event EventHandler<RaidEventArgs> MapChanged;
         public event EventHandler<SessionModeChangedEventArgs> SessionModeChanged;
 
-        public void Parse(string logContent)
+        public void Parse(string logLine)
         {
-            logger.Debug("Starting to parse log content");
-            var lines = logContent.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-            foreach (var line in lines)
-            {
-                ProcessLogLine(line);
-            }
-            logger.Debug("Finished parsing log content");
+            logger.Debug("Starting to parse log line");
+            ProcessLogLine(logLine);
+            logger.Debug("Finished parsing log line");
         }
 
         // Ensure you store the last map name when MapChanged is invoked
@@ -496,6 +588,9 @@ namespace EFT_OverlayAPP
 
             // Initialize the overlay URL
             UpdateOverlayUrl();
+
+            // Start monitoring with existing entries processing
+            gameWatcher.StartAllMonitors();
         }
 
         private void GameWatcher_LogChanged(object sender, LogChangedEventArgs e)
@@ -642,7 +737,12 @@ namespace EFT_OverlayAPP
         {
             gameWatcher.StopAllMonitors();
         }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string propertyName) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
+
 
     public class RaidEventArgs : EventArgs
     {
@@ -682,20 +782,20 @@ namespace EFT_OverlayAPP
             directoryWatcher.EnableRaisingEvents = true;
 
             // Start monitoring the latest log folder
-            StartMonitoringLatestLogFolder();
+            StartMonitoringLatestLogFolder(processExistingEntries: true);
         }
 
         public void StartAllMonitors()
         {
-            StartMonitoringLatestLogFolder();
+            StartMonitoringLatestLogFolder(processExistingEntries: true);
         }
 
-        private void StartMonitoringLatestLogFolder()
+        private void StartMonitoringLatestLogFolder(bool processExistingEntries)
         {
             try
             {
                 string latestLogFolder = GetLatestLogFolder();
-                WatchLogsFolder(latestLogFolder);
+                WatchLogsFolder(latestLogFolder, processExistingEntries);
             }
             catch (Exception ex)
             {
@@ -707,6 +807,11 @@ namespace EFT_OverlayAPP
         private string GetLatestLogFolder()
         {
             var logFolders = Directory.GetDirectories(logsDirectory, "log_*");
+            if (logFolders.Length == 0)
+            {
+                throw new DirectoryNotFoundException($"No log folders found in {logsDirectory}");
+            }
+
             var latestLogFolder = new DirectoryInfo(logFolders[0]);
 
             foreach (var folder in logFolders)
@@ -722,7 +827,7 @@ namespace EFT_OverlayAPP
             return latestLogFolder.FullName;
         }
 
-        private void WatchLogsFolder(string folderPath)
+        private void WatchLogsFolder(string folderPath, bool processExistingEntries)
         {
             try
             {
@@ -732,11 +837,11 @@ namespace EFT_OverlayAPP
                 {
                     if (file.EndsWith("application.log", StringComparison.OrdinalIgnoreCase))
                     {
-                        StartNewMonitor(file, GameLogType.Application);
+                        StartNewMonitor(file, GameLogType.Application, processExistingEntries);
                     }
                     else if (file.EndsWith("notifications.log", StringComparison.OrdinalIgnoreCase))
                     {
-                        StartNewMonitor(file, GameLogType.Notifications);
+                        StartNewMonitor(file, GameLogType.Notifications, processExistingEntries);
                     }
                     // Add other log types if necessary
                 }
@@ -748,7 +853,7 @@ namespace EFT_OverlayAPP
             }
         }
 
-        private void StartNewMonitor(string filePath, GameLogType logType)
+        private void StartNewMonitor(string filePath, GameLogType logType, bool processExistingEntries)
         {
             try
             {
@@ -761,7 +866,7 @@ namespace EFT_OverlayAPP
                 var monitor = new LogMonitor(filePath);
                 monitor.LogChanged += (s, e) => LogChanged?.Invoke(this, e);
                 monitor.ExceptionOccurred += (s, e) => ExceptionOccurred?.Invoke(this, e);
-                monitor.Start();
+                monitor.Start(processExistingEntries); // Pass the flag to process existing entries
                 monitors[logType] = monitor;
 
                 logger.Info($"Started LogMonitor for {logType}: {filePath}");
@@ -776,7 +881,7 @@ namespace EFT_OverlayAPP
         private void OnLogFolderCreated(object sender, FileSystemEventArgs e)
         {
             logger.Info($"New log folder created: {e.FullPath}");
-            WatchLogsFolder(e.FullPath);
+            WatchLogsFolder(e.FullPath, processExistingEntries: true);
         }
 
         private void OnLogFolderDeleted(object sender, FileSystemEventArgs e)
