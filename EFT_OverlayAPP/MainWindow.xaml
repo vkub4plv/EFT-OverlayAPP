@@ -16,8 +16,6 @@
         d:DesignWidth="1920"
         d:DesignHeight="1080">
     <Window.Resources>
-        <local:RemainingTimeToColorConverter x:Key="RemainingTimeToColorConverter"/>
-        <local:BooleanToStringConverter x:Key="BooleanToStringConverter"/>
         <Style x:Key="Clock" TargetType="TextBlock">
             <Setter Property="FontSize" Value="42"/>
             <Setter Property="Foreground" Value="#B6C1C7"/>

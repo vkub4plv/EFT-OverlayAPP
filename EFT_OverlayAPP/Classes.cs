@@ -362,154 +362,6 @@ namespace EFT_OverlayAPP
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 
-    public class RemainingTimeToColorConverter : IValueConverter
-    {
-        public Brush ReadyBrush { get; set; } = Brushes.Green;
-        public Brush DefaultBrush { get; set; } = Brushes.White;
-
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is TimeSpan remainingTime)
-            {
-                if (remainingTime <= TimeSpan.Zero)
-                {
-                    return ReadyBrush;
-                }
-            }
-            return DefaultBrush;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class RemainingTimeToBlackOrGreenConverter : IValueConverter
-    {
-        public Brush ReadyBrush { get; set; } = Brushes.Green;
-        public Brush DefaultBrush { get; set; } = Brushes.Black;
-
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is TimeSpan remainingTime)
-            {
-                if (remainingTime <= TimeSpan.Zero)
-                {
-                    return ReadyBrush;
-                }
-            }
-            return DefaultBrush;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class TimeSpanToStringConverter : IValueConverter
-    {
-        public string ReadyText { get; set; } = "Ready";
-
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is TimeSpan timeSpan)
-            {
-                if (timeSpan <= TimeSpan.Zero)
-                {
-                    return ReadyText;
-                }
-                else
-                {
-                    return timeSpan.ToString(@"hh\:mm\:ss");
-                }
-            }
-            return "";
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class StationNameToIconConverter : IValueConverter
-    {
-        public string IconFolderPath { get; set; } = "StationIcons";
-
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is string stationName)
-            {
-                // Build the icon path
-                var iconFileName = $"{stationName}.png";
-                var iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, IconFolderPath, iconFileName);
-
-                // Check if the file exists
-                if (File.Exists(iconPath))
-                {
-                    return new BitmapImage(new Uri(iconPath));
-                }
-                else
-                {
-                    // Optionally, return a default icon if the specific icon is missing
-                    var defaultIconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, IconFolderPath, "default.png");
-                    if (File.Exists(defaultIconPath))
-                    {
-                        return new BitmapImage(new Uri(defaultIconPath));
-                    }
-                }
-            }
-            return null; // Return null if no icon is found
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class CompletionToBackgroundConverter : IValueConverter
-    {
-        public Brush CompletedBrush { get; set; } = Brushes.LightGreen;
-        public Brush DefaultBrush { get; set; } = Brushes.Transparent;
-
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is bool isComplete)
-            {
-                return isComplete ? CompletedBrush : DefaultBrush;
-            }
-            return DefaultBrush;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class CompletionToForegroundConverter : IValueConverter
-    {
-        public Brush CompletedBrush { get; set; } = Brushes.Green;
-        public Brush DefaultBrush { get; set; } = Brushes.Black;
-
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is bool isComplete)
-            {
-                return isComplete ? CompletedBrush : DefaultBrush;
-            }
-            return DefaultBrush;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
     public class RequiredItemQuantity
     {
         public string Id { get; set; }
@@ -638,61 +490,6 @@ namespace EFT_OverlayAPP
         public string Name { get; set; } // Quest name or hideout level
     }
 
-    public class BooleanToStringConverter : IValueConverter
-    {
-        // ConverterParameter format: "TrueValue,FalseValue"
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (parameter is string param && value is bool boolValue)
-            {
-                var values = param.Split(',');
-                if (values.Length == 2)
-                {
-                    return boolValue ? values[0].Trim() : values[1].Trim();
-                }
-            }
-            return DependencyProperty.UnsetValue;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class InverseBooleanConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is bool boolValue)
-            {
-                return !boolValue ? Visibility.Visible : Visibility.Collapsed;
-            }
-            return Visibility.Visible;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class TimeSpanConverter : JsonConverter<TimeSpan>
-    {
-        // Serialize TimeSpan to a string
-        public override void WriteJson(JsonWriter writer, TimeSpan value, JsonSerializer serializer)
-        {
-            writer.WriteValue(value.ToString("c")); // "c" format is "hh:mm:ss"
-        }
-
-        // Deserialize TimeSpan from a string
-        public override TimeSpan ReadJson(JsonReader reader, Type objectType, TimeSpan existingValue, bool hasExistingValue, JsonSerializer serializer)
-        {
-            string timeSpanString = (string)reader.Value;
-            return TimeSpan.Parse(timeSpanString);
-        }
-    }
-
     public enum CraftInstanceStatus
     {
         Started,
@@ -786,18 +583,28 @@ namespace EFT_OverlayAPP
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 
-    public class NullToVisibilityConverter : IValueConverter
+    public class KeybindEntry
     {
-        // Converts a nullable object to Visibility
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return value != null ? Visibility.Visible : Visibility.Collapsed;
-        }
+        public string Functionality { get; set; }
+        public string Keybind { get; set; }
+    }
 
-        // Not implemented
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
+    public class AppConfig
+    {
+        // Existing configuration properties
+        public List<KeybindEntry> Keybinds { get; set; }
+        public bool IsTarkovTrackerApiEnabled { get; set; }
+        public string SelectedMap { get; set; }
+        public bool ToggleMinimapVisibility { get; set; }
+        public bool ToggleRaidTimerVisibility { get; set; }
+        public bool ToggleCraftingTimersVisibility { get; set; }
+        public bool ToggleOtherWindowButtons { get; set; }
+        public string TarkovTrackerApiKey { get; set; }
+
+        // New configuration properties
+        public int CurrentCraftingLevel { get; set; } = 0; // Default to 0
+        public bool DisableAutoHideRaidTimer { get; set; } = false; // Default to false
+
+        // Add other settings as needed
     }
 }

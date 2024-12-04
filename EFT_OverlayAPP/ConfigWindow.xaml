@@ -144,6 +144,80 @@
                 </Grid>
             </TabItem>
 
+            <!-- Settings Tab -->
+            <TabItem Header="Settings">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Orientation="Vertical" Margin="10" VerticalAlignment="Top">
+
+                        <!-- Crafting Level GroupBox -->
+                        <GroupBox Header="Crafting Level" Margin="0,0,0,20">
+                            <StackPanel Orientation="Vertical" Margin="10">
+                                <TextBlock Text="Select your current crafting level (0 - 51, 51 = Elite):" 
+                                           Margin="0,0,0,5"/>
+                                <Slider x:Name="CraftingLevelSlider" 
+                                        Minimum="0" 
+                                        Maximum="51" 
+                                        TickFrequency="1" 
+                                        IsSnapToTickEnabled="True"
+                                        ValueChanged="CraftingLevelSlider_ValueChanged"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                                    <TextBlock x:Name="CraftingLevelDisplay" 
+                                               Text="Current Level: 0" 
+                                               FontWeight="Bold"/>
+                                    <TextBlock Text="  (Elite)" 
+                                               Foreground="Green" 
+                                               FontWeight="Bold"
+                                               Visibility="{Binding ElementName=CraftingLevelSlider, Path=Value, Converter={StaticResource IsEliteLevelConverter}}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- Disable Auto-Hide Raid Timer GroupBox -->
+                        <GroupBox Header="Raid Timer Settings">
+                            <StackPanel Orientation="Vertical" Margin="10">
+                                <CheckBox x:Name="DisableAutoHideRaidTimerCheckBox" 
+                                          Content="Disable automatic hiding of the raid timer after 10 minutes" 
+                                          Checked="DisableAutoHideRaidTimerCheckBox_Checked"
+                                          Unchecked="DisableAutoHideRaidTimerCheckBox_Unchecked"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- Toggle Raid Timer Visibility GroupBox -->
+                        <GroupBox Header="Raid Timer Visibility">
+                            <StackPanel Orientation="Vertical" Margin="10">
+                                <CheckBox x:Name="ToggleRaidTimerVisibilityCheckBox" 
+                                          Content="Show Raid Timer" 
+                                          Checked="ToggleRaidTimerVisibilityCheckBox_Checked"
+                                          Unchecked="ToggleRaidTimerVisibilityCheckBox_Unchecked"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- Toggle Crafting Timers Visibility GroupBox -->
+                        <GroupBox Header="Crafting Timers Visibility">
+                            <StackPanel Orientation="Vertical" Margin="10">
+                                <CheckBox x:Name="ToggleCraftingTimersVisibilityCheckBox" 
+                                          Content="Show Crafting Timers" 
+                                          Checked="ToggleCraftingTimersVisibilityCheckBox_Checked"
+                                          Unchecked="ToggleCraftingTimersVisibilityCheckBox_Unchecked"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- Toggle Other Window Buttons GroupBox -->
+                        <GroupBox Header="Other Window Buttons">
+                            <StackPanel Orientation="Vertical" Margin="10">
+                                <CheckBox x:Name="ToggleOtherWindowButtonsCheckBox" 
+                                          Content="Show Other Window Buttons" 
+                                          Checked="ToggleOtherWindowButtonsCheckBox_Checked"
+                                          Unchecked="ToggleOtherWindowButtonsCheckBox_Unchecked"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- Add more settings as needed -->
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
             <!-- Crafting Settings Tab -->
             <TabItem Header="Crafting Settings">
                 <ScrollViewer Margin="10">

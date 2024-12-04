@@ -9,11 +9,6 @@
 
     <!-- Define Resources -->
     <Window.Resources>
-        <local:RemainingTimeToBlackOrGreenConverter x:Key="RemainingTimeToBlackOrGreenConverter"/>
-        <local:TimeSpanToStringConverter x:Key="TimeSpanToStringConverter"/>
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-        <local:StationNameToIconConverter x:Key="StationNameToIconConverter"/>
-
         <GroupStyle x:Key="StationGroupStyle">
             <GroupStyle.ContainerStyle>
                 <Style TargetType="{x:Type GroupItem}">

@@ -9,12 +9,6 @@
         Height="600"
         Width="800"
         Topmost="True">
-    <Window.Resources>
-        <!-- Converters and Styles -->
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-        <local:CompletionToBackgroundConverter x:Key="CompletionToBackgroundConverter"/>
-        <local:CompletionToForegroundConverter x:Key="CompletionToForegroundConverter"/>
-    </Window.Resources>
     <!-- Main Content Grid -->
     <Grid>
         <Grid x:Name="MainContent" Visibility="Collapsed">
