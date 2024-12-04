@@ -94,6 +94,9 @@ namespace EFT_OverlayAPP
 
             // Disable Auto-Hide Raid Timer
             DisableAutoHideRaidTimerCheckBox.IsChecked = AppConfig.DisableAutoHideRaidTimer;
+
+            // Set Profile Mode ComboBox
+            SetProfileModeComboBoxSelection();
         }
 
         private AppConfig GetDefaultConfig()
@@ -120,7 +123,8 @@ namespace EFT_OverlayAPP
                 ToggleOtherWindowButtons = false,
                 TarkovTrackerApiKey = string.Empty,
                 CurrentCraftingLevel = 0,
-                DisableAutoHideRaidTimer = false
+                DisableAutoHideRaidTimer = false,
+                SelectedProfileMode = ProfileMode.Automatic // Default to Automatic
                 // Initialize other settings as needed
             };
         }
@@ -175,56 +179,55 @@ namespace EFT_OverlayAPP
             }
         }
 
-        private void InitializeKeybinds()
+        private void SetProfileModeComboBoxSelection()
         {
-            // Initialize Keybinds with default values
-            Keybinds = new ObservableCollection<KeybindEntry>
+            switch (AppConfig.SelectedProfileMode)
             {
-                new KeybindEntry { Functionality = "Raid Timer OCR", Keybind = "F1" },
-                new KeybindEntry { Functionality = "Open Crafting Window", Keybind = "F2" },
-                new KeybindEntry { Functionality = "Open Required Items Window", Keybind = "F3" },
-                new KeybindEntry { Functionality = "Open Config Window", Keybind = "F4" },
-                new KeybindEntry { Functionality = "Toggle Minimap Visibility", Keybind = "F5" },
-                new KeybindEntry { Functionality = "Toggle Raid Timer Visibility", Keybind = "F6" },
-                new KeybindEntry { Functionality = "Toggle Crafting Timers Visibility", Keybind = "F7" },
-                new KeybindEntry { Functionality = "Toggle OtherWindow Buttons", Keybind = "F8" },
-                // Add more keybinds as needed
-            };
-
-            KeybindsListView.ItemsSource = Keybinds;
+                case ProfileMode.Automatic:
+                    ProfileModeComboBox.SelectedIndex = 0; // Automatic
+                    break;
+                case ProfileMode.Regular:
+                    ProfileModeComboBox.SelectedIndex = 1; // Regular (PVP)
+                    break;
+                case ProfileMode.Pve:
+                    ProfileModeComboBox.SelectedIndex = 2; // PVE
+                    break;
+                default:
+                    ProfileModeComboBox.SelectedIndex = 0; // Default to Automatic
+                    break;
+            }
         }
 
-        private void InitializeMonitorList()
+        private void ProfileModeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // Placeholder: Populate MonitorSelectionComboBox with detected monitors
-            // This will be implemented with actual monitor detection logic
-            MonitorSelectionComboBox.Items.Add("Monitor 1");
-            MonitorSelectionComboBox.Items.Add("Monitor 2");
-            MonitorSelectionComboBox.Items.Add("Monitor 3");
-            // Set default selection
-            MonitorSelectionComboBox.SelectedIndex = 0;
-            CurrentMonitorTextBlock.Text = MonitorSelectionComboBox.SelectedItem as string;
+            if (ProfileModeComboBox.SelectedItem is ComboBoxItem selectedItem)
+            {
+                string selectedContent = selectedItem.Content.ToString();
+                switch (selectedContent)
+                {
+                    case "Automatic":
+                        AppConfig.SelectedProfileMode = ProfileMode.Automatic;
+                        logger.Info("Profile mode set to Automatic.");
+                        break;
+                    case "Regular (PVP)":
+                        AppConfig.SelectedProfileMode = ProfileMode.Regular;
+                        logger.Info("Profile mode set to Regular (PVP).");
+                        break;
+                    case "PVE":
+                        AppConfig.SelectedProfileMode = ProfileMode.Pve;
+                        logger.Info("Profile mode set to PVE.");
+                        break;
+                    default:
+                        AppConfig.SelectedProfileMode = ProfileMode.Automatic;
+                        logger.Warn("Unknown profile mode selected. Defaulting to Automatic.");
+                        break;
+                }
+
+                // Update UI or application behavior based on the new profile mode
+                // For example, enable/disable automatic profile switching
+            }
         }
 
-        private void InitializeStartingTabs()
-        {
-            // Placeholder: Populate CraftingStartingTabComboBox and RequiredItemsStartingTabComboBox
-            // These should reflect the actual tabs available in Crafting and Required Items windows
-
-            // Example for CraftingStartingTabComboBox
-            CraftingStartingTabComboBox.Items.Add("Tab 1");
-            CraftingStartingTabComboBox.Items.Add("Tab 2");
-            CraftingStartingTabComboBox.Items.Add("Tab 3");
-            CraftingStartingTabComboBox.SelectedIndex = 0;
-
-            // Example for RequiredItemsStartingTabComboBox
-            RequiredItemsStartingTabComboBox.Items.Add("Tab A");
-            RequiredItemsStartingTabComboBox.Items.Add("Tab B");
-            RequiredItemsStartingTabComboBox.Items.Add("Tab C");
-            RequiredItemsStartingTabComboBox.SelectedIndex = 0;
-        }
-
-        // Keybinds Tab Events
 
         // Crafting Level Slider Value Changed
         private void CraftingLevelSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)

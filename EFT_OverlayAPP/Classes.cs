@@ -589,6 +589,14 @@ namespace EFT_OverlayAPP
         public string Keybind { get; set; }
     }
 
+    // Define the ProfileMode enum
+    public enum ProfileMode
+    {
+        Automatic,
+        Regular,
+        Pve
+    }
+
     public class AppConfig
     {
         // Existing configuration properties
@@ -604,6 +612,9 @@ namespace EFT_OverlayAPP
         // New configuration properties
         public int CurrentCraftingLevel { get; set; } = 0; // Default to 0
         public bool DisableAutoHideRaidTimer { get; set; } = false; // Default to false
+
+        // New Profile Mode Property
+        public ProfileMode SelectedProfileMode { get; set; } = ProfileMode.Automatic; // Default to Automatic
 
         // Add other settings as needed
     }
