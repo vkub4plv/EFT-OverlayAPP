@@ -325,34 +325,29 @@
 
             <!-- Profile Settings Tab -->
             <TabItem Header="Profile Settings">
-                <Grid Margin="10">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
+                <ScrollViewer Margin="10">
+                    <StackPanel>
+                        <!-- Current Profile Mode Display -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                            <TextBlock Text="Current Profile Mode:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBlock x:Name="CurrentProfileModeTextBlock" Text="Regular (PVP)" FontWeight="Bold"/>
+                        </StackPanel>
 
-                    <!-- Current Profile Mode Display -->
-                    <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,10">
-                        <TextBlock Text="Current Profile Mode:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                        <TextBlock x:Name="CurrentProfileModeTextBlock" Text="Regular (PVP)" FontWeight="Bold"/>
-                    </StackPanel>
+                        <!-- Change Profile Mode -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                            <TextBlock Text="Change Profile Mode:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <ComboBox x:Name="ProfileModeComboBox" Width="150">
+                                <ComboBoxItem Content="Regular (PVP)"/>
+                                <ComboBoxItem Content="PVE"/>
+                            </ComboBox>
+                        </StackPanel>
 
-                    <!-- Change Profile Mode -->
-                    <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,10">
-                        <TextBlock Text="Change Profile Mode:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                        <ComboBox x:Name="ProfileModeComboBox" Width="150">
-                            <ComboBoxItem Content="Regular (PVP)"/>
-                            <ComboBoxItem Content="PVE"/>
-                        </ComboBox>
-                    </StackPanel>
-
-                    <!-- Automatic Profile Switching -->
-                    <CheckBox x:Name="AutoSwitchProfileCheckBox" 
+                        <!-- Automatic Profile Switching -->
+                        <CheckBox x:Name="AutoSwitchProfileCheckBox" 
                               Content="Automatically switch between PVP and PVE profiles based on game state" 
-                              IsChecked="True" 
-                              Grid.Row="2"/>
-                </Grid>
+                              IsChecked="True"/>
+                    </StackPanel>
+                </ScrollViewer>
             </TabItem>
 
             <!-- Paths Settings Tab -->
