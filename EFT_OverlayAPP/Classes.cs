@@ -597,7 +597,7 @@ namespace EFT_OverlayAPP
         Pve
     }
 
-    public class AppConfig
+    public class AppConfig : INotifyPropertyChanged
     {
         // Existing configuration properties
         public List<KeybindEntry> Keybinds { get; set; }
@@ -607,7 +607,65 @@ namespace EFT_OverlayAPP
         public bool ToggleRaidTimerVisibility { get; set; }
         public bool ToggleCraftingTimersVisibility { get; set; }
         public bool ToggleOtherWindowButtons { get; set; }
-        public string TarkovTrackerApiKey { get; set; }
+
+        private string eftLogsPath;
+        public string EftLogsPath
+        {
+            get => eftLogsPath;
+            set
+            {
+                if (eftLogsPath != value)
+                {
+                    eftLogsPath = value;
+                    OnPropertyChanged(nameof(EftLogsPath));
+                }
+            }
+        }
+
+        private bool useCustomEftLogsPath;
+        public bool UseCustomEftLogsPath
+        {
+            get => useCustomEftLogsPath;
+            set
+            {
+                if (useCustomEftLogsPath != value)
+                {
+                    useCustomEftLogsPath = value;
+                    OnPropertyChanged(nameof(UseCustomEftLogsPath));
+                    // Optionally trigger additional logic here
+                }
+            }
+        }
+
+
+        // New configuration properties for dual API keys
+        private string pvpApiKey;
+        public string PvpApiKey
+        {
+            get => pvpApiKey;
+            set
+            {
+                if (pvpApiKey != value)
+                {
+                    pvpApiKey = value;
+                    OnPropertyChanged(nameof(PvpApiKey));
+                }
+            }
+        }
+
+        private string pveApiKey;
+        public string PveApiKey
+        {
+            get => pveApiKey;
+            set
+            {
+                if (pveApiKey != value)
+                {
+                    pveApiKey = value;
+                    OnPropertyChanged(nameof(PveApiKey));
+                }
+            }
+        }
 
         // New configuration properties
         public int CurrentCraftingLevel { get; set; } = 0; // Default to 0
@@ -617,5 +675,10 @@ namespace EFT_OverlayAPP
         public ProfileMode SelectedProfileMode { get; set; } = ProfileMode.Automatic; // Default to Automatic
 
         // Add other settings as needed
+
+        // INotifyPropertyChanged implementation
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string propertyName) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }

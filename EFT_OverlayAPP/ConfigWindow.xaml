@@ -55,27 +55,52 @@
                 </Grid>
             </TabItem>
 
-            <!-- Map Settings Tab -->
+            <!-- Map Settings Tab with Dual API Keys -->
             <TabItem Header="Map Settings">
                 <Grid Margin="10">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
+                        <!-- API Enable Row -->
                         <RowDefinition Height="Auto"/>
+                        <!-- PVP API Key Row -->
                         <RowDefinition Height="Auto"/>
+                        <!-- PVE API Key Row -->
+                        <RowDefinition Height="Auto"/>
+                        <!-- Map Selection Row -->
+                        <RowDefinition Height="Auto"/>
+                        <!-- Minimap Settings Row -->
                         <RowDefinition Height="*"/>
+                        <!-- Additional Settings Row -->
                     </Grid.RowDefinitions>
 
-                    <!-- Tarkov Tracker API -->
+                    <!-- Tarkov Tracker API Enable -->
                     <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,10">
-                        <CheckBox x:Name="EnableTarkovTrackerApiCheckBox" Content="Enable Tarkov Tracker API" 
-                                  VerticalAlignment="Center" Margin="0,0,10,0" Checked="EnableTarkovTrackerApiCheckBox_Checked" Unchecked="EnableTarkovTrackerApiCheckBox_Unchecked"/>
-                        <TextBox x:Name="TarkovTrackerApiTextBox" Width="300" 
+                        <CheckBox x:Name="EnableTarkovTrackerApiCheckBox" 
+                      Content="Enable Tarkov Tracker API" 
+                      VerticalAlignment="Center" 
+                      Margin="0,0,10,0" 
+                      Checked="EnableTarkovTrackerApiCheckBox_Checked" 
+                      Unchecked="EnableTarkovTrackerApiCheckBox_Unchecked"/>
+                    </StackPanel>
+
+                    <!-- PVP API Key -->
+                    <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,10">
+                        <TextBlock Text="PVP API Key:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBox x:Name="PvpApiKeyTextBox" Width="300" 
                                  IsEnabled="False" 
-                                 />
+                                 Text="{Binding AppConfig.PvpApiKey, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+
+                    <!-- PVE API Key -->
+                    <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="0,0,0,10">
+                        <TextBlock Text="PVE API Key:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBox x:Name="PveApiKeyTextBox" Width="300" 
+                                 IsEnabled="False" 
+                                 Text="{Binding AppConfig.PveApiKey, UpdateSourceTrigger=PropertyChanged}"/>
                     </StackPanel>
 
                     <!-- Map Selection -->
-                    <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,10">
+                    <StackPanel Orientation="Horizontal" Grid.Row="3" Margin="0,0,0,10">
                         <TextBlock Text="Select Map:" VerticalAlignment="Center" Margin="0,0,10,0"/>
                         <ComboBox x:Name="MapSelectionComboBox" Width="150">
                             <ComboBoxItem Content="Map Genie"/>
@@ -84,11 +109,11 @@
                     </StackPanel>
 
                     <!-- Minimap Settings -->
-                    <GroupBox Header="Minimap Settings" Grid.Row="2" Margin="0,0,0,10">
+                    <GroupBox Header="Minimap Settings" Grid.Row="4" Margin="0,0,0,10">
                         <StackPanel Margin="10">
                             <CheckBox x:Name="ToggleMinimapVisibilityCheckBox" Content="Toggle Minimap Visibility" />
                             <CheckBox x:Name="AutoSetActiveMinimapCheckBox" Content="Automatically set active minimap to current map on raid start" 
-                                      IsChecked="True" Margin="0,5,0,0"/>
+                          IsChecked="True" Margin="0,5,0,0"/>
                         </StackPanel>
                     </GroupBox>
 
@@ -351,21 +376,25 @@
                 <Grid Margin="10">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
+                        <!-- Checkbox Row -->
                         <RowDefinition Height="Auto"/>
+                        <!-- EFT Logs Path Row -->
                     </Grid.RowDefinitions>
 
-                    <!-- EFT Logs Path -->
-                    <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,10">
-                        <TextBlock Text="EFT Logs Path:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                        <TextBox x:Name="EftLogsPathTextBox" Width="300" IsReadOnly="True"/>
-                        <Button Content="Browse" Click="BrowseEftLogsPathButton_Click" Margin="10,0,0,0"/>
+                    <!-- Custom EFT Logs Path Checkbox -->
+                    <StackPanel Orientation="Vertical" Grid.Row="0" Margin="0,0,0,10">
+                        <CheckBox x:Name="UseCustomEftLogsPathCheckBox" 
+                                  Content="Use Custom EFT Logs Path" 
+                                  Checked="UseCustomEftLogsPathCheckBox_Checked" 
+                                  Unchecked="UseCustomEftLogsPathCheckBox_Unchecked"
+                                  ToolTip="Check this box to specify a custom directory for EFT logs. Uncheck to use the default path."/>
                     </StackPanel>
 
-                    <!-- Custom EFT Logs Path -->
+                    <!-- EFT Logs Path -->
                     <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,10">
-                        <CheckBox x:Name="UseCustomEftLogsPathCheckBox" Content="Use Custom EFT Logs Path" 
-                                  Checked="UseCustomEftLogsPathCheckBox_Checked" 
-                                  Unchecked="UseCustomEftLogsPathCheckBox_Unchecked"/>
+                        <TextBlock Text="EFT Logs Path:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBox x:Name="EftLogsPathTextBox" Width="300" IsEnabled="False"/>
+                        <Button Content="Browse" Click="BrowseEftLogsPathButton_Click" Margin="10,0,0,0"/>
                     </StackPanel>
                 </Grid>
             </TabItem>

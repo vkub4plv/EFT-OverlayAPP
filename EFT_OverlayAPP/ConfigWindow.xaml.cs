@@ -15,6 +15,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.IO;
 using NLog;
+using Ookii.Dialogs.Wpf;
 
 namespace EFT_OverlayAPP
 {
@@ -29,6 +30,8 @@ namespace EFT_OverlayAPP
             InitializeComponent();
             LoadConfig();
             this.DataContext = this; // Set DataContext for data binding
+            InitializeMonitorList();
+            InitializeStartingTabs();
         }
 
         private void LoadConfig()
@@ -59,9 +62,14 @@ namespace EFT_OverlayAPP
                 KeybindsListView.ItemsSource = AppConfig.Keybinds;
             }
 
-            // Tarkov Tracker API
-            TarkovTrackerApiTextBox.Text = AppConfig.TarkovTrackerApiKey;
+            // Enable Tarkov Tracker API Checkbox
             EnableTarkovTrackerApiCheckBox.IsChecked = AppConfig.IsTarkovTrackerApiEnabled;
+
+            // PVP API Key
+            PvpApiKeyTextBox.Text = AppConfig.PvpApiKey;
+
+            // PVE API Key
+            PveApiKeyTextBox.Text = AppConfig.PveApiKey;
 
             // Selected Map
             if (!string.IsNullOrEmpty(AppConfig.SelectedMap))
@@ -95,6 +103,9 @@ namespace EFT_OverlayAPP
             // Disable Auto-Hide Raid Timer
             DisableAutoHideRaidTimerCheckBox.IsChecked = AppConfig.DisableAutoHideRaidTimer;
 
+            // Initialize Paths Settings
+            InitializePathsSettings();
+
             // Set Profile Mode ComboBox
             SetProfileModeComboBoxSelection();
         }
@@ -121,9 +132,10 @@ namespace EFT_OverlayAPP
                 ToggleRaidTimerVisibility = false,
                 ToggleCraftingTimersVisibility = false,
                 ToggleOtherWindowButtons = false,
-                TarkovTrackerApiKey = string.Empty,
                 CurrentCraftingLevel = 0,
                 DisableAutoHideRaidTimer = false,
+                UseCustomEftLogsPath = false,
+                EftLogsPath = GetDefaultEftLogsPath(),
                 SelectedProfileMode = ProfileMode.Automatic // Default to Automatic
                 // Initialize other settings as needed
             };
@@ -144,8 +156,13 @@ namespace EFT_OverlayAPP
             // Keybinds
             AppConfig.Keybinds = KeybindsListView.ItemsSource as List<KeybindEntry>;
 
-            // Tarkov Tracker API
-            AppConfig.TarkovTrackerApiKey = TarkovTrackerApiTextBox.Text;
+            // PVP API Key
+            AppConfig.PvpApiKey = PvpApiKeyTextBox.Text;
+
+            // PVE API Key
+            AppConfig.PveApiKey = PveApiKeyTextBox.Text;
+
+            // Enable Tarkov Tracker API
             AppConfig.IsTarkovTrackerApiEnabled = EnableTarkovTrackerApiCheckBox.IsChecked == true;
 
             // Selected Map
@@ -165,6 +182,18 @@ namespace EFT_OverlayAPP
             // Disable Auto-Hide Raid Timer
             AppConfig.DisableAutoHideRaidTimer = DisableAutoHideRaidTimerCheckBox.IsChecked == true;
 
+            // Paths Settings
+            if (UseCustomEftLogsPathCheckBox.IsChecked == true)
+            {
+                AppConfig.EftLogsPath = EftLogsPathTextBox.Text;
+                AppConfig.UseCustomEftLogsPath = true;
+            }
+            else
+            {
+                AppConfig.EftLogsPath = GetDefaultEftLogsPath();
+                AppConfig.UseCustomEftLogsPath = false;
+            }
+
             try
             {
                 string json = JsonConvert.SerializeObject(AppConfig, Formatting.Indented);
@@ -177,6 +206,24 @@ namespace EFT_OverlayAPP
                 MessageBox.Show($"Failed to save configuration: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 logger.Error(ex, "Failed to save configuration.");
             }
+        }
+
+        private void InitializePathsSettings()
+        {
+            // Set the checkbox state
+            UseCustomEftLogsPathCheckBox.IsChecked = AppConfig.UseCustomEftLogsPath;
+
+            // Set the TextBox state
+            EftLogsPathTextBox.IsEnabled = AppConfig.UseCustomEftLogsPath;
+            EftLogsPathTextBox.Text = AppConfig.UseCustomEftLogsPath ? AppConfig.EftLogsPath : GetDefaultEftLogsPath();
+        }
+
+        private string GetDefaultEftLogsPath()
+        {
+            // Implement logic to retrieve the default EFT Logs path
+            // This could be from AppConfig or a predefined location
+            // For example:
+            return @"C:\Battlestate Games\EFT\Logs"; // Replace with actual default path
         }
 
         private void SetProfileModeComboBoxSelection()
@@ -307,15 +354,21 @@ namespace EFT_OverlayAPP
             // Add logic to hide other window buttons in the application
         }
 
-        // Map Settings Tab Events
+        // Enable Tarkov Tracker API CheckBox Checked
         private void EnableTarkovTrackerApiCheckBox_Checked(object sender, RoutedEventArgs e)
         {
-            TarkovTrackerApiTextBox.IsEnabled = true;
+            PvpApiKeyTextBox.IsEnabled = true;
+            PveApiKeyTextBox.IsEnabled = true;
         }
 
+        // Enable Tarkov Tracker API CheckBox Unchecked
         private void EnableTarkovTrackerApiCheckBox_Unchecked(object sender, RoutedEventArgs e)
         {
-            TarkovTrackerApiTextBox.IsEnabled = false;
+            PvpApiKeyTextBox.IsEnabled = false;
+            PveApiKeyTextBox.IsEnabled = false;
+            // Optionally, clear the API keys or retain them
+            // PvpApiKeyTextBox.Text = string.Empty;
+            // PveApiKeyTextBox.Text = string.Empty;
         }
 
         // Hideout Modules Tab Events
@@ -417,19 +470,48 @@ namespace EFT_OverlayAPP
         // Paths Settings Tab Events
         private void BrowseEftLogsPathButton_Click(object sender, RoutedEventArgs e)
         {
-            // Placeholder: Open folder browser dialog to select EFT Logs path
-            MessageBox.Show("Folder browser dialog opened.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+            // Open folder browser dialog to select EFT Logs path
+            var dialog = new VistaFolderBrowserDialog
+            {
+                Description = "Select the EFT Logs directory.",
+                UseDescriptionForTitle = true
+            };
+
+            bool? result = dialog.ShowDialog();
+            if (result == true)
+            {
+                string selectedPath = dialog.SelectedPath;
+
+                // Validate the selected path
+                if (Directory.Exists(selectedPath))
+                {
+                    EftLogsPathTextBox.Text = selectedPath;
+
+                    // Update AppConfig with the new path if custom path is enabled
+                    if (UseCustomEftLogsPathCheckBox.IsChecked == true)
+                    {
+                        AppConfig.EftLogsPath = selectedPath;
+                        SaveConfig();
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("The selected path does not exist. Please choose a valid directory.", "Invalid Path", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    logger.Warn($"Invalid EFT Logs path selected: {selectedPath}");
+                }
+            }
         }
 
         private void UseCustomEftLogsPathCheckBox_Checked(object sender, RoutedEventArgs e)
         {
-            EftLogsPathTextBox.IsReadOnly = false;
+            EftLogsPathTextBox.IsEnabled = true;
         }
 
         private void UseCustomEftLogsPathCheckBox_Unchecked(object sender, RoutedEventArgs e)
         {
-            EftLogsPathTextBox.IsReadOnly = true;
-            // Reset to default path if necessary
+            EftLogsPathTextBox.IsEnabled = false;
+            // Reset to default path
+            EftLogsPathTextBox.Text = GetDefaultEftLogsPath();
         }
 
         // Monitor Settings Tab Events
@@ -450,6 +532,36 @@ namespace EFT_OverlayAPP
         {
             CustomResolutionComboBox.IsEnabled = false;
             // Reset to detected resolution if necessary
+        }
+
+        private void InitializeMonitorList()
+        {
+            // Placeholder: Populate MonitorSelectionComboBox with detected monitors
+            // This will be implemented with actual monitor detection logic
+            MonitorSelectionComboBox.Items.Add("Monitor 1");
+            MonitorSelectionComboBox.Items.Add("Monitor 2");
+            MonitorSelectionComboBox.Items.Add("Monitor 3");
+            // Set default selection
+            MonitorSelectionComboBox.SelectedIndex = 0;
+            CurrentMonitorTextBlock.Text = MonitorSelectionComboBox.SelectedItem as string;
+        }
+
+        private void InitializeStartingTabs()
+        {
+            // Placeholder: Populate CraftingStartingTabComboBox and RequiredItemsStartingTabComboBox
+            // These should reflect the actual tabs available in Crafting and Required Items windows
+
+            // Example for CraftingStartingTabComboBox
+            CraftingStartingTabComboBox.Items.Add("Tab 1");
+            CraftingStartingTabComboBox.Items.Add("Tab 2");
+            CraftingStartingTabComboBox.Items.Add("Tab 3");
+            CraftingStartingTabComboBox.SelectedIndex = 0;
+
+            // Example for RequiredItemsStartingTabComboBox
+            RequiredItemsStartingTabComboBox.Items.Add("Tab A");
+            RequiredItemsStartingTabComboBox.Items.Add("Tab B");
+            RequiredItemsStartingTabComboBox.Items.Add("Tab C");
+            RequiredItemsStartingTabComboBox.SelectedIndex = 0;
         }
 
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
