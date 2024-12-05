@@ -384,8 +384,7 @@ namespace EFT_OverlayAPP
             }
         }
 
-        // Event Handler for Refresh Hideout Modules Button
-        private async void RefreshHideoutModulesButton_Click(object sender, RoutedEventArgs e)
+        private async Task InitializeHideoutModulesAsync()
         {
             try
             {
@@ -393,15 +392,15 @@ namespace EFT_OverlayAPP
 
                 if (DataCache.HideoutStations == null || !DataCache.HideoutStations.Any())
                 {
-                    MessageBox.Show("No hideout stations data available to refresh.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    logger.Error("Hideout stations data is empty on refresh.");
+                    MessageBox.Show("No hideout stations data available to initialize.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    logger.Error("Hideout stations data is empty during initialization.");
                     return;
                 }
 
                 // Preserve existing settings
                 var existingSettingsDict = AppConfig.HideoutModuleSettings.ToDictionary(h => h.ModuleName, h => h.SelectedLevel);
 
-                // Clear and reload settings
+                // Clear existing settings to prevent duplicates
                 AppConfig.HideoutModuleSettings.Clear();
 
                 foreach (var station in DataCache.HideoutStations)
@@ -449,14 +448,20 @@ namespace EFT_OverlayAPP
                 HideoutModulesListView.ItemsSource = null;
                 HideoutModulesListView.ItemsSource = AppConfig.HideoutModuleSettings;
 
-                MessageBox.Show("Hideout modules have been refreshed successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                logger.Info("Hideout modules refreshed successfully.");
+                MessageBox.Show("Hideout modules have been initialized successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                logger.Info("Hideout modules initialized successfully.");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to refresh hideout modules: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                logger.Error(ex, "Failed to refresh hideout modules.");
+                MessageBox.Show($"Failed to initialize hideout modules: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                logger.Error(ex, "Failed to initialize hideout modules.");
             }
+        }
+
+        // Event Handler for Refresh Hideout Modules Button
+        private async void RefreshHideoutModulesButton_Click(object sender, RoutedEventArgs e)
+        {
+            await InitializeHideoutModulesAsync();
         }
 
         // Event Handlers for Unlock Overlay Options
@@ -610,7 +615,7 @@ namespace EFT_OverlayAPP
             }
         }
 
-        private void ResetToDefaultButton_Click(object sender, RoutedEventArgs e)
+        private async void ResetToDefaultButton_Click(object sender, RoutedEventArgs e)
         {
             // Confirm the reset action with the user
             var result = MessageBox.Show("Are you sure you want to reset all configuration settings to their default values? This will delete the current configuration file.",
@@ -622,6 +627,18 @@ namespace EFT_OverlayAPP
             {
                 try
                 {
+                    // Unsubscribe from existing events if AppConfig is not null
+                    if (AppConfig != null)
+                    {
+                        AppConfig.PropertyChanged -= AppConfig_PropertyChanged;
+                        AppConfig.HideoutModuleSettings.CollectionChanged -= HideoutModuleSettings_CollectionChanged;
+
+                        foreach (var moduleSetting in AppConfig.HideoutModuleSettings)
+                        {
+                            moduleSetting.PropertyChanged -= HideoutModuleSetting_PropertyChanged;
+                        }
+                    }
+
                     // Delete the config.json file if it exists
                     if (File.Exists(ConfigFilePath))
                     {
@@ -647,6 +664,13 @@ namespace EFT_OverlayAPP
                     SetProfileModeComboBoxSelection();
                     CraftingLevelDisplay.Text = $"Current Level: {AppConfig.CurrentCraftingLevel}";
                     CraftingLevelSlider.Value = AppConfig.CurrentCraftingLevel;
+
+                    // Subscribe to PropertyChanged for the new AppConfig
+                    AppConfig.PropertyChanged += AppConfig_PropertyChanged;
+                    AppConfig.HideoutModuleSettings.CollectionChanged += HideoutModuleSettings_CollectionChanged;
+
+                    // Initialize Hideout Modules with default settings
+                    await InitializeHideoutModulesAsync();
 
                     // Save the default config to create a new config.json
                     SaveConfig();
