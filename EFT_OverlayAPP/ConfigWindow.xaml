@@ -177,12 +177,11 @@
                         </StackPanel>
                     </GroupBox>
 
-                    <!-- Unlock Overlay Options -->
-                    <GroupBox Header="Overlay Options" Grid.Row="2" Margin="0,0,0,10">
-                        <StackPanel Orientation="Vertical" Margin="10">
-                            <CheckBox x:Name="UnlockOverlayCheckBox" Content="Unlock Overlay Positions" 
-                                      Click="UnlockOverlayCheckBox_Click"/>
-                            <!-- Add more overlay options if needed -->
+                    <!-- Overlay Items Positions -->
+                    <GroupBox Header="Overlay Items Positions" Grid.Row="2" Margin="0,0,0,10">
+                        <StackPanel Margin="10">
+                            <Button Content="Unlock/Save Positions" Width="150" Click="UnlockSavePositionsButton_Click" Margin="0,0,0,5"/>
+                            <Button Content="Reset Positions to Default" Width="200" Click="ResetPositionsButton_Click"/>
                         </StackPanel>
                     </GroupBox>
 

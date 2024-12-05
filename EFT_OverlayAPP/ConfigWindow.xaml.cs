@@ -325,19 +325,16 @@ namespace EFT_OverlayAPP
         }
 
         // Event Handlers for Unlock Overlay Options
-        private void UnlockOverlayCheckBox_Click(object sender, RoutedEventArgs e)
+        private void UnlockSavePositionsButton_Click(object sender, RoutedEventArgs e)
         {
-            // Implement logic to unlock overlay positions
-            if (UnlockOverlayCheckBox.IsChecked == true)
-            {
-                // Enable dragging and repositioning of overlay elements
-                logger.Info("Overlay positions unlocked.");
-            }
-            else
-            {
-                // Lock overlay positions
-                logger.Info("Overlay positions locked.");
-            }
+            // Placeholder: Unlock and save overlay items positions
+            MessageBox.Show("Overlay items positions unlocked and saved.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void ResetPositionsButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Placeholder: Reset overlay items positions to default
+            MessageBox.Show("Overlay items positions reset to default.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         // Event Handlers for Paths Settings Tab (within General)
