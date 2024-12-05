@@ -82,6 +82,9 @@ namespace EFT_OverlayAPP
                     }
                 }
             }
+
+            // Set the Profile Mode ComboBox based on AppConfig
+            SetProfileModeComboBoxSelection();
         }
 
         private AppConfig GetDefaultConfig()
@@ -620,6 +623,77 @@ namespace EFT_OverlayAPP
                 UnlockableCraftsListView.IsEnabled = false;
                 // Logic to load crafts from Tarkov Tracker API can be implemented here
                 logger.Info("Craft source set to Tarkov Tracker.");
+            }
+        }
+
+        private void ResetToDefaultButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Confirm the reset action with the user
+            var result = MessageBox.Show("Are you sure you want to reset all configuration settings to their default values? This will delete the current configuration file.",
+                                         "Confirm Reset",
+                                         MessageBoxButton.YesNo,
+                                         MessageBoxImage.Warning);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                try
+                {
+                    // Delete the config.json file if it exists
+                    if (File.Exists(ConfigFilePath))
+                    {
+                        File.Delete(ConfigFilePath);
+                        logger.Info("Configuration file deleted successfully.");
+                    }
+
+                    // Reset AppConfig to default settings
+                    AppConfig = GetDefaultConfig();
+
+                    // Update the DataContext to the new AppConfig
+                    this.DataContext = AppConfig;
+
+                    // Re-initialize UI elements that are not automatically bound
+                    InitializeMonitorList();
+                    InitializeStartingTabs();
+
+                    // Refresh keybinds ListView
+                    KeybindsListView.ItemsSource = null;
+                    KeybindsListView.ItemsSource = AppConfig.Keybinds;
+
+                    // Refresh other UI elements if necessary
+                    SetProfileModeComboBoxSelection();
+                    CraftingLevelDisplay.Text = $"Current Level: {AppConfig.CurrentCraftingLevel}";
+                    CraftingLevelSlider.Value = AppConfig.CurrentCraftingLevel;
+
+                    // Save the default config to create a new config.json
+                    SaveConfig();
+
+                    logger.Info("Configuration has been reset to default.");
+                    MessageBox.Show("All configuration settings have been reset to their default values.", "Reset Successful", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Failed to reset configuration: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    logger.Error(ex, "Failed to reset configuration.");
+                }
+            }
+        }
+
+        private void SetProfileModeComboBoxSelection()
+        {
+            switch (AppConfig.SelectedProfileMode)
+            {
+                case ProfileMode.Automatic:
+                    ProfileModeComboBox.SelectedIndex = 0;
+                    break;  
+                case ProfileMode.Regular:
+                    ProfileModeComboBox.SelectedIndex = 1;
+                    break;
+                case ProfileMode.Pve:
+                    ProfileModeComboBox.SelectedIndex = 2;
+                    break;
+                default:
+                    ProfileModeComboBox.SelectedIndex = 0;
+                    break;
             }
         }
     }

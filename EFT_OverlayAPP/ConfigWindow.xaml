@@ -18,7 +18,6 @@
             <TabItem Header="General">
                 <Grid Margin="10">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
                         <!-- Profile Functions -->
                         <RowDefinition Height="Auto"/>
                         <!-- Logs Path -->
@@ -26,8 +25,12 @@
                         <!-- API Keys -->
                         <RowDefinition Height="Auto"/>
                         <!-- Crafting Level Selection -->
-                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
                         <!-- Spacer or Additional Content -->
+                        <RowDefinition Height="*"/>
+                        <!-- Reset to Default Button -->
+                        <RowDefinition Height="Auto"/>
+                        <!-- Changed from Grid.Row="4" to Row 5 for clarity -->
                     </Grid.RowDefinitions>
 
                     <!-- Profile Functions -->
@@ -120,6 +123,16 @@
 
                     <!-- Spacer or Additional Content -->
                     <Grid Grid.Row="4"/>
+
+                    <!-- Reset to Default Button -->
+                    <Grid Grid.Row="5">
+                        <Button Content="Reset to Default" 
+                                Width="150" 
+                                Height="30" 
+                                HorizontalAlignment="Right" 
+                                Click="ResetToDefaultButton_Click"
+                                ToolTip="Reset all configuration settings to their default values. This will delete the current configuration file."/>
+                    </Grid>
                 </Grid>
             </TabItem>
 
