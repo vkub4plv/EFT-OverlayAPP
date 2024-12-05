@@ -195,13 +195,13 @@
                                       Content="Hide Crafting UI When In-Raid" 
                                       IsChecked="{Binding ToggleCraftingTimersVisibility, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                             <CheckBox x:Name="TimerOn10MinutesLeftCheckBox" 
-                                      Content="Show Timer When 10 Minutes Left" 
-                                      IsChecked="{Binding ShowTimerOn10MinutesLeft, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                      Content="Hide Timer When 10 Minutes Left" 
+                                      IsChecked="{Binding HideTimerOn10MinutesLeft, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                             <CheckBox x:Name="TimerOnRaidEndCheckBox" 
-                                      Content="Show Timer on Raid End" 
-                                      IsChecked="{Binding ShowTimerOnRaidEnd, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                      Content="Hide Timer on Raid End" 
+                                      IsChecked="{Binding HideTimerOnRaidEnd, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                             <CheckBox x:Name="MinimapWhenOutOfRaidCheckBox" 
-                                      Content="Show Minimap When Out of Raid" 
+                                      Content="Hide Minimap When Out of Raid" 
                                       IsChecked="{Binding ToggleMinimapVisibility, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                         </StackPanel>
                     </GroupBox>
@@ -283,13 +283,15 @@
                                 <GridViewColumn Header="Level" Width="100">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
-                                            <ComboBox SelectedItem="{Binding ModuleLevel, UpdateSourceTrigger=PropertyChanged}" Width="80">
-                                                <ComboBoxItem Content="1"/>
-                                                <ComboBoxItem Content="2"/>
-                                                <ComboBoxItem Content="3"/>
-                                                <ComboBoxItem Content="4"/>
-                                                <ComboBoxItem Content="5"/>
-                                                <ComboBoxItem Content="6"/>
+                                            <ComboBox SelectedValue="{Binding SelectedLevel, UpdateSourceTrigger=PropertyChanged}" Width="80">
+                                                <ComboBox.ItemsSource>
+                                                    <Binding Path="AvailableLevels" />
+                                                </ComboBox.ItemsSource>
+                                                <ComboBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding}" />
+                                                    </DataTemplate>
+                                                </ComboBox.ItemTemplate>
                                             </ComboBox>
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
@@ -382,13 +384,13 @@
                         <StackPanel Orientation="Vertical" Margin="10">
                             <!-- Existing crafting settings -->
                             <CheckBox x:Name="FilterBasedOnHideoutLevelsCheckBox" 
-                                      Content="Show available crafting recipes based on hideout modules levels" 
+                                      Content="Hide unavailable crafting recipes based on hideout modules levels" 
                                       IsChecked="{Binding FilterBasedOnHideoutLevels, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                                       Margin="0,0,0,5"/>
 
-                            <CheckBox x:Name="ShowUnlockedQuestRecipesCheckBox" 
-                                      Content="Show unlocked quest-related recipes" 
-                                      IsChecked="{Binding ShowUnlockedQuestRecipes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                            <CheckBox x:Name="HideLockedQuestRecipesCheckBox" 
+                                      Content="Hide locked quest-related recipes" 
+                                      IsChecked="{Binding HideLockedQuestRecipes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                                       Margin="0,0,0,5"/>
 
                             <!-- Source Selection for Unlocked Quest Recipes -->

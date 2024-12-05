@@ -16,6 +16,7 @@ using System.Windows.Shapes;
 using System.IO;
 using NLog;
 using Ookii.Dialogs.Wpf;
+using System.ComponentModel;
 
 namespace EFT_OverlayAPP
 {
@@ -25,6 +26,7 @@ namespace EFT_OverlayAPP
         private const string ConfigFilePath = "config.json";
         public ObservableCollection<KeybindEntry> Keybinds { get; set; }
         public AppConfig AppConfig { get; set; }
+        private DebounceDispatcher debounceDispatcher = new DebounceDispatcher(1000); // 1 second debounce
         public ConfigWindow()
         {
             InitializeComponent();
@@ -32,6 +34,12 @@ namespace EFT_OverlayAPP
             this.DataContext = AppConfig;
             InitializeMonitorList();
             InitializeStartingTabs();
+            this.Loaded += ConfigWindow_Loaded; // Subscribe to Loaded event
+        }
+
+        private async void ConfigWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            await LoadHideoutModulesAsync();
         }
 
         private void LoadConfig()
@@ -96,23 +104,26 @@ namespace EFT_OverlayAPP
                 SelectedMapWebsite = "Map Genie",
                 PvpApiKey = "",
                 PveApiKey = "",
-                ToggleMinimapVisibility = false,
+                ToggleMinimapVisibility = true,
                 ToggleRaidTimerVisibility = false,
-                ToggleCraftingTimersVisibility = false,
-                ToggleOtherWindowButtons = false,
+                ToggleCraftingTimersVisibility = true,
+                ToggleOtherWindowButtons = true,
                 CurrentCraftingLevel = 0,
                 DisableAutoHideRaidTimer = false,
                 UseCustomEftLogsPath = false,
                 EftLogsPath = GetDefaultEftLogsPath(),
                 SelectedProfileMode = ProfileMode.Automatic, // Default to Automatic
-                AutoSetActiveMinimap = false,
-                ShowTimerOn10MinutesLeft = false,
-                ShowTimerOnRaidEnd = false,
+                AutoSetActiveMinimap = true,
+                FilterBasedOnHideoutLevels = true,
+                HideLockedQuestRecipes = true,
+                HideTimerOn10MinutesLeft = true,
+                HideTimerOnRaidEnd = true,
                 HideItemsForBuiltStations = false,
                 HideItemsForCompletedQuests = false,
                 HidePlantItemsMarkers = false,
                 HideQuestsHideoutModulesNames = false,
                 SubtractFromManualCombinedItems = false,
+                HideoutModuleSettings = new ObservableCollection<HideoutModuleSetting>()
                 // Initialize other settings as needed
             };
         }
@@ -152,7 +163,6 @@ namespace EFT_OverlayAPP
                 string json = JsonConvert.SerializeObject(AppConfig, Formatting.Indented);
                 File.WriteAllText(ConfigFilePath, json);
                 logger.Info("Configuration saved successfully.");
-                MessageBox.Show("Configuration saved successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
@@ -317,11 +327,149 @@ namespace EFT_OverlayAPP
             }
         }
 
-        private void RefreshHideoutModulesButton_Click(object sender, RoutedEventArgs e)
+        private async Task LoadHideoutModulesAsync()
         {
-            // Placeholder: Refresh the list of hideout modules
-            // Implement actual data retrieval logic here
-            MessageBox.Show("Hideout Modules refreshed.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+            await DataCache.LoadRequiredItemsData();
+
+            if (DataCache.HideoutStations == null || !DataCache.HideoutStations.Any())
+            {
+                MessageBox.Show("No hideout stations data available.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                logger.Error("Hideout stations data is empty.");
+                return;
+            }
+
+            // Preserve existing settings by using a dictionary
+            var existingSettingsDict = AppConfig.HideoutModuleSettings.ToDictionary(h => h.ModuleName, h => h.SelectedLevel);
+
+            // Clear existing settings to prevent duplicates
+            AppConfig.HideoutModuleSettings.Clear();
+
+            foreach (var station in DataCache.HideoutStations)
+            {
+                var levels = station.Levels.Select(l => l.Level).OrderBy(l => l).ToList();
+
+                // Insert 0 for unbuilt
+                var availableLevels = new List<int> { 0 };
+                availableLevels.AddRange(levels);
+
+                // Determine selected level
+                int selectedLevel = 0; // default to unbuilt
+
+                if (existingSettingsDict.TryGetValue(station.Name, out int level))
+                {
+                    // Validate the selected level exists for the station or is 0
+                    if (level == 0 || levels.Contains(level))
+                    {
+                        selectedLevel = level;
+                    }
+                    else
+                    {
+                        selectedLevel = levels.Min();
+                    }
+                }
+
+                var moduleSetting = new HideoutModuleSetting
+                {
+                    ModuleName = station.Name,
+                    SelectedLevel = selectedLevel
+                };
+
+                // Populate AvailableLevels
+                foreach (var lvl in availableLevels)
+                {
+                    moduleSetting.AvailableLevels.Add(lvl);
+                }
+
+                AppConfig.HideoutModuleSettings.Add(moduleSetting);
+            }
+
+            // Bind the collection to the ListView
+            HideoutModulesListView.ItemsSource = AppConfig.HideoutModuleSettings;
+        }
+
+        // Event Handler for PropertyChanged events in HideoutModuleSettings
+        private void HideoutModuleSetting_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(HideoutModuleSetting.SelectedLevel))
+            {
+                // Debounce the save operation
+                debounceDispatcher.Debounce(() => SaveConfig());
+            }
+        }
+
+        // Event Handler for Refresh Hideout Modules Button
+        private async void RefreshHideoutModulesButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                await DataCache.LoadRequiredItemsData();
+
+                if (DataCache.HideoutStations == null || !DataCache.HideoutStations.Any())
+                {
+                    MessageBox.Show("No hideout stations data available to refresh.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    logger.Error("Hideout stations data is empty on refresh.");
+                    return;
+                }
+
+                // Preserve existing settings
+                var existingSettingsDict = AppConfig.HideoutModuleSettings.ToDictionary(h => h.ModuleName, h => h.SelectedLevel);
+
+                // Clear and reload settings
+                AppConfig.HideoutModuleSettings.Clear();
+
+                foreach (var station in DataCache.HideoutStations)
+                {
+                    var levels = station.Levels.Select(l => l.Level).OrderBy(l => l).ToList();
+
+                    // Insert 0 for unbuilt
+                    var availableLevels = new List<int> { 0 };
+                    availableLevels.AddRange(levels);
+
+                    // Determine selected level
+                    int selectedLevel = 0; // default to unbuilt
+
+                    if (existingSettingsDict.TryGetValue(station.Name, out int level))
+                    {
+                        if (level == 0 || levels.Contains(level))
+                        {
+                            selectedLevel = level;
+                        }
+                        else
+                        {
+                            selectedLevel = levels.Min();
+                        }
+                    }
+
+                    var moduleSetting = new HideoutModuleSetting
+                    {
+                        ModuleName = station.Name,
+                        SelectedLevel = selectedLevel
+                    };
+
+                    // Populate AvailableLevels
+                    foreach (var lvl in availableLevels)
+                    {
+                        moduleSetting.AvailableLevels.Add(lvl);
+                    }
+
+                    // Subscribe to PropertyChanged event for automatic saving
+                    moduleSetting.PropertyChanged += HideoutModuleSetting_PropertyChanged;
+
+                    AppConfig.HideoutModuleSettings.Add(moduleSetting);
+                }
+
+                // Refresh the ListView binding
+                HideoutModulesListView.ItemsSource = null;
+                HideoutModulesListView.ItemsSource = AppConfig.HideoutModuleSettings;
+
+                MessageBox.Show("Hideout modules have been refreshed successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                logger.Info("Hideout modules refreshed successfully.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to refresh hideout modules: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                logger.Error(ex, "Failed to refresh hideout modules.");
+            }
         }
 
         // Event Handlers for Unlock Overlay Options

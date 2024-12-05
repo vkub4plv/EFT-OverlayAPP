@@ -18,6 +18,8 @@ using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Runtime.Serialization; // Required for StreamingContext
+using System.Threading;
+using System.Windows.Threading;
 
 namespace EFT_OverlayAPP
 {
@@ -771,6 +773,36 @@ namespace EFT_OverlayAPP
             }
         }
 
+        // Crafting
+
+        private bool filterBasedOnHideoutLevels;
+        public bool FilterBasedOnHideoutLevels
+        {
+            get => filterBasedOnHideoutLevels;
+            set
+            {
+                if (filterBasedOnHideoutLevels != value)
+                {
+                    filterBasedOnHideoutLevels = value;
+                    OnPropertyChanged(nameof(FilterBasedOnHideoutLevels));
+                }
+            }
+        }
+
+        private bool hideLockedQuestRecipes;
+        public bool HideLockedQuestRecipes
+        {
+            get => hideLockedQuestRecipes;
+            set
+            {
+                if (hideLockedQuestRecipes != value)
+                {
+                    hideLockedQuestRecipes = value;
+                    OnPropertyChanged(nameof(HideLockedQuestRecipes));
+                }
+            }
+        }
+
         // Profile Mode
         private ProfileMode selectedProfileMode;
         public ProfileMode SelectedProfileMode
@@ -801,30 +833,30 @@ namespace EFT_OverlayAPP
             }
         }
 
-        private bool showTimerOn10MinutesLeft;
-        public bool ShowTimerOn10MinutesLeft
+        private bool hideTimerOn10MinutesLeft;
+        public bool HideTimerOn10MinutesLeft
         {
-            get => showTimerOn10MinutesLeft;
+            get => hideTimerOn10MinutesLeft;
             set
             {
-                if (showTimerOn10MinutesLeft != value)
+                if (hideTimerOn10MinutesLeft != value)
                 {
-                    showTimerOn10MinutesLeft = value;
-                    OnPropertyChanged(nameof(ShowTimerOn10MinutesLeft));
+                    hideTimerOn10MinutesLeft = value;
+                    OnPropertyChanged(nameof(HideTimerOn10MinutesLeft));
                 }
             }
         }
 
-        private bool showTimerOnRaidEnd;
-        public bool ShowTimerOnRaidEnd
+        private bool hideTimerOnRaidEnd;
+        public bool HideTimerOnRaidEnd
         {
-            get => showTimerOnRaidEnd;
+            get => hideTimerOnRaidEnd;
             set
             {
-                if (showTimerOnRaidEnd != value)
+                if (hideTimerOnRaidEnd != value)
                 {
-                    showTimerOnRaidEnd = value;
-                    OnPropertyChanged(nameof(ShowTimerOnRaidEnd));
+                    hideTimerOnRaidEnd = value;
+                    OnPropertyChanged(nameof(HideTimerOnRaidEnd));
                 }
             }
         }
@@ -900,9 +932,78 @@ namespace EFT_OverlayAPP
             }
         }
 
+        // Add the following property for Hideout Module Settings
+        public ObservableCollection<HideoutModuleSetting> HideoutModuleSettings { get; set; }
+
+        public AppConfig()
+        {
+            // Initialize the collection to prevent null references
+            HideoutModuleSettings = new ObservableCollection<HideoutModuleSetting>();
+        }
+
         // INotifyPropertyChanged implementation
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged(string propertyName) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    public class HideoutModuleSetting : INotifyPropertyChanged
+    {
+        public string ModuleName { get; set; }
+        // Collection of available levels including 0 (Unbuilt)
+        public ObservableCollection<int> AvailableLevels { get; set; }
+
+        private int selectedLevel;
+        public int SelectedLevel
+        {
+            get => selectedLevel;
+            set
+            {
+                if (selectedLevel != value)
+                {
+                    selectedLevel = value;
+                    OnPropertyChanged(nameof(SelectedLevel));
+                }
+            }
+        }
+
+        public HideoutModuleSetting()
+        {
+            AvailableLevels = new ObservableCollection<int>();
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string name) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+    }
+
+    public class DebounceDispatcher
+    {
+        private DispatcherTimer timer;
+        private readonly int intervalMilliseconds;
+        private Action action;
+
+        public DebounceDispatcher(int intervalMilliseconds = 500)
+        {
+            this.intervalMilliseconds = intervalMilliseconds;
+            timer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(intervalMilliseconds)
+            };
+            timer.Tick += Timer_Tick;
+        }
+
+        public void Debounce(Action action)
+        {
+            this.action = action;
+            timer.Stop();
+            timer.Start();
+        }
+
+        private void Timer_Tick(object sender, EventArgs e)
+        {
+            timer.Stop();
+            action?.Invoke();
+        }
     }
 }
