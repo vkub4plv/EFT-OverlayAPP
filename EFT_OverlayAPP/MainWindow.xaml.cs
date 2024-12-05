@@ -109,6 +109,11 @@ namespace EFT_OverlayAPP
             source = HwndSource.FromHwnd(hwnd);
             source.AddHook(HwndHook);
             RegisterHotKeys();
+
+            configWindow = new ConfigWindow
+            {
+                Owner = this
+            };
         }
 
         private void MainWindow_Closed(object sender, EventArgs e)
@@ -251,7 +256,7 @@ namespace EFT_OverlayAPP
         {
             if (craftingWindow == null)
             {
-                craftingWindow = new CraftingWindow(this);
+                craftingWindow = new CraftingWindow(this, configWindow);
             }
 
             if (!craftingWindow.IsVisible)
@@ -268,7 +273,7 @@ namespace EFT_OverlayAPP
         {
             if (requiredItemsWindow == null)
             {
-                requiredItemsWindow = new RequiredItemsWindow();
+                requiredItemsWindow = new RequiredItemsWindow(configWindow);
             }
 
             if (!requiredItemsWindow.IsVisible)

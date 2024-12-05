@@ -22,14 +22,19 @@ namespace EFT_OverlayAPP
         private Dictionary<string, CombinedRequiredItemEntry> combinedItemDictionary = new Dictionary<string, CombinedRequiredItemEntry>();
         public ObservableCollection<RequiredItemEntry> RequiredItems { get; set; } = new ObservableCollection<RequiredItemEntry>();
         private ICollectionView RequiredItemsView;
+        public ConfigWindow ConfigWindow { get; set; }
 
-        public RequiredItemsWindow()
+        public RequiredItemsWindow(ConfigWindow configWindow)
         {
             InitializeComponent();
             DataContext = this;
+            ConfigWindow = configWindow;
 
             // Start data initialization
             InitializeData();
+
+            // Set the starting tab
+            SelectStartingTab(ConfigWindow.AppConfig.RequiredItemsStartingTab);
         }
 
         private async void InitializeData()
@@ -773,6 +778,28 @@ namespace EFT_OverlayAPP
         {
             ApplyManualCombinedRequiredItemsSorting();
             ManualCombinedRequiredItemsView?.Refresh();
+        }
+
+        private void SelectStartingTab(string startingTab)
+        {
+            if (MainTabControl == null)
+                return;
+
+            switch (startingTab)
+            {
+                case "Required Items":
+                    MainTabControl.SelectedItem = RequiredItemsTab;
+                    break;
+                case "Combined Required Items":
+                    MainTabControl.SelectedItem = CombinedRequiredItemsTab;
+                    break;
+                case "Manual Combined Required Items":
+                    MainTabControl.SelectedItem = ManualCombinedRequiredItemsTab;
+                    break;
+                default:
+                    MainTabControl.SelectedItem = RequiredItemsTab; // Default to "Manual Combined Required Items"
+                    break;
+            }
         }
     }
 }

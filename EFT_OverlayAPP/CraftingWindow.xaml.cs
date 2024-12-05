@@ -24,6 +24,7 @@ namespace EFT_OverlayAPP
 
         // Reference to MainWindow to update overlay
         public MainWindow MainWindow { get; set; }
+        public ConfigWindow ConfigWindow { get; set; }
         public ObservableCollection<CraftableItem> CraftableItems { get; set; }
         public ObservableCollection<CraftableItem> FavoriteItems { get; set; }
         public ObservableCollection<CraftableItem> ActiveCrafts { get; set; } = new ObservableCollection<CraftableItem>();
@@ -56,9 +57,10 @@ namespace EFT_OverlayAPP
         private bool isInitialized = false;
 
         // Constructor updated to accept MainWindow reference
-        public CraftingWindow(MainWindow mainWindow)
+        public CraftingWindow(MainWindow mainWindow, ConfigWindow configWindow)
         {
             InitializeComponent();
+            ConfigWindow = configWindow;
             MainWindow = mainWindow;
             DataContext = this;
 
@@ -82,7 +84,6 @@ namespace EFT_OverlayAPP
             else
             {
                 IsLoading = true;
-                Task.Run(() => DataCache.LoadDataAsync());
             }
 
             // Subscribe to event handlers after initialization
@@ -107,6 +108,9 @@ namespace EFT_OverlayAPP
                     ActiveCraftsView?.Refresh(); // Refresh the view
                 }
             }
+
+            // Set the starting tab
+            SelectStartingTab(ConfigWindow.AppConfig.CraftingStartingTab);
         }
 
         private void OnDataLoaded()
@@ -1215,6 +1219,34 @@ namespace EFT_OverlayAPP
             // Update category filters
             PopulateLogsCategoryFilter();
             PopulateStatsCategoryFilter();
+        }
+
+        private void SelectStartingTab(string startingTab)
+        {
+            if (MainTabControl == null)
+                return;
+
+            switch (startingTab)
+            {
+                case "All Items":
+                    MainTabControl.SelectedItem = AllItemsTab;
+                    break;
+                case "Favorites":
+                    MainTabControl.SelectedItem = FavoritesTab;
+                    break;
+                case "Active Crafts":
+                    MainTabControl.SelectedItem = ActiveCraftsTab;
+                    break;
+                case "Logs":
+                    MainTabControl.SelectedItem = LogsTab;
+                    break;
+                case "Stats":
+                    MainTabControl.SelectedItem = StatsTab;
+                    break;
+                default:
+                    MainTabControl.SelectedItem = AllItemsTab; // Default to "All Items"
+                    break;
+            }
         }
     }
 }

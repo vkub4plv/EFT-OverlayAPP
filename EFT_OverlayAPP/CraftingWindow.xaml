@@ -41,7 +41,7 @@
             <!-- Tabs for All Items and Favorites -->
             <TabControl x:Name="MainTabControl">
                 <!-- All Items Tab -->
-                <TabItem Header="All Items">
+                <TabItem x:Name="AllItemsTab"  Header="All Items">
                     <!-- Main Content -->
                     <DockPanel>
                         <!-- Search Bar, Category Filter, and Sorting Options -->
@@ -105,7 +105,7 @@
                 </TabItem>
 
                 <!-- Favorites Tab -->
-                <TabItem Header="Favorites">
+                <TabItem x:Name="FavoritesTab" Header="Favorites">
                     <!-- Favorites Content -->
                     <DockPanel>
                         <!-- Search Bar and Category Filter -->
@@ -169,7 +169,7 @@
                 </TabItem>
 
                 <!-- Active Crafts Tab -->
-                <TabItem Header="Active Crafts">
+                <TabItem x:Name="ActiveCraftsTab" Header="Active Crafts">
                     <!-- Active Crafts Content -->
                     <DockPanel>
                         <!-- Search Bar and Category Filter -->
@@ -229,7 +229,7 @@
                     </DockPanel>
                 </TabItem>
 
-                <TabItem Header="Logs">
+                <TabItem x:Name="LogsTab" Header="Logs">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -307,7 +307,7 @@
                     </Grid>
                 </TabItem>
 
-                <TabItem Header="Stats">
+                <TabItem x:Name="StatsTab" Header="Stats">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />

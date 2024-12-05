@@ -16,7 +16,7 @@
                 <!-- Tabs -->
                 <TabControl x:Name="MainTabControl">
                     <!-- Required Items Tab -->
-                    <TabItem Header="Required Items">
+                    <TabItem x:Name="RequiredItemsTab" Header="Required Items">
                         <DockPanel>
                             <!-- Search and Filters -->
                             <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="5">
@@ -113,7 +113,7 @@
                     </TabItem>
 
                     <!-- Combined Required Items Tab -->
-                    <TabItem Header="Combined Required Items">
+                    <TabItem x:Name="CombinedRequiredItemsTab" Header="Combined Required Items">
                         <DockPanel>
                             <!-- Search and Filters -->
                             <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="5">
@@ -183,7 +183,7 @@
                     </TabItem>
 
                     <!-- Manual Combined Required Items Tab -->
-                    <TabItem Header="Manual Combined Required Items">
+                    <TabItem x:Name="ManualCombinedRequiredItemsTab" Header="Manual Combined Required Items">
                         <DockPanel>
                             <!-- Search and Filters -->
                             <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="5">
