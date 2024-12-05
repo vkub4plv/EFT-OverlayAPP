@@ -628,6 +628,34 @@ namespace EFT_OverlayAPP
             }
         }
 
+        private string requiredItemsStartingTab;
+        public string RequiredItemsStartingTab
+        {
+            get => requiredItemsStartingTab;
+            set
+            {
+                if (requiredItemsStartingTab != value)
+                {
+                    requiredItemsStartingTab = value;
+                    OnPropertyChanged(nameof(RequiredItemsStartingTab));
+                }
+            }
+        }
+
+        private string craftingStartingTab;
+        public string CraftingStartingTab
+        {
+            get => craftingStartingTab;
+            set
+            {
+                if (craftingStartingTab != value)
+                {
+                    craftingStartingTab = value;
+                    OnPropertyChanged(nameof(CraftingStartingTab));
+                }
+            }
+        }
+
         // Keybinds
         public List<KeybindEntry> Keybinds { get; set; }
 

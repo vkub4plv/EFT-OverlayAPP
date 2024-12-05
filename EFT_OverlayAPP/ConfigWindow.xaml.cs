@@ -138,7 +138,9 @@ namespace EFT_OverlayAPP
                 HideoutModuleSettings = new ObservableCollection<HideoutModuleSetting>(),
                 CraftModuleSettings = new ObservableCollection<CraftModuleSetting>(),
                 IsManualHideoutSource = true,
-                IsManualCraftSource = true
+                IsManualCraftSource = true,
+                CraftingStartingTab = "All Items",
+                RequiredItemsStartingTab = "Required Items"
                 // Initialize other settings as needed
             };
         }
@@ -215,16 +217,18 @@ namespace EFT_OverlayAPP
 
             // Example for CraftingStartingTabComboBox
             CraftingStartingTabComboBox.Items.Clear();
-            CraftingStartingTabComboBox.Items.Add("Tab 1");
-            CraftingStartingTabComboBox.Items.Add("Tab 2");
-            CraftingStartingTabComboBox.Items.Add("Tab 3");
+            CraftingStartingTabComboBox.Items.Add("All Items");
+            CraftingStartingTabComboBox.Items.Add("Favorites");
+            CraftingStartingTabComboBox.Items.Add("Active Crafts");
+            CraftingStartingTabComboBox.Items.Add("Logs");
+            CraftingStartingTabComboBox.Items.Add("Stats");
             CraftingStartingTabComboBox.SelectedIndex = 0;
 
             // Example for RequiredItemsStartingTabComboBox
             RequiredItemsStartingTabComboBox.Items.Clear();
-            RequiredItemsStartingTabComboBox.Items.Add("Tab A");
-            RequiredItemsStartingTabComboBox.Items.Add("Tab B");
-            RequiredItemsStartingTabComboBox.Items.Add("Tab C");
+            RequiredItemsStartingTabComboBox.Items.Add("Required Items");
+            RequiredItemsStartingTabComboBox.Items.Add("Combined Required Items");
+            RequiredItemsStartingTabComboBox.Items.Add("Manual Combined Required Items");
             RequiredItemsStartingTabComboBox.SelectedIndex = 0;
         }
 

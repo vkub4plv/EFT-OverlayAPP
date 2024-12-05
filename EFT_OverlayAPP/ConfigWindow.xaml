@@ -156,11 +156,6 @@
                             <TextBlock Text="Select Monitor:" VerticalAlignment="Center" Margin="0,0,10,0"/>
                             <ComboBox x:Name="MonitorSelectionComboBox" Width="200" 
                                       SelectionChanged="MonitorSelectionComboBox_SelectionChanged">
-                                <!-- Dynamically populate monitor list in code-behind -->
-                                <ComboBoxItem Content="Monitor 1"/>
-                                <ComboBoxItem Content="Monitor 2"/>
-                                <ComboBoxItem Content="Monitor 3"/>
-                                <!-- Add more monitors as needed -->
                             </ComboBox>
                             <TextBlock Text="Current Monitor:" VerticalAlignment="Center" Margin="20,0,10,0"/>
                             <TextBlock x:Name="CurrentMonitorTextBlock" Text="Monitor 1" FontWeight="Bold"/>
@@ -365,12 +360,7 @@
                     <GroupBox Header="Starting Tab for Crafting Window" Grid.Row="0" Margin="0,0,0,10">
                         <StackPanel Orientation="Horizontal" Margin="10">
                             <TextBlock Text="Select Starting Tab:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                            <ComboBox x:Name="CraftingStartingTabComboBox" Width="200" SelectedIndex="0">
-                                <ComboBoxItem Content="All Items"/>
-                                <ComboBoxItem Content="Favorites"/>
-                                <ComboBoxItem Content="Active Crafts"/>
-                                <ComboBoxItem Content="Logs"/>
-                                <ComboBoxItem Content="Stats"/>
+                            <ComboBox x:Name="CraftingStartingTabComboBox" Width="225" SelectedValue="{Binding CraftingStartingTab, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                             </ComboBox>
                         </StackPanel>
                     </GroupBox>
@@ -475,11 +465,7 @@
                     <GroupBox Header="Starting Tab for Required Items Window" Grid.Row="0" Margin="0,0,0,10">
                         <StackPanel Orientation="Horizontal" Margin="10">
                             <TextBlock Text="Select Starting Tab:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                            <ComboBox x:Name="RequiredItemsStartingTabComboBox" Width="200" SelectedIndex="0">
-                                <ComboBoxItem Content="Required Items"/>
-                                <ComboBoxItem Content="Combined Required Items"/>
-                                <ComboBoxItem Content="Manual Combined Required Items"/>
-                                <!-- Add more tabs as needed -->
+                            <ComboBox x:Name="RequiredItemsStartingTabComboBox" Width="225" SelectedValue="{Binding RequiredItemsStartingTab, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">>
                             </ComboBox>
                         </StackPanel>
                     </GroupBox>
