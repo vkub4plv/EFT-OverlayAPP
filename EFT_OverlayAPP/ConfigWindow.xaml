@@ -118,6 +118,9 @@
                                            FontWeight="Bold"
                                            Visibility="{Binding Value, ElementName=CraftingLevelSlider, Converter={StaticResource IsEliteLevelConverter}}"/>
                             </StackPanel>
+                            <TextBlock Text="Requires application restart for the changes to take effect!" 
+                                       Margin="0,5,0,0"
+                                       Foreground="Red"/>
                         </StackPanel>
                     </GroupBox>
 

@@ -22,7 +22,29 @@ namespace EFT_OverlayAPP
 {
     public static class DataCache
     {
-        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        public static AppConfig AppConfig { get; set; }
+        private const string ConfigFilePath = "config.json";
+        private static void LoadConfig()
+        {
+            if (File.Exists(ConfigFilePath))
+            {
+                try
+                {
+                    string json = File.ReadAllText(ConfigFilePath);
+                    AppConfig = JsonConvert.DeserializeObject<AppConfig>(json);
+                }
+                catch (Exception ex)
+                {
+                    logger.Error(ex, "Failed to load configuration. Initializing with Crafting Level 0.");
+                    AppConfig.CurrentCraftingLevel = 0;
+                }
+            }
+            else
+            {
+                AppConfig.CurrentCraftingLevel = 0;
+            }
+        }
 
         // Define the static category order
         public static readonly List<string> StaticCategoryOrder = new List<string>
@@ -55,6 +77,7 @@ namespace EFT_OverlayAPP
         // Fetch data from the GraphQL API
         public static async Task<List<CraftableItem>> FetchCraftableItemsAsync()
         {
+            LoadConfig();
             var craftableItems = new List<CraftableItem>();
             using (HttpClient client = new HttpClient())
             {
@@ -98,21 +121,43 @@ namespace EFT_OverlayAPP
                             int index = 0;
                             foreach (var craft in graphQLResponse.Data.Crafts)
                             {
-                                var craftableItem = new CraftableItem
+                                CraftableItem craftableItem;
+                                if (AppConfig.CurrentCraftingLevel == 51)
                                 {
-                                    Id = craft.Id,
-                                    Station = NormalizeStationName(craft.Station?.Name),
-                                    CraftTime = TimeSpan.FromSeconds(craft.Duration ?? 0),
-                                    RewardItems = craft.RewardItems.Select(rewardItem => new RewardItemDetail
+                                    craftableItem = new CraftableItem
                                     {
-                                        Id = rewardItem.Item.Id,
-                                        Name = rewardItem.Item.Name,
-                                        ShortName = rewardItem.Item.ShortName,
-                                        IconLink = rewardItem.Item.IconLink,
-                                        Quantity = rewardItem.Quantity
-                                    }).ToList(),
-                                    OriginalIndex = index++
-                                };
+                                        Id = craft.Id,
+                                        Station = NormalizeStationName(craft.Station?.Name),
+                                        CraftTime = TimeSpan.FromSeconds(craft.Duration * (1-0.375) ?? 0),
+                                        RewardItems = craft.RewardItems.Select(rewardItem => new RewardItemDetail
+                                        {
+                                            Id = rewardItem.Item.Id,
+                                            Name = rewardItem.Item.Name,
+                                            ShortName = rewardItem.Item.ShortName,
+                                            IconLink = rewardItem.Item.IconLink,
+                                            Quantity = rewardItem.Quantity
+                                        }).ToList(),
+                                        OriginalIndex = index++
+                                    };
+                                }
+                                else
+                                {
+                                    craftableItem = new CraftableItem
+                                    {
+                                        Id = craft.Id,
+                                        Station = NormalizeStationName(craft.Station?.Name),
+                                        CraftTime = TimeSpan.FromSeconds(craft.Duration * (1-(AppConfig.CurrentCraftingLevel*0.0075)) ?? 0),
+                                        RewardItems = craft.RewardItems.Select(rewardItem => new RewardItemDetail
+                                        {
+                                            Id = rewardItem.Item.Id,
+                                            Name = rewardItem.Item.Name,
+                                            ShortName = rewardItem.Item.ShortName,
+                                            IconLink = rewardItem.Item.IconLink,
+                                            Quantity = rewardItem.Quantity
+                                        }).ToList(),
+                                        OriginalIndex = index++
+                                    };
+                                }
                                 craftableItems.Add(craftableItem);
                             }
 
@@ -373,21 +418,21 @@ namespace EFT_OverlayAPP
         {
             if (!IsDataLoaded)
             {
-                Logger.Info("Starting data load.");
+                logger.Info("Starting data load.");
 
                 LoadFavorites();
 
                 // Load crafts data
-                Logger.Info("Loading saved crafts data.");
+                logger.Info("Loading saved crafts data.");
                 var savedCrafts = CraftingDataManager.LoadCraftsData();
 
-                Logger.Info("Fetching craftable items from API.");
+                logger.Info("Fetching craftable items from API.");
                 CraftableItems = await FetchCraftableItemsAsync();
 
-                Logger.Info("Fetching craft module settings from API.");
+                logger.Info("Fetching craft module settings from API.");
                 var craftModules = await FetchCraftModuleSettingsAsync();
 
-                Logger.Info("Matching saved crafts with fetched craftable items.");
+                logger.Info("Matching saved crafts with fetched craftable items.");
                 foreach (var item in CraftableItems)
                 {
                     item.IsFavorite = favoriteIds.Contains(item.Id);
@@ -396,7 +441,7 @@ namespace EFT_OverlayAPP
                     var savedItem = savedCrafts.FirstOrDefault(c => c.Id == item.Id && c.Station == item.Station);
                     if (savedItem != null)
                     {
-                        Logger.Info($"Restoring saved craft for Item ID: {item.Id}, Station: {item.Station}");
+                        logger.Info($"Restoring saved craft for Item ID: {item.Id}, Station: {item.Station}");
                         item.CraftStatus = savedItem.CraftStatus;
                         item.CraftStartTime = savedItem.CraftStartTime;
                         item.CraftCompletedTime = savedItem.CraftCompletedTime;
@@ -431,7 +476,7 @@ namespace EFT_OverlayAPP
 
                 IsDataLoaded = true;
 
-                Logger.Info("Data load completed.");
+                logger.Info("Data load completed.");
 
                 DataLoaded?.Invoke();
             }
