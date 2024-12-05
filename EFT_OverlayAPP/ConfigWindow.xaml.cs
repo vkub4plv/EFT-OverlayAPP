@@ -41,11 +41,14 @@ namespace EFT_OverlayAPP
 
             // Subscribe to CollectionChanged for HideoutModuleSettings
             AppConfig.HideoutModuleSettings.CollectionChanged += HideoutModuleSettings_CollectionChanged;
+            // Subscribe to CollectionChanged for HideoutModuleSettings
+            AppConfig.CraftModuleSettings.CollectionChanged += CraftModuleSettings_CollectionChanged;
         }
 
         private async void ConfigWindow_Loaded(object sender, RoutedEventArgs e)
         {
             await LoadHideoutModulesAsync();
+            LoadCraftModuleSettingsAsync();
         }
 
         private void LoadConfig()
@@ -133,7 +136,9 @@ namespace EFT_OverlayAPP
                 HideQuestsHideoutModulesNames = false,
                 SubtractFromManualCombinedItems = false,
                 HideoutModuleSettings = new ObservableCollection<HideoutModuleSetting>(),
-                IsManualHideoutSource = true
+                CraftModuleSettings = new ObservableCollection<CraftModuleSetting>(),
+                IsManualHideoutSource = true,
+                IsManualCraftSource = true
                 // Initialize other settings as needed
             };
         }
@@ -285,6 +290,31 @@ namespace EFT_OverlayAPP
             AppConfig.HideQuestsHideoutModulesNames = false;
             SaveConfig();
             MessageBox.Show("PVE profile required items have been reset.", "Reset Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private async void LoadCraftModuleSettingsAsync()
+        {
+            try
+            {
+                var craftModules = await DataCache.FetchCraftModuleSettingsAsync();
+
+                // Populate AppConfig.CraftModuleSettings
+                foreach (var craftModule in craftModules)
+                {
+                    // Check if the craft already exists in the settings to prevent duplicates
+                    if (!AppConfig.CraftModuleSettings.Any(cm => cm.CraftId == craftModule.CraftId))
+                    {
+                        AppConfig.CraftModuleSettings.Add(craftModule);
+                    }
+                }
+
+                logger.Info("Craft module settings loaded successfully.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to load craft module settings: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                logger.Error(ex, "Failed to load craft module settings.");
+            }
         }
 
         private async Task LoadHideoutModulesAsync()
@@ -501,6 +531,13 @@ namespace EFT_OverlayAPP
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
             base.OnClosing(e);
+
+            // Cancel the closing event
+            e.Cancel = true;
+
+            // Hide the window instead of closing
+            this.Hide();
+
             SaveConfig();
         }
 
@@ -566,28 +603,6 @@ namespace EFT_OverlayAPP
                 };
         }
 
-        private void CraftSourceRadioButton_Checked(object sender, RoutedEventArgs e)
-        {
-            if (ManualCraftSourceRadioButton == null || TarkovTrackerCraftSourceRadioButton == null || UnlockableCraftsListView == null)
-            {
-                MessageBox.Show("One or more controls are not initialized properly.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
-
-            if (ManualCraftSourceRadioButton.IsChecked == true)
-            {
-                UnlockableCraftsListView.IsEnabled = true;
-                // Additional logic to handle manual selection can be added here
-                logger.Info("Craft source set to Manual.");
-            }
-            else if (TarkovTrackerCraftSourceRadioButton.IsChecked == true)
-            {
-                UnlockableCraftsListView.IsEnabled = false;
-                // Logic to load crafts from Tarkov Tracker API can be implemented here
-                logger.Info("Craft source set to Tarkov Tracker.");
-            }
-        }
-
         private async void ResetToDefaultButton_Click(object sender, RoutedEventArgs e)
         {
             // Confirm the reset action with the user
@@ -605,6 +620,7 @@ namespace EFT_OverlayAPP
                     {
                         AppConfig.PropertyChanged -= AppConfig_PropertyChanged;
                         AppConfig.HideoutModuleSettings.CollectionChanged -= HideoutModuleSettings_CollectionChanged;
+                        AppConfig.CraftModuleSettings.CollectionChanged -= CraftModuleSettings_CollectionChanged;
 
                         foreach (var moduleSetting in AppConfig.HideoutModuleSettings)
                         {
@@ -641,6 +657,7 @@ namespace EFT_OverlayAPP
                     // Subscribe to PropertyChanged for the new AppConfig
                     AppConfig.PropertyChanged += AppConfig_PropertyChanged;
                     AppConfig.HideoutModuleSettings.CollectionChanged += HideoutModuleSettings_CollectionChanged;
+                    AppConfig.CraftModuleSettings.CollectionChanged += CraftModuleSettings_CollectionChanged;
 
                     // Initialize Hideout Modules with default settings
                     await InitializeHideoutModulesAsync();
@@ -712,6 +729,38 @@ namespace EFT_OverlayAPP
 
             // Trigger a save
             debounceDispatcher.Debounce(() => SaveConfig());
+        }
+
+        private void CraftModuleSettings_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            // Handle additions/removals if needed, such as subscribing to PropertyChanged events
+            if (e.NewItems != null)
+            {
+                foreach (CraftModuleSetting newItem in e.NewItems)
+                {
+                    newItem.PropertyChanged += CraftModuleSetting_PropertyChanged;
+                }
+            }
+
+            if (e.OldItems != null)
+            {
+                foreach (CraftModuleSetting oldItem in e.OldItems)
+                {
+                    oldItem.PropertyChanged -= CraftModuleSetting_PropertyChanged;
+                }
+            }
+
+            // Trigger a save
+            debounceDispatcher.Debounce(() => SaveConfig());
+        }
+
+        private void CraftModuleSetting_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(CraftModuleSetting.IsUnlocked))
+            {
+                // Debounce the save operation
+                debounceDispatcher.Debounce(() => SaveConfig());
+            }
         }
     }
 }

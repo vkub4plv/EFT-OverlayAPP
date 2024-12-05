@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="Configuration"
         Height="800"
-        Width="600"
+        Width="720"
         WindowStartupLocation="CenterOwner"
         ResizeMode="CanResize"
         >
@@ -355,8 +355,10 @@
                         <!-- Starting Tab Selection -->
                         <RowDefinition Height="Auto"/>
                         <!-- Crafting Settings -->
+                        <RowDefinition Height="Auto"/>
+                        <!-- Crafting Source -->
                         <RowDefinition Height="*"/>
-                        <!-- Spacer or Additional Content -->
+                        <!-- Crafting Recipes -->
                     </Grid.RowDefinitions>
 
                     <!-- Starting Tab Selection -->
@@ -385,32 +387,64 @@
                                       Content="Hide locked quest-related recipes" 
                                       IsChecked="{Binding HideLockedQuestRecipes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                                       Margin="0,0,0,5"/>
-
-                            <!-- Source Selection for Unlocked Quest Recipes -->
-                            <StackPanel Orientation="Horizontal" Margin="20,5,0,0">
-                                <TextBlock Text="Source:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <RadioButton x:Name="ManualCraftSourceRadioButton" Content="Manual" GroupName="CraftSource" IsChecked="True" Checked="CraftSourceRadioButton_Checked"/>
-                                <RadioButton x:Name="TarkovTrackerCraftSourceRadioButton" Content="Tarkov Tracker" GroupName="CraftSource" Margin="20,0,0,0" Checked="CraftSourceRadioButton_Checked"/>
-                            </StackPanel>
-
-                            <!-- List of Unlockable Crafts -->
-                            <ListView x:Name="UnlockableCraftsListView" Margin="0,10,0,0">
-                                <ListView.View>
-                                    <GridView>
-                                        <GridViewColumn Header="Craft" Width="300" DisplayMemberBinding="{Binding CraftName}" />
-                                        <GridViewColumn Header="Unlocked" Width="100">
-                                            <GridViewColumn.CellTemplate>
-                                                <DataTemplate>
-                                                    <CheckBox IsChecked="{Binding IsUnlocked, UpdateSourceTrigger=PropertyChanged}" 
-                                                              IsEnabled="{Binding IsFromTracker, Converter={StaticResource InverseBooleanConverter}}"/>
-                                                </DataTemplate>
-                                            </GridViewColumn.CellTemplate>
-                                        </GridViewColumn>
-                                    </GridView>
-                                </ListView.View>
-                            </ListView>
                         </StackPanel>
                     </GroupBox>
+
+                    <StackPanel Orientation="Vertical" Grid.Row="2" Margin="0,10,0,0">
+                        <!-- Source Selection for Unlocked Quest Recipes -->
+                        <StackPanel Orientation="Horizontal" Margin="20,5,0,0">
+                            <TextBlock Text="Source:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <RadioButton x:Name="ManualCraftSourceRadioButton" 
+                                             Content="Manual" 
+                                             GroupName="CraftSource" 
+                                             IsChecked="{Binding IsManualCraftSource, Mode=TwoWay}" />
+                            <RadioButton x:Name="TarkovTrackerCraftSourceRadioButton" 
+                                             Content="Tarkov Tracker" 
+                                             GroupName="CraftSource" 
+                                             Margin="20,0,0,0" 
+                                             IsChecked="{Binding IsManualCraftSource, Mode=TwoWay, Converter={StaticResource InverseBooleanConverter}}"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- List of Unlockable Crafts -->
+                    <ListView x:Name="UnlockableCraftsListView" Grid.Row="3" Margin="0,10,0,0" IsEnabled="{Binding IsManualCraftSource}" ItemsSource="{Binding CraftModuleSettings}">
+                        <ListView.View>
+                            <GridView>
+                                <!-- Craft Icon -->
+                                <GridViewColumn Header="Craft" Width="310">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Image Source="{Binding CraftIcon}" Width="24" Height="24" Margin="0,0,5,0"/>
+                                                <TextBlock Text="{Binding CraftName}" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+
+                                <!-- Trader Icon and Quest Name -->
+                                <GridViewColumn Header="Quest" Width="220">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Image Source="{Binding TraderIcon}" Width="24" Height="24" Margin="0,0,5,0"/>
+                                                <TextBlock Text="{Binding QuestName}" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+
+                                <!-- Unlocked Checkbox -->
+                                <GridViewColumn Header="Unlocked" Width="100">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <CheckBox IsChecked="{Binding IsUnlocked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
                 </Grid>
             </TabItem>
 

@@ -90,6 +90,7 @@ namespace EFT_OverlayAPP
     public class CraftsData
     {
         public List<Craft> Crafts { get; set; }
+        public List<CraftTask> Tasks { get; set; }
     }
 
     public class Craft
@@ -612,6 +613,21 @@ namespace EFT_OverlayAPP
             }
         }
 
+        // Property for Craft Source
+        private bool _isManualCraftSource;
+        public bool IsManualCraftSource
+        {
+            get => _isManualCraftSource;
+            set
+            {
+                if (_isManualCraftSource != value)
+                {
+                    _isManualCraftSource = value;
+                    OnPropertyChanged(nameof(IsManualCraftSource));
+                }
+            }
+        }
+
         // Keybinds
         public List<KeybindEntry> Keybinds { get; set; }
 
@@ -947,12 +963,39 @@ namespace EFT_OverlayAPP
         }
 
         // Add the following property for Hideout Module Settings
-        public ObservableCollection<HideoutModuleSetting> HideoutModuleSettings { get; set; }
+        private ObservableCollection<HideoutModuleSetting> _hideoutModuleSettings;
+        public ObservableCollection<HideoutModuleSetting> HideoutModuleSettings
+        {
+            get => _hideoutModuleSettings;
+            set
+            {
+                if (_hideoutModuleSettings != value)
+                {
+                    _hideoutModuleSettings = value;
+                    OnPropertyChanged(nameof(HideoutModuleSettings));
+                }
+            }
+        }
+        // Collection for Craft Module Settings
+        private ObservableCollection<CraftModuleSetting> _craftModuleSettings;
+        public ObservableCollection<CraftModuleSetting> CraftModuleSettings
+        {
+            get => _craftModuleSettings;
+            set
+            {
+                if (_craftModuleSettings != value)
+                {
+                    _craftModuleSettings = value;
+                    OnPropertyChanged(nameof(CraftModuleSettings));
+                }
+            }
+        }
 
         public AppConfig()
         {
-            // Initialize the collection to prevent null references
-            HideoutModuleSettings = new ObservableCollection<HideoutModuleSetting>();
+            // Initialize collections to prevent null references
+            _craftModuleSettings = new ObservableCollection<CraftModuleSetting>();
+            _hideoutModuleSettings = new ObservableCollection<HideoutModuleSetting>();
         }
 
         // INotifyPropertyChanged implementation
@@ -1019,5 +1062,75 @@ namespace EFT_OverlayAPP
             timer.Stop();
             action?.Invoke();
         }
+    }
+
+    public class CraftModuleSetting : INotifyPropertyChanged
+    {
+        private bool _isUnlocked;
+
+        public string CraftId { get; set; } // Unique identifier for the craft
+        public string CraftName { get; set; } // Name of the craft
+        public string CraftIconLink { get; set; } // URL to the craft's icon
+        public string TraderIconLink { get; set; } // URL to the trader's icon
+        public string QuestName { get; set; } // Name of the quest that unlocks the craft
+
+        public bool IsUnlocked
+        {
+            get => _isUnlocked;
+            set
+            {
+                if (_isUnlocked != value)
+                {
+                    _isUnlocked = value;
+                    OnPropertyChanged(nameof(IsUnlocked));
+                }
+            }
+        }
+
+        // Optional: Image sources for icons, loaded from URLs
+        private BitmapImage _craftIcon;
+        public BitmapImage CraftIcon
+        {
+            get
+            {
+                if (_craftIcon == null && !string.IsNullOrEmpty(CraftIconLink))
+                {
+                    _craftIcon = new BitmapImage(new System.Uri(CraftIconLink, System.UriKind.Absolute));
+                }
+                return _craftIcon;
+            }
+        }
+
+        private BitmapImage _traderIcon;
+        public BitmapImage TraderIcon
+        {
+            get
+            {
+                if (_traderIcon == null && !string.IsNullOrEmpty(TraderIconLink))
+                {
+                    _traderIcon = new BitmapImage(new System.Uri(TraderIconLink, System.UriKind.Absolute));
+                }
+                return _traderIcon;
+            }
+        }
+
+        // INotifyPropertyChanged Implementation
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string propertyName) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    public class CraftTask
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public StartFinishReward StartRewards { get; set; }
+        public StartFinishReward FinishRewards { get; set; }
+        public Trader Trader { get; set; }
+    }
+
+    public class StartFinishReward
+    {
+        public List<Craft> CraftUnlock { get; set; }
     }
 }

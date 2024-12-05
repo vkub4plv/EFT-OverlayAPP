@@ -148,6 +148,149 @@ namespace EFT_OverlayAPP
             return craftableItems;
         }
 
+        public static async Task<List<CraftModuleSetting>> FetchCraftModuleSettingsAsync()
+        {
+            var craftModuleSettings = new List<CraftModuleSetting>();
+            using (HttpClient client = new HttpClient())
+            {
+                try
+                {
+                    var queryObject = new
+                    {
+                        query = @"{
+                            tasks {
+                                id
+                                name
+                                startRewards {
+                                    craftUnlock {
+                                        id
+                                        station {
+                                            name
+                                        }
+                                        duration
+                                        rewardItems {
+                                            item {
+                                                id
+                                                name
+                                                shortName
+                                                iconLink
+                                            }
+                                            quantity
+                                        }
+                                    }
+                                }
+                                finishRewards {
+                                    craftUnlock {
+                                        id
+                                        station {
+                                            name
+                                        }
+                                        duration
+                                        rewardItems {
+                                            item {
+                                                id
+                                                name
+                                                shortName
+                                                iconLink
+                                            }
+                                            quantity
+                                        }
+                                    }
+                                }
+                                trader {
+                                    id
+                                    name
+                                    imageLink
+                                }
+                           }
+                        }"
+                    };
+                    var queryJson = JsonConvert.SerializeObject(queryObject);
+                    var content = new StringContent(queryJson, Encoding.UTF8, "application/json");
+
+                    HttpResponseMessage response = await client.PostAsync("https://api.tarkov.dev/graphql", content);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string responseContent = await response.Content.ReadAsStringAsync();
+
+                        // Deserialize the response
+                        var graphQLResponse = JsonConvert.DeserializeObject<GraphQLCraftsResponse>(responseContent);
+
+                        if (graphQLResponse.Data != null && graphQLResponse.Data.Tasks != null)
+                        {
+                            foreach (var task in graphQLResponse.Data.Tasks)
+                            {
+                                // Process startRewards
+                                if (task.StartRewards != null)
+                                {
+                                    var reward = task.StartRewards;
+                                    if (reward.CraftUnlock != null)
+                                    {
+                                        foreach (var craftUnlock in reward.CraftUnlock)
+                                        {
+                                            var craftModule = new CraftModuleSetting
+                                            {
+                                                CraftId = craftUnlock.Id,
+                                                CraftName = craftUnlock.RewardItems.FirstOrDefault()?.Item.Name ?? "Unknown Craft",
+                                                CraftIconLink = craftUnlock.RewardItems.FirstOrDefault()?.Item.IconLink ?? "",
+                                                TraderIconLink = task.Trader?.ImageLink ?? "",
+                                                QuestName = task.Name,
+                                                IsUnlocked = false // Default to locked; user can unlock manually
+                                            };
+                                            craftModuleSettings.Add(craftModule);
+                                        }
+                                    }
+                                }
+
+                                // Optionally, process finishRewards if needed
+                                if (task.FinishRewards != null)
+                                {
+                                    var reward = task.FinishRewards;
+                                    if (reward.CraftUnlock != null)
+                                    {
+                                        foreach (var craftUnlock in reward.CraftUnlock)
+                                        {
+                                            var craftModule = new CraftModuleSetting
+                                            {
+                                                CraftId = craftUnlock.Id,
+                                                CraftName = craftUnlock.RewardItems.FirstOrDefault()?.Item.Name ?? "Unknown Craft",
+                                                CraftIconLink = craftUnlock.RewardItems.FirstOrDefault()?.Item.IconLink ?? "",
+                                                TraderIconLink = task.Trader?.ImageLink ?? "",
+                                                QuestName = task.Name,
+                                                IsUnlocked = false // Default to locked; user can unlock manually
+                                            };
+                                            craftModuleSettings.Add(craftModule);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        else if (graphQLResponse.Errors != null && graphQLResponse.Errors.Length > 0)
+                        {
+                            var errorMessages = string.Join("\n", graphQLResponse.Errors.Select(e => e.Message));
+                            MessageBox.Show($"GraphQL errors:\n{errorMessages}");
+                        }
+                        else
+                        {
+                            MessageBox.Show("No data received from GraphQL API.");
+                        }
+                    }
+                    else
+                    {
+                        // Log the status code and reason
+                        string errorContent = await response.Content.ReadAsStringAsync();
+                        MessageBox.Show($"API request failed with status code {response.StatusCode}: {response.ReasonPhrase}\nContent: {errorContent}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error fetching craft module settings: {ex.Message}");
+                }
+            }
+            return craftModuleSettings;
+        }
+
         private static string NormalizeStationName(string stationName)
         {
             return stationName?.Trim() ?? "Unknown";
@@ -240,6 +383,9 @@ namespace EFT_OverlayAPP
 
                 Logger.Info("Fetching craftable items from API.");
                 CraftableItems = await FetchCraftableItemsAsync();
+
+                Logger.Info("Fetching craft module settings from API.");
+                var craftModules = await FetchCraftModuleSettingsAsync();
 
                 Logger.Info("Matching saved crafts with fetched craftable items.");
                 foreach (var item in CraftableItems)
