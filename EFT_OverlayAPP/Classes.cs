@@ -598,6 +598,20 @@ namespace EFT_OverlayAPP
 
     public class AppConfig : INotifyPropertyChanged
     {
+        private bool _isManualHideoutSource;
+        public bool IsManualHideoutSource
+        {
+            get => _isManualHideoutSource;
+            set
+            {
+                if (_isManualHideoutSource != value)
+                {
+                    _isManualHideoutSource = value;
+                    OnPropertyChanged(nameof(IsManualHideoutSource));
+                }
+            }
+        }
+
         // Keybinds
         public List<KeybindEntry> Keybinds { get; set; }
 

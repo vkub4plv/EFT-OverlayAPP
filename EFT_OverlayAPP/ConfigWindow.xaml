@@ -275,12 +275,12 @@
                     <!-- Source of Hideout Station Levels -->
                     <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,10">
                         <TextBlock Text="Source of Hideout Station Levels:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                        <RadioButton x:Name="ManualHideoutSourceRadioButton" Content="Manual (In-App)" GroupName="HideoutSource" IsChecked="True" Checked="HideoutSourceRadioButton_Checked"/>
-                        <RadioButton x:Name="TarkovTrackerHideoutSourceRadioButton" Content="Tarkov Tracker" GroupName="HideoutSource" Margin="20,0,0,0" Checked="HideoutSourceRadioButton_Checked"/>
+                        <RadioButton x:Name="ManualHideoutSourceRadioButton" Content="Manual (In-App)" GroupName="HideoutSource" IsChecked="{Binding IsManualHideoutSource, Mode=TwoWay}" />
+                        <RadioButton x:Name="TarkovTrackerHideoutSourceRadioButton" Content="Tarkov Tracker" GroupName="HideoutSource" IsChecked="{Binding IsManualHideoutSource, Mode=TwoWay, Converter={StaticResource InverseBooleanConverter}}"  Margin="20,0,0,0"/>
                     </StackPanel>
 
                     <!-- Hideout Modules List -->
-                    <ListView x:Name="HideoutModulesListView" Grid.Row="1" Margin="0,0,0,10">
+                    <ListView x:Name="HideoutModulesListView" Grid.Row="1" Margin="0,0,0,10" IsEnabled="{Binding IsManualHideoutSource}">
                         <ListView.View>
                             <GridView>
                                 <GridViewColumn Header="Module" Width="200" DisplayMemberBinding="{Binding ModuleName}" />

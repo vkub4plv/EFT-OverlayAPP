@@ -198,18 +198,20 @@ namespace EFT_OverlayAPP
 
     public class InverseBooleanConverter : IValueConverter
     {
+        // Converts a boolean to its inverse
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is bool boolValue)
-            {
-                return !boolValue ? Visibility.Visible : Visibility.Collapsed;
-            }
-            return Visibility.Visible;
+            if (value is bool b)
+                return !b;
+            return true;
         }
 
+        // Converts back the inverse boolean to original
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            throw new NotImplementedException();
+            if (value is bool b)
+                return !b;
+            return true;
         }
     }
 

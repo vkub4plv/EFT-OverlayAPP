@@ -132,7 +132,8 @@ namespace EFT_OverlayAPP
                 HidePlantItemsMarkers = false,
                 HideQuestsHideoutModulesNames = false,
                 SubtractFromManualCombinedItems = false,
-                HideoutModuleSettings = new ObservableCollection<HideoutModuleSetting>()
+                HideoutModuleSettings = new ObservableCollection<HideoutModuleSetting>(),
+                IsManualHideoutSource = true
                 // Initialize other settings as needed
             };
         }
@@ -284,34 +285,6 @@ namespace EFT_OverlayAPP
             AppConfig.HideQuestsHideoutModulesNames = false;
             SaveConfig();
             MessageBox.Show("PVE profile required items have been reset.", "Reset Complete", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-
-        // Event Handlers for Hideout Tab
-        private void HideoutSourceRadioButton_Checked(object sender, RoutedEventArgs e)
-        {
-            if (ManualHideoutSourceRadioButton == null)
-            {
-                MessageBox.Show("ManualHideoutSourceRadioButton is null.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
-
-            if (HideoutModulesListView == null)
-            {
-                MessageBox.Show("HideoutModulesListView is null.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
-
-            // Enable or disable Hideout Modules settings based on source selection
-            if (ManualHideoutSourceRadioButton.IsChecked == true)
-            {
-                HideoutModulesListView.IsEnabled = true;
-                // Additional UI adjustments if needed
-            }
-            else
-            {
-                HideoutModulesListView.IsEnabled = false;
-                // Additional UI adjustments if needed
-            }
         }
 
         private async Task LoadHideoutModulesAsync()
