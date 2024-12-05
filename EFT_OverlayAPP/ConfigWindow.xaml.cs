@@ -158,9 +158,9 @@ namespace EFT_OverlayAPP
             // Validate API Keys if enabled
             if (AppConfig.IsTarkovTrackerApiEnabled)
             {
-                if (string.IsNullOrWhiteSpace(AppConfig.PvpApiKey) || string.IsNullOrWhiteSpace(AppConfig.PveApiKey))
+                if (string.IsNullOrWhiteSpace(AppConfig.PvpApiKey) && string.IsNullOrWhiteSpace(AppConfig.PveApiKey))
                 {
-                    MessageBox.Show("Both PVP and PVE API keys must be provided when Tarkov Tracker API is enabled.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show("Either PVP or PVE API keys must be provided when Tarkov Tracker API is enabled.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
             }
