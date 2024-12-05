@@ -366,10 +366,11 @@
                         <StackPanel Orientation="Horizontal" Margin="10">
                             <TextBlock Text="Select Starting Tab:" VerticalAlignment="Center" Margin="0,0,10,0"/>
                             <ComboBox x:Name="CraftingStartingTabComboBox" Width="200" SelectedIndex="0">
-                                <ComboBoxItem Content="Tab 1"/>
-                                <ComboBoxItem Content="Tab 2"/>
-                                <ComboBoxItem Content="Tab 3"/>
-                                <!-- Add more tabs as needed -->
+                                <ComboBoxItem Content="All Items"/>
+                                <ComboBoxItem Content="Favorites"/>
+                                <ComboBoxItem Content="Active Crafts"/>
+                                <ComboBoxItem Content="Logs"/>
+                                <ComboBoxItem Content="Stats"/>
                             </ComboBox>
                         </StackPanel>
                     </GroupBox>
@@ -475,9 +476,9 @@
                         <StackPanel Orientation="Horizontal" Margin="10">
                             <TextBlock Text="Select Starting Tab:" VerticalAlignment="Center" Margin="0,0,10,0"/>
                             <ComboBox x:Name="RequiredItemsStartingTabComboBox" Width="200" SelectedIndex="0">
-                                <ComboBoxItem Content="Tab A"/>
-                                <ComboBoxItem Content="Tab B"/>
-                                <ComboBoxItem Content="Tab C"/>
+                                <ComboBoxItem Content="Required Items"/>
+                                <ComboBoxItem Content="Combined Required Items"/>
+                                <ComboBoxItem Content="Manual Combined Required Items"/>
                                 <!-- Add more tabs as needed -->
                             </ComboBox>
                         </StackPanel>

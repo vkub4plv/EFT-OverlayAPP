@@ -662,6 +662,9 @@ namespace EFT_OverlayAPP
                     // Initialize Hideout Modules with default settings
                     await InitializeHideoutModulesAsync();
 
+                    // Initialize Crafting Window List with default settings
+                    LoadCraftModuleSettingsAsync();
+
                     // Save the default config to create a new config.json
                     SaveConfig();
 
