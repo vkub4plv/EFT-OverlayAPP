@@ -180,7 +180,7 @@
                       VerticalAlignment="Bottom"
                       Margin="0,0,730,10"
                       ItemsSource="{Binding ActiveCraftTimers}"
-                      Visibility="{Binding IsInRaid, Converter={StaticResource InverseBooleanConverter}}">
+                      Visibility="{Binding IsInRaid, Converter={StaticResource InverseBooleanVisibilityConverter}}">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <StackPanel Orientation="Horizontal"/>
