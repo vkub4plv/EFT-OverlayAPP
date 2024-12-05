@@ -131,7 +131,7 @@ namespace EFT_OverlayAPP
         public TimeSpan CraftTime { get; set; }
 
         public int StationIndex { get; set; }
-        public string CraftTimeString => CraftTime.ToString(@"hh\:mm\:ss");
+        public string CraftTimeString => $"{(int)CraftTime.TotalHours:D2}:{CraftTime.Minutes:D2}:{CraftTime.Seconds:D2}";
 
         public List<RewardItemDetail> RewardItems { get; set; } // List of reward items
 
@@ -245,8 +245,6 @@ namespace EFT_OverlayAPP
             }
         }
 
-
-
         public string RemainingTimeString
         {
             get
@@ -255,7 +253,7 @@ namespace EFT_OverlayAPP
                 {
                     var remaining = RemainingTime;
                     if (remaining > TimeSpan.Zero)
-                        return remaining.ToString(@"hh\:mm\:ss");
+                        return $"{(int)remaining.TotalHours:D2}:{remaining.Minutes:D2}:{remaining.Seconds:D2}";
                     else
                         return "Ready";
                 }
@@ -265,11 +263,10 @@ namespace EFT_OverlayAPP
                 }
                 else
                 {
-                    return CraftTime.ToString(@"hh\:mm\:ss");
+                    return $"{(int)CraftTime.TotalHours:D2}:{CraftTime.Minutes:D2}:{CraftTime.Seconds:D2}";
                 }
             }
         }
-
 
         public TimeSpan RemainingTime
         {

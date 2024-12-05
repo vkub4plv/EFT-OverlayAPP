@@ -85,7 +85,8 @@ namespace EFT_OverlayAPP
                 }
                 else
                 {
-                    return timeSpan.ToString(@"hh\:mm\:ss");
+                    int totalHours = (int)timeSpan.TotalHours;
+                    return $"{totalHours:D2}:{timeSpan.Minutes:D2}:{timeSpan.Seconds:D2}";
                 }
             }
             return "";
