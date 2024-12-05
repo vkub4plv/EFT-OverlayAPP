@@ -259,4 +259,45 @@ namespace EFT_OverlayAPP
             throw new NotImplementedException();
         }
     }
+
+    public class ProfileModeToStringConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is ProfileMode mode)
+            {
+                switch (mode)
+                {
+                    case ProfileMode.Automatic:
+                        return "Automatic";
+                    case ProfileMode.Regular:
+                        return "Regular (PVP)";
+                    case ProfileMode.Pve:
+                        return "PVE";
+                    default:
+                        return "Automatic";
+                }
+            }
+            return "Automatic";
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is string modeStr)
+            {
+                switch (modeStr)
+                {
+                    case "Automatic":
+                        return ProfileMode.Automatic;
+                    case "Regular (PVP)":
+                        return ProfileMode.Regular;
+                    case "PVE":
+                        return ProfileMode.Pve;
+                    default:
+                        return ProfileMode.Automatic;
+                }
+            }
+            return ProfileMode.Automatic;
+        }
+    }
 }

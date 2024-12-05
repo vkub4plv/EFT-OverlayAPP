@@ -29,7 +29,7 @@ namespace EFT_OverlayAPP
         {
             InitializeComponent();
             LoadConfig();
-            this.DataContext = this; // Set DataContext for data binding
+            this.DataContext = AppConfig;
             InitializeMonitorList();
             InitializeStartingTabs();
         }
@@ -62,52 +62,18 @@ namespace EFT_OverlayAPP
                 KeybindsListView.ItemsSource = AppConfig.Keybinds;
             }
 
-            // Enable Tarkov Tracker API Checkbox
-            EnableTarkovTrackerApiCheckBox.IsChecked = AppConfig.IsTarkovTrackerApiEnabled;
-
-            // PVP API Key
-            PvpApiKeyTextBox.Text = AppConfig.PvpApiKey;
-
-            // PVE API Key
-            PveApiKeyTextBox.Text = AppConfig.PveApiKey;
-
-            // Selected Map
-            if (!string.IsNullOrEmpty(AppConfig.SelectedMap))
+            // Map Website ComboBox selection
+            if (!string.IsNullOrEmpty(AppConfig.SelectedMapWebsite))
             {
-                foreach (var item in MapSelectionComboBox.Items)
+                foreach (var item in MapWebsiteComboBox.Items)
                 {
-                    if ((item as ComboBoxItem)?.Content.ToString() == AppConfig.SelectedMap)
+                    if ((item as ComboBoxItem)?.Content.ToString() == AppConfig.SelectedMapWebsite)
                     {
-                        MapSelectionComboBox.SelectedItem = item;
+                        MapWebsiteComboBox.SelectedItem = item;
                         break;
                     }
                 }
             }
-
-            // Toggle Visibilities
-            ToggleMinimapVisibilityCheckBox.IsChecked = AppConfig.ToggleMinimapVisibility;
-            ToggleRaidTimerVisibilityCheckBox.IsChecked = AppConfig.ToggleRaidTimerVisibility;
-            ToggleCraftingTimersVisibilityCheckBox.IsChecked = AppConfig.ToggleCraftingTimersVisibility;
-            ToggleOtherWindowButtonsCheckBox.IsChecked = AppConfig.ToggleOtherWindowButtons;
-
-            // New Settings
-
-            // Crafting Level
-            if (AppConfig.CurrentCraftingLevel < 0 || AppConfig.CurrentCraftingLevel > 51)
-            {
-                AppConfig.CurrentCraftingLevel = 0; // Reset to default if out of range
-            }
-            CraftingLevelSlider.Value = AppConfig.CurrentCraftingLevel;
-            CraftingLevelDisplay.Text = $"Current Level: {AppConfig.CurrentCraftingLevel}";
-
-            // Disable Auto-Hide Raid Timer
-            DisableAutoHideRaidTimerCheckBox.IsChecked = AppConfig.DisableAutoHideRaidTimer;
-
-            // Initialize Paths Settings
-            InitializePathsSettings();
-
-            // Set Profile Mode ComboBox
-            SetProfileModeComboBoxSelection();
         }
 
         private AppConfig GetDefaultConfig()
@@ -127,7 +93,9 @@ namespace EFT_OverlayAPP
                     // Add more keybinds as needed
                 },
                 IsTarkovTrackerApiEnabled = false,
-                SelectedMap = "Map Genie",
+                SelectedMapWebsite = "Map Genie",
+                PvpApiKey = "",
+                PveApiKey = "",
                 ToggleMinimapVisibility = false,
                 ToggleRaidTimerVisibility = false,
                 ToggleCraftingTimersVisibility = false,
@@ -136,63 +104,48 @@ namespace EFT_OverlayAPP
                 DisableAutoHideRaidTimer = false,
                 UseCustomEftLogsPath = false,
                 EftLogsPath = GetDefaultEftLogsPath(),
-                SelectedProfileMode = ProfileMode.Automatic // Default to Automatic
+                SelectedProfileMode = ProfileMode.Automatic, // Default to Automatic
+                AutoSetActiveMinimap = false,
+                ShowTimerOn10MinutesLeft = false,
+                ShowTimerOnRaidEnd = false,
+                HideItemsForBuiltStations = false,
+                HideItemsForCompletedQuests = false,
+                HidePlantItemsMarkers = false,
+                HideQuestsHideoutModulesNames = false,
+                SubtractFromManualCombinedItems = false,
                 // Initialize other settings as needed
             };
         }
 
         private void SaveConfig()
         {
-            // Update AppConfig with current UI settings
+            // Update AppConfig with current UI settings via Data Binding
 
             // Validate crafting level
-            int craftingLevel = (int)CraftingLevelSlider.Value;
+            int craftingLevel = AppConfig.CurrentCraftingLevel;
             if (craftingLevel < 0 || craftingLevel > 51)
             {
                 MessageBox.Show("Crafting level must be between 0 and 51.", "Invalid Input", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            // Keybinds
-            AppConfig.Keybinds = KeybindsListView.ItemsSource as List<KeybindEntry>;
-
-            // PVP API Key
-            AppConfig.PvpApiKey = PvpApiKeyTextBox.Text;
-
-            // PVE API Key
-            AppConfig.PveApiKey = PveApiKeyTextBox.Text;
-
-            // Enable Tarkov Tracker API
-            AppConfig.IsTarkovTrackerApiEnabled = EnableTarkovTrackerApiCheckBox.IsChecked == true;
-
-            // Selected Map
-            AppConfig.SelectedMap = (MapSelectionComboBox.SelectedItem as ComboBoxItem)?.Content.ToString();
-
-            // Toggle Visibilities
-            AppConfig.ToggleMinimapVisibility = ToggleMinimapVisibilityCheckBox.IsChecked == true;
-            AppConfig.ToggleRaidTimerVisibility = ToggleRaidTimerVisibilityCheckBox.IsChecked == true;
-            AppConfig.ToggleCraftingTimersVisibility = ToggleCraftingTimersVisibilityCheckBox.IsChecked == true;
-            AppConfig.ToggleOtherWindowButtons = ToggleOtherWindowButtonsCheckBox.IsChecked == true;
-
-            // New Settings
-
-            // Crafting Level
-            AppConfig.CurrentCraftingLevel = (int)CraftingLevelSlider.Value;
-
-            // Disable Auto-Hide Raid Timer
-            AppConfig.DisableAutoHideRaidTimer = DisableAutoHideRaidTimerCheckBox.IsChecked == true;
-
-            // Paths Settings
-            if (UseCustomEftLogsPathCheckBox.IsChecked == true)
+            // Validate API Keys if enabled
+            if (AppConfig.IsTarkovTrackerApiEnabled)
             {
-                AppConfig.EftLogsPath = EftLogsPathTextBox.Text;
-                AppConfig.UseCustomEftLogsPath = true;
+                if (string.IsNullOrWhiteSpace(AppConfig.PvpApiKey) || string.IsNullOrWhiteSpace(AppConfig.PveApiKey))
+                {
+                    MessageBox.Show("Both PVP and PVE API keys must be provided when Tarkov Tracker API is enabled.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
             }
-            else
-            {
-                AppConfig.EftLogsPath = GetDefaultEftLogsPath();
-                AppConfig.UseCustomEftLogsPath = false;
-            }
+
+            // Selected Map Website
+            AppConfig.SelectedMapWebsite = (MapWebsiteComboBox.SelectedItem as ComboBoxItem)?.Content.ToString();
+
+            // Save the SelectedTab in Crafting and Required Items if needed
+            // Assuming it's already bound via Data Binding
+
+            // Any other settings are already bound via Data Binding
 
             try
             {
@@ -208,16 +161,6 @@ namespace EFT_OverlayAPP
             }
         }
 
-        private void InitializePathsSettings()
-        {
-            // Set the checkbox state
-            UseCustomEftLogsPathCheckBox.IsChecked = AppConfig.UseCustomEftLogsPath;
-
-            // Set the TextBox state
-            EftLogsPathTextBox.IsEnabled = AppConfig.UseCustomEftLogsPath;
-            EftLogsPathTextBox.Text = AppConfig.UseCustomEftLogsPath ? AppConfig.EftLogsPath : GetDefaultEftLogsPath();
-        }
-
         private string GetDefaultEftLogsPath()
         {
             // Implement logic to retrieve the default EFT Logs path
@@ -226,25 +169,41 @@ namespace EFT_OverlayAPP
             return @"C:\Battlestate Games\EFT\Logs"; // Replace with actual default path
         }
 
-        private void SetProfileModeComboBoxSelection()
+        private void InitializeMonitorList()
         {
-            switch (AppConfig.SelectedProfileMode)
-            {
-                case ProfileMode.Automatic:
-                    ProfileModeComboBox.SelectedIndex = 0; // Automatic
-                    break;
-                case ProfileMode.Regular:
-                    ProfileModeComboBox.SelectedIndex = 1; // Regular (PVP)
-                    break;
-                case ProfileMode.Pve:
-                    ProfileModeComboBox.SelectedIndex = 2; // PVE
-                    break;
-                default:
-                    ProfileModeComboBox.SelectedIndex = 0; // Default to Automatic
-                    break;
-            }
+            // Placeholder: Populate MonitorSelectionComboBox with detected monitors
+            // This will be implemented with actual monitor detection logic
+            MonitorSelectionComboBox.Items.Clear();
+            MonitorSelectionComboBox.Items.Add("Monitor 1");
+            MonitorSelectionComboBox.Items.Add("Monitor 2");
+            MonitorSelectionComboBox.Items.Add("Monitor 3");
+            // Add more monitors as needed
+            // Set default selection
+            MonitorSelectionComboBox.SelectedIndex = 0;
+            CurrentMonitorTextBlock.Text = MonitorSelectionComboBox.SelectedItem as string;
         }
 
+        private void InitializeStartingTabs()
+        {
+            // Populate CraftingStartingTabComboBox and RequiredItemsStartingTabComboBox
+            // These should reflect the actual tabs available in Crafting and Required Items windows
+
+            // Example for CraftingStartingTabComboBox
+            CraftingStartingTabComboBox.Items.Clear();
+            CraftingStartingTabComboBox.Items.Add("Tab 1");
+            CraftingStartingTabComboBox.Items.Add("Tab 2");
+            CraftingStartingTabComboBox.Items.Add("Tab 3");
+            CraftingStartingTabComboBox.SelectedIndex = 0;
+
+            // Example for RequiredItemsStartingTabComboBox
+            RequiredItemsStartingTabComboBox.Items.Clear();
+            RequiredItemsStartingTabComboBox.Items.Add("Tab A");
+            RequiredItemsStartingTabComboBox.Items.Add("Tab B");
+            RequiredItemsStartingTabComboBox.Items.Add("Tab C");
+            RequiredItemsStartingTabComboBox.SelectedIndex = 0;
+        }
+
+        // Event Handler for Profile Mode Selection
         private void ProfileModeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (ProfileModeComboBox.SelectedItem is ComboBoxItem selectedItem)
@@ -270,13 +229,14 @@ namespace EFT_OverlayAPP
                         break;
                 }
 
-                // Update UI or application behavior based on the new profile mode
-                // For example, enable/disable automatic profile switching
+                // Update CurrentProfileModeTextBlock
+                CurrentProfileModeTextBlock.Text = selectedContent;
+
+                // Optionally, trigger changes based on profile mode
             }
         }
 
-
-        // Crafting Level Slider Value Changed
+        // Event Handler for Crafting Level Slider
         private void CraftingLevelSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (CraftingLevelDisplay != null)
@@ -286,92 +246,50 @@ namespace EFT_OverlayAPP
             }
         }
 
-        // Disable Auto-Hide Raid Timer CheckBox Checked
-        private void DisableAutoHideRaidTimerCheckBox_Checked(object sender, RoutedEventArgs e)
+        // Event Handlers for Overlay Tab
+        private void ApplyOverlayChangesButton_Click(object sender, RoutedEventArgs e)
         {
-            // Additional logic if needed when checked
+            // Since data binding handles updating AppConfig, simply save the configuration
+            SaveConfig();
+            MessageBox.Show("Overlay settings applied successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        // Disable Auto-Hide Raid Timer CheckBox Unchecked
-        private void DisableAutoHideRaidTimerCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        // Event Handlers for Minimap Tab
+        private void ApplyMinimapChangesButton_Click(object sender, RoutedEventArgs e)
         {
-            // Additional logic if needed when unchecked
+            SaveConfig();
+            MessageBox.Show("Minimap settings applied successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        // Reset Keybinds Button
-        private void ResetKeybindsButton_Click(object sender, RoutedEventArgs e)
+        // Event Handlers for Crafting Tab
+        private void ApplyCraftingChangesButton_Click(object sender, RoutedEventArgs e)
         {
-            // Reset keybinds to default values
-            AppConfig.Keybinds = GetDefaultConfig().Keybinds;
-            KeybindsListView.ItemsSource = AppConfig.Keybinds;
+            SaveConfig();
+            MessageBox.Show("Crafting settings applied successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        // Toggle Raid Timer Visibility CheckBox Checked
-        private void ToggleRaidTimerVisibilityCheckBox_Checked(object sender, RoutedEventArgs e)
+        // Event Handlers for Required Items Tab
+        private void ResetPvpProfileRequiredItemsButton_Click(object sender, RoutedEventArgs e)
         {
-            AppConfig.ToggleRaidTimerVisibility = true;
-            logger.Info("Raid Timer visibility enabled.");
-            // Add logic to show the raid timer in the application
+            // Implement logic to reset PVP profile required items
+            // This could involve resetting specific properties in AppConfig
+            AppConfig.HideItemsForCompletedQuests = false;
+            AppConfig.HideQuestsHideoutModulesNames = false;
+            SaveConfig();
+            MessageBox.Show("PVP profile required items have been reset.", "Reset Complete", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        // Toggle Raid Timer Visibility CheckBox Unchecked
-        private void ToggleRaidTimerVisibilityCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        private void ResetPveProfileRequiredItemsButton_Click(object sender, RoutedEventArgs e)
         {
-            AppConfig.ToggleRaidTimerVisibility = false;
-            logger.Info("Raid Timer visibility disabled.");
-            // Add logic to hide the raid timer in the application
+            // Implement logic to reset PVE profile required items
+            // This could involve resetting specific properties in AppConfig
+            AppConfig.HideItemsForCompletedQuests = false;
+            AppConfig.HideQuestsHideoutModulesNames = false;
+            SaveConfig();
+            MessageBox.Show("PVE profile required items have been reset.", "Reset Complete", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        // Toggle Crafting Timers Visibility CheckBox Checked
-        private void ToggleCraftingTimersVisibilityCheckBox_Checked(object sender, RoutedEventArgs e)
-        {
-            AppConfig.ToggleCraftingTimersVisibility = true;
-            logger.Info("Crafting Timers visibility enabled.");
-            // Add logic to show crafting timers in the application
-        }
-
-        // Toggle Crafting Timers Visibility CheckBox Unchecked
-        private void ToggleCraftingTimersVisibilityCheckBox_Unchecked(object sender, RoutedEventArgs e)
-        {
-            AppConfig.ToggleCraftingTimersVisibility = false;
-            logger.Info("Crafting Timers visibility disabled.");
-            // Add logic to hide crafting timers in the application
-        }
-
-        // Toggle Other Window Buttons CheckBox Checked
-        private void ToggleOtherWindowButtonsCheckBox_Checked(object sender, RoutedEventArgs e)
-        {
-            AppConfig.ToggleOtherWindowButtons = true;
-            logger.Info("Other Window Buttons visibility enabled.");
-            // Add logic to show other window buttons in the application
-        }
-
-        // Toggle Other Window Buttons CheckBox Unchecked
-        private void ToggleOtherWindowButtonsCheckBox_Unchecked(object sender, RoutedEventArgs e)
-        {
-            AppConfig.ToggleOtherWindowButtons = false;
-            logger.Info("Other Window Buttons visibility disabled.");
-            // Add logic to hide other window buttons in the application
-        }
-
-        // Enable Tarkov Tracker API CheckBox Checked
-        private void EnableTarkovTrackerApiCheckBox_Checked(object sender, RoutedEventArgs e)
-        {
-            PvpApiKeyTextBox.IsEnabled = true;
-            PveApiKeyTextBox.IsEnabled = true;
-        }
-
-        // Enable Tarkov Tracker API CheckBox Unchecked
-        private void EnableTarkovTrackerApiCheckBox_Unchecked(object sender, RoutedEventArgs e)
-        {
-            PvpApiKeyTextBox.IsEnabled = false;
-            PveApiKeyTextBox.IsEnabled = false;
-            // Optionally, clear the API keys or retain them
-            // PvpApiKeyTextBox.Text = string.Empty;
-            // PveApiKeyTextBox.Text = string.Empty;
-        }
-
-        // Hideout Modules Tab Events
+        // Event Handlers for Hideout Tab
         private void HideoutSourceRadioButton_Checked(object sender, RoutedEventArgs e)
         {
             if (ManualHideoutSourceRadioButton == null)
@@ -386,88 +304,43 @@ namespace EFT_OverlayAPP
                 return;
             }
 
-            // Placeholder: Enable or disable Hideout Modules settings based on source selection
+            // Enable or disable Hideout Modules settings based on source selection
             if (ManualHideoutSourceRadioButton.IsChecked == true)
             {
                 HideoutModulesListView.IsEnabled = true;
-                // Additional UI adjustments
+                // Additional UI adjustments if needed
             }
             else
             {
                 HideoutModulesListView.IsEnabled = false;
-                // Additional UI adjustments
+                // Additional UI adjustments if needed
             }
         }
 
         private void RefreshHideoutModulesButton_Click(object sender, RoutedEventArgs e)
         {
             // Placeholder: Refresh the list of hideout modules
-            // This will be implemented with actual data retrieval logic
+            // Implement actual data retrieval logic here
             MessageBox.Show("Hideout Modules refreshed.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        // Crafting Settings Tab Events
-        private void FilterBasedOnHideoutLevelsCheckBox_Checked(object sender, RoutedEventArgs e)
+        // Event Handlers for Unlock Overlay Options
+        private void UnlockOverlayCheckBox_Click(object sender, RoutedEventArgs e)
         {
-            // Placeholder: Enable filtering based on hideout levels
-        }
-
-        private void FilterBasedOnHideoutLevelsCheckBox_Unchecked(object sender, RoutedEventArgs e)
-        {
-            // Placeholder: Disable filtering based on hideout levels
-        }
-
-        private void ShowUnlockedQuestRecipesCheckBox_Checked(object sender, RoutedEventArgs e)
-        {
-            // Placeholder: Enable showing unlocked quest-related recipes
-        }
-
-        private void ShowUnlockedQuestRecipesCheckBox_Unchecked(object sender, RoutedEventArgs e)
-        {
-            // Placeholder: Disable showing unlocked quest-related recipes
-        }
-
-        private void CraftSourceRadioButton_Checked(object sender, RoutedEventArgs e)
-        {
-            if (ManualCraftSourceRadioButton == null)
+            // Implement logic to unlock overlay positions
+            if (UnlockOverlayCheckBox.IsChecked == true)
             {
-                MessageBox.Show("ManualCraftSourceRadioButton is null.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
-
-            if (UnlockableCraftsListView == null)
-            {
-                MessageBox.Show("UnlockableCraftsListView is null.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
-
-            // Placeholder: Toggle between manual and Tarkov Tracker sources for crafts
-            if (ManualCraftSourceRadioButton.IsChecked == true)
-            {
-                UnlockableCraftsListView.IsEnabled = true;
-                // Enable manual selection
+                // Enable dragging and repositioning of overlay elements
+                logger.Info("Overlay positions unlocked.");
             }
             else
             {
-                UnlockableCraftsListView.IsEnabled = false;
-                // Display crafts from Tarkov Tracker
+                // Lock overlay positions
+                logger.Info("Overlay positions locked.");
             }
         }
 
-        // Display Settings Tab Events
-        private void UnlockSavePositionsButton_Click(object sender, RoutedEventArgs e)
-        {
-            // Placeholder: Unlock and save overlay items positions
-            MessageBox.Show("Overlay items positions unlocked and saved.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-
-        private void ResetPositionsButton_Click(object sender, RoutedEventArgs e)
-        {
-            // Placeholder: Reset overlay items positions to default
-            MessageBox.Show("Overlay items positions reset to default.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-
-        // Paths Settings Tab Events
+        // Event Handlers for Paths Settings Tab (within General)
         private void BrowseEftLogsPathButton_Click(object sender, RoutedEventArgs e)
         {
             // Open folder browser dialog to select EFT Logs path
@@ -488,7 +361,7 @@ namespace EFT_OverlayAPP
                     EftLogsPathTextBox.Text = selectedPath;
 
                     // Update AppConfig with the new path if custom path is enabled
-                    if (UseCustomEftLogsPathCheckBox.IsChecked == true)
+                    if (AppConfig.UseCustomEftLogsPath)
                     {
                         AppConfig.EftLogsPath = selectedPath;
                         SaveConfig();
@@ -502,6 +375,7 @@ namespace EFT_OverlayAPP
             }
         }
 
+        // Handling UseCustomEftLogsPathCheckBox
         private void UseCustomEftLogsPathCheckBox_Checked(object sender, RoutedEventArgs e)
         {
             EftLogsPathTextBox.IsEnabled = true;
@@ -514,7 +388,13 @@ namespace EFT_OverlayAPP
             EftLogsPathTextBox.Text = GetDefaultEftLogsPath();
         }
 
-        // Monitor Settings Tab Events
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            base.OnClosing(e);
+            SaveConfig();
+        }
+
+        // Event Handlers for Monitor Settings
         private void MonitorSelectionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (MonitorSelectionComboBox.SelectedItem != null)
@@ -534,40 +414,68 @@ namespace EFT_OverlayAPP
             // Reset to detected resolution if necessary
         }
 
-        private void InitializeMonitorList()
+        private void ResetKeybindsButton_Click(object sender, RoutedEventArgs e)
         {
-            // Placeholder: Populate MonitorSelectionComboBox with detected monitors
-            // This will be implemented with actual monitor detection logic
-            MonitorSelectionComboBox.Items.Add("Monitor 1");
-            MonitorSelectionComboBox.Items.Add("Monitor 2");
-            MonitorSelectionComboBox.Items.Add("Monitor 3");
-            // Set default selection
-            MonitorSelectionComboBox.SelectedIndex = 0;
-            CurrentMonitorTextBlock.Text = MonitorSelectionComboBox.SelectedItem as string;
+            // Confirm the reset action with the user
+            var result = MessageBox.Show("Are you sure you want to reset all keybinds to their default values?",
+                                         "Confirm Reset",
+                                         MessageBoxButton.YesNo,
+                                         MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                // Initialize default keybinds
+                AppConfig.Keybinds = GetDefaultKeybinds();
+
+                // Refresh the ListView to display default keybinds
+                KeybindsListView.ItemsSource = null;
+                KeybindsListView.ItemsSource = AppConfig.Keybinds;
+
+                logger.Info("Keybinds have been reset to default.");
+                MessageBox.Show("Keybinds have been reset to their default values.",
+                                "Reset Successful",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Information);
+            }
         }
 
-        private void InitializeStartingTabs()
+        // Helper method to get default keybinds
+        private List<KeybindEntry> GetDefaultKeybinds()
         {
-            // Placeholder: Populate CraftingStartingTabComboBox and RequiredItemsStartingTabComboBox
-            // These should reflect the actual tabs available in Crafting and Required Items windows
-
-            // Example for CraftingStartingTabComboBox
-            CraftingStartingTabComboBox.Items.Add("Tab 1");
-            CraftingStartingTabComboBox.Items.Add("Tab 2");
-            CraftingStartingTabComboBox.Items.Add("Tab 3");
-            CraftingStartingTabComboBox.SelectedIndex = 0;
-
-            // Example for RequiredItemsStartingTabComboBox
-            RequiredItemsStartingTabComboBox.Items.Add("Tab A");
-            RequiredItemsStartingTabComboBox.Items.Add("Tab B");
-            RequiredItemsStartingTabComboBox.Items.Add("Tab C");
-            RequiredItemsStartingTabComboBox.SelectedIndex = 0;
+            return new List<KeybindEntry>
+                {
+                    new KeybindEntry { Functionality = "Raid Timer OCR", Keybind = "F1" },
+                    new KeybindEntry { Functionality = "Open Crafting Window", Keybind = "F2" },
+                    new KeybindEntry { Functionality = "Open Required Items Window", Keybind = "F3" },
+                    new KeybindEntry { Functionality = "Open Config Window", Keybind = "F4" },
+                    new KeybindEntry { Functionality = "Toggle Minimap Visibility", Keybind = "F5" },
+                    new KeybindEntry { Functionality = "Toggle Raid Timer Visibility", Keybind = "F6" },
+                    new KeybindEntry { Functionality = "Toggle Crafting Timers Visibility", Keybind = "F7" },
+                    new KeybindEntry { Functionality = "Toggle OtherWindow Buttons", Keybind = "F8" },
+                    // Add more default keybinds as needed
+                };
         }
 
-        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        private void CraftSourceRadioButton_Checked(object sender, RoutedEventArgs e)
         {
-            base.OnClosing(e);
-            SaveConfig();
+            if (ManualCraftSourceRadioButton == null || TarkovTrackerCraftSourceRadioButton == null || UnlockableCraftsListView == null)
+            {
+                MessageBox.Show("One or more controls are not initialized properly.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            if (ManualCraftSourceRadioButton.IsChecked == true)
+            {
+                UnlockableCraftsListView.IsEnabled = true;
+                // Additional logic to handle manual selection can be added here
+                logger.Info("Craft source set to Manual.");
+            }
+            else if (TarkovTrackerCraftSourceRadioButton.IsChecked == true)
+            {
+                UnlockableCraftsListView.IsEnabled = false;
+                // Logic to load crafts from Tarkov Tracker API can be implemented here
+                logger.Info("Craft source set to Tarkov Tracker.");
+            }
         }
     }
 }

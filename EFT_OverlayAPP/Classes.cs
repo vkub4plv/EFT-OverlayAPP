@@ -599,46 +599,38 @@ namespace EFT_OverlayAPP
 
     public class AppConfig : INotifyPropertyChanged
     {
-        // Existing configuration properties
+        // Keybinds
         public List<KeybindEntry> Keybinds { get; set; }
-        public bool IsTarkovTrackerApiEnabled { get; set; }
-        public string SelectedMap { get; set; }
-        public bool ToggleMinimapVisibility { get; set; }
-        public bool ToggleRaidTimerVisibility { get; set; }
-        public bool ToggleCraftingTimersVisibility { get; set; }
-        public bool ToggleOtherWindowButtons { get; set; }
 
-        private string eftLogsPath;
-        public string EftLogsPath
+        // Tarkov Tracker API
+        private bool isTarkovTrackerApiEnabled;
+        public bool IsTarkovTrackerApiEnabled
         {
-            get => eftLogsPath;
+            get => isTarkovTrackerApiEnabled;
             set
             {
-                if (eftLogsPath != value)
+                if (isTarkovTrackerApiEnabled != value)
                 {
-                    eftLogsPath = value;
-                    OnPropertyChanged(nameof(EftLogsPath));
+                    isTarkovTrackerApiEnabled = value;
+                    OnPropertyChanged(nameof(IsTarkovTrackerApiEnabled));
                 }
             }
         }
 
-        private bool useCustomEftLogsPath;
-        public bool UseCustomEftLogsPath
+        private string selectedMapWebsite;
+        public string SelectedMapWebsite
         {
-            get => useCustomEftLogsPath;
+            get => selectedMapWebsite;
             set
             {
-                if (useCustomEftLogsPath != value)
+                if (selectedMapWebsite != value)
                 {
-                    useCustomEftLogsPath = value;
-                    OnPropertyChanged(nameof(UseCustomEftLogsPath));
-                    // Optionally trigger additional logic here
+                    selectedMapWebsite = value;
+                    OnPropertyChanged(nameof(SelectedMapWebsite));
                 }
             }
         }
 
-
-        // New configuration properties for dual API keys
         private string pvpApiKey;
         public string PvpApiKey
         {
@@ -667,14 +659,249 @@ namespace EFT_OverlayAPP
             }
         }
 
-        // New configuration properties
-        public int CurrentCraftingLevel { get; set; } = 0; // Default to 0
-        public bool DisableAutoHideRaidTimer { get; set; } = false; // Default to false
+        // Toggle Visibilities
+        private bool toggleMinimapVisibility;
+        public bool ToggleMinimapVisibility
+        {
+            get => toggleMinimapVisibility;
+            set
+            {
+                if (toggleMinimapVisibility != value)
+                {
+                    toggleMinimapVisibility = value;
+                    OnPropertyChanged(nameof(ToggleMinimapVisibility));
+                }
+            }
+        }
 
-        // New Profile Mode Property
-        public ProfileMode SelectedProfileMode { get; set; } = ProfileMode.Automatic; // Default to Automatic
+        private bool toggleRaidTimerVisibility;
+        public bool ToggleRaidTimerVisibility
+        {
+            get => toggleRaidTimerVisibility;
+            set
+            {
+                if (toggleRaidTimerVisibility != value)
+                {
+                    toggleRaidTimerVisibility = value;
+                    OnPropertyChanged(nameof(ToggleRaidTimerVisibility));
+                }
+            }
+        }
 
-        // Add other settings as needed
+        private bool toggleCraftingTimersVisibility;
+        public bool ToggleCraftingTimersVisibility
+        {
+            get => toggleCraftingTimersVisibility;
+            set
+            {
+                if (toggleCraftingTimersVisibility != value)
+                {
+                    toggleCraftingTimersVisibility = value;
+                    OnPropertyChanged(nameof(ToggleCraftingTimersVisibility));
+                }
+            }
+        }
+
+        private bool toggleOtherWindowButtons;
+        public bool ToggleOtherWindowButtons
+        {
+            get => toggleOtherWindowButtons;
+            set
+            {
+                if (toggleOtherWindowButtons != value)
+                {
+                    toggleOtherWindowButtons = value;
+                    OnPropertyChanged(nameof(ToggleOtherWindowButtons));
+                }
+            }
+        }
+
+        // Paths
+        private string eftLogsPath;
+        public string EftLogsPath
+        {
+            get => eftLogsPath;
+            set
+            {
+                if (eftLogsPath != value)
+                {
+                    eftLogsPath = value;
+                    OnPropertyChanged(nameof(EftLogsPath));
+                }
+            }
+        }
+
+        private bool useCustomEftLogsPath;
+        public bool UseCustomEftLogsPath
+        {
+            get => useCustomEftLogsPath;
+            set
+            {
+                if (useCustomEftLogsPath != value)
+                {
+                    useCustomEftLogsPath = value;
+                    OnPropertyChanged(nameof(UseCustomEftLogsPath));
+                }
+            }
+        }
+
+        // Crafting
+        private int currentCraftingLevel;
+        public int CurrentCraftingLevel
+        {
+            get => currentCraftingLevel;
+            set
+            {
+                if (currentCraftingLevel != value)
+                {
+                    currentCraftingLevel = value;
+                    OnPropertyChanged(nameof(CurrentCraftingLevel));
+                }
+            }
+        }
+
+        private bool disableAutoHideRaidTimer;
+        public bool DisableAutoHideRaidTimer
+        {
+            get => disableAutoHideRaidTimer;
+            set
+            {
+                if (disableAutoHideRaidTimer != value)
+                {
+                    disableAutoHideRaidTimer = value;
+                    OnPropertyChanged(nameof(DisableAutoHideRaidTimer));
+                }
+            }
+        }
+
+        // Profile Mode
+        private ProfileMode selectedProfileMode;
+        public ProfileMode SelectedProfileMode
+        {
+            get => selectedProfileMode;
+            set
+            {
+                if (selectedProfileMode != value)
+                {
+                    selectedProfileMode = value;
+                    OnPropertyChanged(nameof(SelectedProfileMode));
+                }
+            }
+        }
+
+        // Overlay Settings
+        private bool autoSetActiveMinimap;
+        public bool AutoSetActiveMinimap
+        {
+            get => autoSetActiveMinimap;
+            set
+            {
+                if (autoSetActiveMinimap != value)
+                {
+                    autoSetActiveMinimap = value;
+                    OnPropertyChanged(nameof(AutoSetActiveMinimap));
+                }
+            }
+        }
+
+        private bool showTimerOn10MinutesLeft;
+        public bool ShowTimerOn10MinutesLeft
+        {
+            get => showTimerOn10MinutesLeft;
+            set
+            {
+                if (showTimerOn10MinutesLeft != value)
+                {
+                    showTimerOn10MinutesLeft = value;
+                    OnPropertyChanged(nameof(ShowTimerOn10MinutesLeft));
+                }
+            }
+        }
+
+        private bool showTimerOnRaidEnd;
+        public bool ShowTimerOnRaidEnd
+        {
+            get => showTimerOnRaidEnd;
+            set
+            {
+                if (showTimerOnRaidEnd != value)
+                {
+                    showTimerOnRaidEnd = value;
+                    OnPropertyChanged(nameof(ShowTimerOnRaidEnd));
+                }
+            }
+        }
+
+        // Required Items Settings
+        private bool hideItemsForBuiltStations;
+        public bool HideItemsForBuiltStations
+        {
+            get => hideItemsForBuiltStations;
+            set
+            {
+                if (hideItemsForBuiltStations != value)
+                {
+                    hideItemsForBuiltStations = value;
+                    OnPropertyChanged(nameof(HideItemsForBuiltStations));
+                }
+            }
+        }
+
+        private bool hideItemsForCompletedQuests;
+        public bool HideItemsForCompletedQuests
+        {
+            get => hideItemsForCompletedQuests;
+            set
+            {
+                if (hideItemsForCompletedQuests != value)
+                {
+                    hideItemsForCompletedQuests = value;
+                    OnPropertyChanged(nameof(HideItemsForCompletedQuests));
+                }
+            }
+        }
+
+        private bool hidePlantItemsMarkers;
+        public bool HidePlantItemsMarkers
+        {
+            get => hidePlantItemsMarkers;
+            set
+            {
+                if (hidePlantItemsMarkers != value)
+                {
+                    hidePlantItemsMarkers = value;
+                    OnPropertyChanged(nameof(HidePlantItemsMarkers));
+                }
+            }
+        }
+
+        private bool hideQuestsHideoutModulesNames;
+        public bool HideQuestsHideoutModulesNames
+        {
+            get => hideQuestsHideoutModulesNames;
+            set
+            {
+                if (hideQuestsHideoutModulesNames != value)
+                {
+                    hideQuestsHideoutModulesNames = value;
+                    OnPropertyChanged(nameof(HideQuestsHideoutModulesNames));
+                }
+            }
+        }
+
+        private bool subtractFromManualCombinedItems;
+        public bool SubtractFromManualCombinedItems
+        {
+            get => subtractFromManualCombinedItems;
+            set
+            {
+                if (subtractFromManualCombinedItems != value)
+                {
+                    subtractFromManualCombinedItems = value;
+                    OnPropertyChanged(nameof(SubtractFromManualCombinedItems));
+                }
+            }
+        }
 
         // INotifyPropertyChanged implementation
         public event PropertyChangedEventHandler PropertyChanged;

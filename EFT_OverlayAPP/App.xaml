@@ -15,5 +15,6 @@
         <local:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
         <local:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
         <local:IsEliteLevelConverter x:Key="IsEliteLevelConverter"/>
+        <local:ProfileModeToStringConverter x:Key="ProfileModeToStringConverter"/>
     </Application.Resources>
 </Application>
