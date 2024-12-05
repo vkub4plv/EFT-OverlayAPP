@@ -35,6 +35,12 @@ namespace EFT_OverlayAPP
             InitializeMonitorList();
             InitializeStartingTabs();
             this.Loaded += ConfigWindow_Loaded; // Subscribe to Loaded event
+
+            // Subscribe to PropertyChanged for auto-saving
+            AppConfig.PropertyChanged += AppConfig_PropertyChanged;
+
+            // Subscribe to CollectionChanged for HideoutModuleSettings
+            AppConfig.HideoutModuleSettings.CollectionChanged += HideoutModuleSettings_CollectionChanged;
         }
 
         private async void ConfigWindow_Loaded(object sender, RoutedEventArgs e)
@@ -257,28 +263,6 @@ namespace EFT_OverlayAPP
                 int level = (int)e.NewValue;
                 CraftingLevelDisplay.Text = $"Current Level: {level}";
             }
-        }
-
-        // Event Handlers for Overlay Tab
-        private void ApplyOverlayChangesButton_Click(object sender, RoutedEventArgs e)
-        {
-            // Since data binding handles updating AppConfig, simply save the configuration
-            SaveConfig();
-            MessageBox.Show("Overlay settings applied successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-
-        // Event Handlers for Minimap Tab
-        private void ApplyMinimapChangesButton_Click(object sender, RoutedEventArgs e)
-        {
-            SaveConfig();
-            MessageBox.Show("Minimap settings applied successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-
-        // Event Handlers for Crafting Tab
-        private void ApplyCraftingChangesButton_Click(object sender, RoutedEventArgs e)
-        {
-            SaveConfig();
-            MessageBox.Show("Crafting settings applied successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         // Event Handlers for Required Items Tab
@@ -695,6 +679,42 @@ namespace EFT_OverlayAPP
                     ProfileModeComboBox.SelectedIndex = 0;
                     break;
             }
+        }
+
+        private void AppConfig_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            // Optionally, filter which properties should trigger a save
+            // For example, only save for certain properties:
+            // if (e.PropertyName == "SomeProperty")
+            // {
+            //     debounceDispatcher.Debounce(() => SaveConfig());
+            // }
+
+            // For simplicity, save on any property change
+            debounceDispatcher.Debounce(() => SaveConfig());
+        }
+
+        private void HideoutModuleSettings_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            // Handle additions and removals
+            if (e.NewItems != null)
+            {
+                foreach (HideoutModuleSetting newItem in e.NewItems)
+                {
+                    newItem.PropertyChanged += HideoutModuleSetting_PropertyChanged;
+                }
+            }
+
+            if (e.OldItems != null)
+            {
+                foreach (HideoutModuleSetting oldItem in e.OldItems)
+                {
+                    oldItem.PropertyChanged -= HideoutModuleSetting_PropertyChanged;
+                }
+            }
+
+            // Trigger a save
+            debounceDispatcher.Debounce(() => SaveConfig());
         }
     }
 }

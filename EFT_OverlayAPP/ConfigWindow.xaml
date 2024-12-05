@@ -148,8 +148,6 @@
                         <!-- Unlock Overlay -->
                         <RowDefinition Height="*"/>
                         <!-- Visibility Options -->
-                        <RowDefinition Height="Auto"/>
-                        <!-- Save/Apply Button -->
                     </Grid.RowDefinitions>
 
                     <!-- Monitor Selection -->
@@ -218,13 +216,6 @@
                                       IsChecked="{Binding ToggleMinimapVisibility, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                         </StackPanel>
                     </GroupBox>
-
-                    <!-- Save/Apply Button -->
-                    <Button Content="Apply Changes" 
-                            Grid.Row="4" 
-                            Width="120" 
-                            HorizontalAlignment="Right" 
-                            Click="ApplyOverlayChangesButton_Click"/>
                 </Grid>
             </TabItem>
 
@@ -332,8 +323,6 @@
                         <!-- Auto Set Active Minimap -->
                         <RowDefinition Height="*"/>
                         <!-- Spacer or Additional Content -->
-                        <RowDefinition Height="Auto"/>
-                        <!-- Save/Apply Button -->
                     </Grid.RowDefinitions>
 
                     <!-- Map Website Choice -->
@@ -355,13 +344,6 @@
 
                     <!-- Spacer or Additional Content -->
                     <Grid Grid.Row="2"/>
-
-                    <!-- Save/Apply Button -->
-                    <Button Content="Apply Changes" 
-                            Grid.Row="3" 
-                            Width="120" 
-                            HorizontalAlignment="Right" 
-                            Click="ApplyMinimapChangesButton_Click"/>
                 </Grid>
             </TabItem>
 
@@ -375,8 +357,6 @@
                         <!-- Crafting Settings -->
                         <RowDefinition Height="*"/>
                         <!-- Spacer or Additional Content -->
-                        <RowDefinition Height="Auto"/>
-                        <!-- Save/Apply Button -->
                     </Grid.RowDefinitions>
 
                     <!-- Starting Tab Selection -->
@@ -431,13 +411,6 @@
                             </ListView>
                         </StackPanel>
                     </GroupBox>
-
-                    <!-- Save/Apply Button -->
-                    <Button Content="Apply Changes" 
-                            Grid.Row="3" 
-                            Width="120" 
-                            HorizontalAlignment="Right" 
-                            Click="ApplyCraftingChangesButton_Click"/>
                 </Grid>
             </TabItem>
 
