@@ -60,7 +60,7 @@
                             <StackPanel Orientation="Horizontal" Margin="10">
                                 <TextBlock Text="EFT Logs Path:" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <TextBox x:Name="EftLogsPathTextBox" Width="300" IsEnabled="False" Text="{Binding EftLogsPath, UpdateSourceTrigger=PropertyChanged}"/>
-                                <Button Content="Browse" Click="BrowseEftLogsPathButton_Click" Margin="10,0,0,0"/>
+                                <Button Content="Browse" IsEnabled="{Binding UseCustomEftLogsPath}" Click="BrowseEftLogsPathButton_Click" Margin="10,0,0,0"/>
                             </StackPanel>
 
                             <StackPanel Orientation="Horizontal" Margin="10,0,0,0">
@@ -68,6 +68,7 @@
                                           Content="Use Custom EFT Logs Path" 
                                           Checked="UseCustomEftLogsPathCheckBox_Checked" 
                                           Unchecked="UseCustomEftLogsPathCheckBox_Unchecked"
+                                          IsChecked="{Binding UseCustomEftLogsPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                           ToolTip="Check this box to specify a custom directory for EFT logs. Uncheck to use the default path."/>
                             </StackPanel>
                         </StackPanel>

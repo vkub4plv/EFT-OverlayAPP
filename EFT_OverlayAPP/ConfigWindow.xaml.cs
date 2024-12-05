@@ -17,6 +17,7 @@ using System.IO;
 using NLog;
 using Ookii.Dialogs.Wpf;
 using System.ComponentModel;
+using Microsoft.Win32;
 
 namespace EFT_OverlayAPP
 {
@@ -27,6 +28,7 @@ namespace EFT_OverlayAPP
         public ObservableCollection<KeybindEntry> Keybinds { get; set; }
         public AppConfig AppConfig { get; set; }
         private DebounceDispatcher debounceDispatcher = new DebounceDispatcher(1000); // 1 second debounce
+        private const string DefaultLogsFolderName = "Logs";
         public ConfigWindow()
         {
             InitializeComponent();
@@ -190,10 +192,144 @@ namespace EFT_OverlayAPP
 
         private string GetDefaultEftLogsPath()
         {
-            // Implement logic to retrieve the default EFT Logs path
-            // This could be from AppConfig or a predefined location
-            // For example:
-            return @"C:\Battlestate Games\EFT\Logs"; // Replace with actual default path
+            try
+            {
+                string installPath = GetGameInstallPath();
+                string logsDirectory = System.IO.Path.Combine(installPath, DefaultLogsFolderName);
+
+                if (Directory.Exists(logsDirectory))
+                {
+                    return logsDirectory;
+                }
+                else
+                {
+                    throw new DirectoryNotFoundException($"Logs directory not found at: {logsDirectory}");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Could not find the default EFT logs directory. You will need to select it manually.\n\nDetails: {ex.Message}",
+                    "Logs Directory Not Found", MessageBoxButton.OK, MessageBoxImage.Warning);
+
+                // Prompt the user to manually select the logs path
+                string selectedPath = PromptForLogsPath();
+                if (!string.IsNullOrEmpty(selectedPath))
+                {
+                    // Enable "Use Custom Path" and set the selected path
+                    AppConfig.UseCustomEftLogsPath = true;
+                    AppConfig.EftLogsPath = selectedPath;
+                    SaveConfig();
+                    return selectedPath;
+                }
+
+                // Default to an empty path if no selection is made
+                return string.Empty;
+            }
+        }
+
+        private string GetGameInstallPath()
+        {
+            string gamePath = Properties.Settings.Default.GameInstallPath;
+
+            if (!string.IsNullOrEmpty(gamePath) && Directory.Exists(gamePath))
+            {
+                return gamePath;
+            }
+
+            // Check the registry for the install path
+            string uninstallKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\EscapeFromTarkov";
+
+            // Check 64-bit registry
+            using (RegistryKey key = Registry.LocalMachine.OpenSubKey(uninstallKey))
+            {
+                if (key != null)
+                {
+                    object path = key.GetValue("InstallLocation");
+                    if (path != null)
+                    {
+                        gamePath = path.ToString();
+                    }
+                }
+            }
+
+            // Check 32-bit registry if not found in 64-bit
+            if (string.IsNullOrEmpty(gamePath))
+            {
+                uninstallKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\EscapeFromTarkov";
+                using (RegistryKey key = Registry.LocalMachine.OpenSubKey(uninstallKey))
+                {
+                    if (key != null)
+                    {
+                        object path = key.GetValue("InstallLocation");
+                        if (path != null)
+                        {
+                            gamePath = path.ToString();
+                        }
+                    }
+                }
+            }
+
+            // Prompt the user to select the install path if still not found
+            if (string.IsNullOrEmpty(gamePath))
+            {
+                gamePath = PromptForGamePath();
+                if (!string.IsNullOrEmpty(gamePath))
+                {
+                    Properties.Settings.Default.GameInstallPath = gamePath;
+                    Properties.Settings.Default.Save();
+                }
+            }
+
+            return gamePath;
+        }
+
+        private string PromptForLogsPath()
+        {
+            var dialog = new VistaFolderBrowserDialog
+            {
+                Description = "Please select the directory where Escape from Tarkov logs are located."
+            };
+
+            bool? result = dialog.ShowDialog();
+            return result == true && Directory.Exists(dialog.SelectedPath) ? dialog.SelectedPath : string.Empty;
+        }
+
+        private string PromptForGamePath()
+        {
+            var dialog = new VistaFolderBrowserDialog
+            {
+                Description = "Could not determine Escape from Tarkov installation directory. Please select it manually."
+            };
+
+            bool? result = dialog.ShowDialog();
+            return result == true && Directory.Exists(dialog.SelectedPath) ? dialog.SelectedPath : string.Empty;
+        }
+
+        private void UseCustomEftLogsPath_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(AppConfig.UseCustomEftLogsPath))
+            {
+                if (AppConfig.UseCustomEftLogsPath)
+                {
+                    EftLogsPathTextBox.IsEnabled = true;
+                }
+                else
+                {
+                    EftLogsPathTextBox.IsEnabled = false;
+                    AppConfig.EftLogsPath = GetDefaultEftLogsPath();
+                }
+            }
+        }
+
+        private void BrowseEftLogsPathButton_Click(object sender, RoutedEventArgs e)
+        {
+            string selectedPath = PromptForLogsPath();
+            if (!string.IsNullOrEmpty(selectedPath))
+            {
+                AppConfig.UseCustomEftLogsPath = true;
+                AppConfig.EftLogsPath = selectedPath;
+                SaveConfig();
+            }
         }
 
         private void InitializeMonitorList()
@@ -483,42 +619,7 @@ namespace EFT_OverlayAPP
             // Placeholder: Reset overlay items positions to default
             MessageBox.Show("Overlay items positions reset to default.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
         }
-
-        // Event Handlers for Paths Settings Tab (within General)
-        private void BrowseEftLogsPathButton_Click(object sender, RoutedEventArgs e)
-        {
-            // Open folder browser dialog to select EFT Logs path
-            var dialog = new VistaFolderBrowserDialog
-            {
-                Description = "Select the EFT Logs directory.",
-                UseDescriptionForTitle = true
-            };
-
-            bool? result = dialog.ShowDialog();
-            if (result == true)
-            {
-                string selectedPath = dialog.SelectedPath;
-
-                // Validate the selected path
-                if (Directory.Exists(selectedPath))
-                {
-                    EftLogsPathTextBox.Text = selectedPath;
-
-                    // Update AppConfig with the new path if custom path is enabled
-                    if (AppConfig.UseCustomEftLogsPath)
-                    {
-                        AppConfig.EftLogsPath = selectedPath;
-                        SaveConfig();
-                    }
-                }
-                else
-                {
-                    MessageBox.Show("The selected path does not exist. Please choose a valid directory.", "Invalid Path", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    logger.Warn($"Invalid EFT Logs path selected: {selectedPath}");
-                }
-            }
-        }
-
+        
         // Handling UseCustomEftLogsPathCheckBox
         private void UseCustomEftLogsPathCheckBox_Checked(object sender, RoutedEventArgs e)
         {

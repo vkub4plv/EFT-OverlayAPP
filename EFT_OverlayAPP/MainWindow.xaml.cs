@@ -74,10 +74,19 @@ namespace EFT_OverlayAPP
             // Start loading data for RequiredItemsWindow
             StartLoadingRequiredItemsData();
 
+            IsRaidTimerVisible = false; // Initialize to false
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            configWindow = new ConfigWindow
+            {
+                Owner = this
+            };
+
             try
             {
-                string logsDirectory = GamePathHelper.GetLogsDirectory();
-                gameStateManager = new GameStateManager(logsDirectory);
+                gameStateManager = new GameStateManager(configWindow.AppConfig.EftLogsPath);
                 gameStateManager.GameStateChanged += GameStateManager_GameStateChanged;
             }
             catch (Exception ex)
@@ -86,11 +95,6 @@ namespace EFT_OverlayAPP
                 Close();
             }
 
-            IsRaidTimerVisible = false; // Initialize to false
-        }
-
-        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
-        {
             // Get the window handle
             hwnd = new WindowInteropHelper(this).Handle;
 
@@ -109,11 +113,6 @@ namespace EFT_OverlayAPP
             source = HwndSource.FromHwnd(hwnd);
             source.AddHook(HwndHook);
             RegisterHotKeys();
-
-            configWindow = new ConfigWindow
-            {
-                Owner = this
-            };
         }
 
         private void MainWindow_Closed(object sender, EventArgs e)
@@ -640,7 +639,7 @@ namespace EFT_OverlayAPP
             });
         }
 
-        private readonly GameStateManager gameStateManager;
+        public GameStateManager gameStateManager;
 
         private bool isMatching;
         public bool IsMatching
