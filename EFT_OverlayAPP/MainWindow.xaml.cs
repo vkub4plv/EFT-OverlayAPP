@@ -69,6 +69,8 @@ namespace EFT_OverlayAPP
 
             configWindow.PropertyChanged += ConfigWindow_PropertyChanged;
 
+            UtilizeAndUpdateProfileMode();
+
             // Start data loading
             Task.Run(() => DataCache.LoadDataAsync(configWindow));
 
