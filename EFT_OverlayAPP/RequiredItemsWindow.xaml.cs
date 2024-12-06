@@ -842,5 +842,73 @@ namespace EFT_OverlayAPP
                     break;
             }
         }
+
+        public async void ReloadData()
+        {
+            try
+            {
+                SaveQuantities();
+                SaveManualCombinedQuantities();
+
+                // Show loading indicator
+                LoadingGrid.Visibility = Visibility.Visible;
+                MainContent.Visibility = Visibility.Collapsed;
+
+                // Clear existing data
+                RequiredItems.Clear();
+                CombinedRequiredItems.Clear();
+                ManualCombinedRequiredItems.Clear();
+                combinedItemDictionary.Clear();
+
+                // Reload data from DataCache
+                await DataCache.LoadRequiredItemsData();
+
+                // Re-load required items
+                LoadRequiredItems();
+
+                // Re-setup CollectionView for Required Items
+                SetupRequiredItemsView();
+
+                // Re-load combined required items
+                LoadCombinedRequiredItems();
+
+                // Re-load manual combined required items
+                LoadManualCombinedRequiredItems();
+
+                // Re-populate filters
+                PopulateFilters();
+
+                // Reload quantities based on current profile mode
+                LoadQuantities();
+                LoadManualCombinedQuantities();
+
+                // Apply sorting
+                ApplyRequiredItemsSorting();
+                ApplyCombinedRequiredItemsSorting();
+                ApplyManualCombinedRequiredItemsSorting();
+
+                RequiredItemsView?.Refresh();
+                CombinedRequiredItemsView?.Refresh();
+                ManualCombinedRequiredItemsView.Refresh();
+
+                // Hide loading indicator
+                LoadingGrid.Visibility = Visibility.Collapsed;
+                MainContent.Visibility = Visibility.Visible;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error reloading data: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                logger.Error(ex, "Failed to reload data in RequiredItemsWindow.");
+            }
+        }
+
+        private void SetupRequiredItemsView()
+        {
+            RequiredItemsView = CollectionViewSource.GetDefaultView(RequiredItems);
+            RequiredItemsView.GroupDescriptions.Clear();
+            RequiredItemsView.GroupDescriptions.Add(new PropertyGroupDescription("GroupType"));
+            RequiredItemsView.Filter = RequiredItemsFilter;
+            RequiredItemsListView.ItemsSource = RequiredItemsView;
+        }
     }
 }

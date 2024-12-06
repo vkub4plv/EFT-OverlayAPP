@@ -31,8 +31,10 @@ namespace EFT_OverlayAPP
         private ConfigWindow configWindow;
         private IntPtr hwnd;
         public ProfileMode LastProfileMode { get; set; }
+        public ProfileMode lastVisibleState { get; set; }
+        public ProfileMode EffectiveProfileMode { get; set; }
 
-    private DispatcherTimer timer;
+        private DispatcherTimer timer;
         private DispatcherTimer craftsTimer;
         private TimeSpan remainingTime;
 
@@ -280,7 +282,15 @@ namespace EFT_OverlayAPP
 
             if (!requiredItemsWindow.IsVisible)
             {
-                requiredItemsWindow.Show();
+                if (lastVisibleState != EffectiveProfileMode)
+                {
+                    requiredItemsWindow.Show();
+                    requiredItemsWindow.ReloadData();
+                }
+                else
+                {
+                    requiredItemsWindow.Show();
+                }    
             }
             else
             {
@@ -757,21 +767,21 @@ namespace EFT_OverlayAPP
         public void UtilizeAndUpdateProfileMode()
         {
             // Determine the effective profile mode and use it to update config window
-            ProfileMode effectiveProfileMode = configWindow.AppConfig.SelectedProfileMode;
+            EffectiveProfileMode = configWindow.AppConfig.SelectedProfileMode;
 
             if (configWindow.AppConfig.SelectedProfileMode == ProfileMode.Automatic)
             {
-                effectiveProfileMode = SessionMode == SessionMode.Regular ? ProfileMode.Regular : ProfileMode.Pve;
-                logger.Info($"Profile mode set to Automatic. Effective Profile Mode: {effectiveProfileMode}");
+                EffectiveProfileMode = SessionMode == SessionMode.Regular ? ProfileMode.Regular : ProfileMode.Pve;
+                logger.Info($"Profile mode set to Automatic. Effective Profile Mode: {EffectiveProfileMode}");
             }
             else
             {
-                logger.Info($"Profile mode set manually to: {effectiveProfileMode}");
+                logger.Info($"Profile mode set manually to: {EffectiveProfileMode}");
             }
 
-            configWindow.ChangeCurrentProfileModeTextBlock_Text(effectiveProfileMode);
-            configWindow.DetermineListContent(effectiveProfileMode);
-            switch (effectiveProfileMode)
+            configWindow.ChangeCurrentProfileModeTextBlock_Text(EffectiveProfileMode);
+            configWindow.DetermineListContent(EffectiveProfileMode);
+            switch (EffectiveProfileMode)
             {
                 case (ProfileMode.Regular):
                     App.IsPVEMode = false;
@@ -781,12 +791,18 @@ namespace EFT_OverlayAPP
                     break;
             }
 
-            // Reload data in RequiredItemsWindow
-            if (LastProfileMode != effectiveProfileMode && requiredItemsWindow != null)
+            if(requiredItemsWindow != null && requiredItemsWindow.IsVisible)
             {
+                lastVisibleState = EffectiveProfileMode;
             }
 
-            LastProfileMode = effectiveProfileMode;
+            // Reload data in RequiredItemsWindow
+            if (LastProfileMode != EffectiveProfileMode && requiredItemsWindow != null && requiredItemsWindow.IsVisible)
+            {
+                requiredItemsWindow.ReloadData();
+            }
+
+            LastProfileMode = EffectiveProfileMode;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
