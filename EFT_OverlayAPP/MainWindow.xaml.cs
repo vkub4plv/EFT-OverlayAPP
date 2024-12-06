@@ -30,8 +30,9 @@ namespace EFT_OverlayAPP
         private RequiredItemsWindow requiredItemsWindow;
         private ConfigWindow configWindow;
         private IntPtr hwnd;
+        public ProfileMode LastProfileMode { get; set; }
 
-        private DispatcherTimer timer;
+    private DispatcherTimer timer;
         private DispatcherTimer craftsTimer;
         private TimeSpan remainingTime;
 
@@ -770,6 +771,22 @@ namespace EFT_OverlayAPP
 
             configWindow.ChangeCurrentProfileModeTextBlock_Text(effectiveProfileMode);
             configWindow.DetermineListContent(effectiveProfileMode);
+            switch (effectiveProfileMode)
+            {
+                case (ProfileMode.Regular):
+                    App.IsPVEMode = false;
+                    break;
+                case (ProfileMode.Pve):
+                    App.IsPVEMode = true;
+                    break;
+            }
+
+            // Reload data in RequiredItemsWindow
+            if (LastProfileMode != effectiveProfileMode && requiredItemsWindow != null)
+            {
+            }
+
+            LastProfileMode = effectiveProfileMode;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

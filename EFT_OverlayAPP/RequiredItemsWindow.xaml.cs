@@ -1,8 +1,10 @@
 ﻿using Newtonsoft.Json;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,10 +21,13 @@ namespace EFT_OverlayAPP
 {
     public partial class RequiredItemsWindow : Window
     {
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         private Dictionary<string, CombinedRequiredItemEntry> combinedItemDictionary = new Dictionary<string, CombinedRequiredItemEntry>();
         public ObservableCollection<RequiredItemEntry> RequiredItems { get; set; } = new ObservableCollection<RequiredItemEntry>();
         private ICollectionView RequiredItemsView;
         public ConfigWindow ConfigWindow { get; set; }
+        private bool loadedAsPVE = false;
+        private bool loadedManualAsPVE = false;
 
         public RequiredItemsWindow(ConfigWindow configWindow)
         {
@@ -327,12 +332,15 @@ namespace EFT_OverlayAPP
                     QuantityOwned = e.QuantityOwned
                 }).ToList();
 
-                string json = JsonConvert.SerializeObject(quantitiesData);
-                System.IO.File.WriteAllText("quantities.json", json);
+                string json = JsonConvert.SerializeObject(quantitiesData, Formatting.Indented);
+                string quantitiesFile = loadedAsPVE ? "quantities_pve.json" : "quantities.json";
+                File.WriteAllText(quantitiesFile, json);
+                logger.Info($"Quantities saved to '{quantitiesFile}'.");
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error saving quantities: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                logger.Error(ex, "Failed to save quantities.");
             }
         }
 
@@ -340,9 +348,19 @@ namespace EFT_OverlayAPP
         {
             try
             {
-                if (System.IO.File.Exists("quantities.json"))
+                string quantitiesFile = App.IsPVEMode ? "quantities_pve.json" : "quantities.json";
+                if (App.IsPVEMode)
                 {
-                    string json = System.IO.File.ReadAllText("quantities.json");
+                    loadedAsPVE = true;
+                }
+                else
+                {
+                    loadedAsPVE = false;
+                }
+
+                if (File.Exists(quantitiesFile))
+                {
+                    string json = File.ReadAllText(quantitiesFile);
                     var quantitiesData = JsonConvert.DeserializeObject<List<RequiredItemQuantity>>(json);
                     foreach (var data in quantitiesData)
                     {
@@ -353,10 +371,15 @@ namespace EFT_OverlayAPP
                         }
                     }
                 }
+                else
+                {
+                    logger.Warn($"Quantities file '{quantitiesFile}' does not exist.");
+                }
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error loading quantities: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                logger.Error(ex, "Failed to load quantities.");
             }
         }
 
@@ -710,12 +733,15 @@ namespace EFT_OverlayAPP
                     QuantityOwned = e.QuantityOwned
                 }).ToList();
 
-                string json = JsonConvert.SerializeObject(quantitiesData);
-                System.IO.File.WriteAllText("manual_combined_quantities.json", json);
+                string json = JsonConvert.SerializeObject(quantitiesData, Formatting.Indented);
+                string manualQuantitiesFile = loadedManualAsPVE ? "manual_combined_quantities_pve.json" : "manual_combined_quantities.json";
+                File.WriteAllText(manualQuantitiesFile, json);
+                logger.Info($"Manual combined quantities saved to '{manualQuantitiesFile}'.");
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error saving manual combined quantities: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                logger.Error(ex, "Failed to save manual combined quantities.");
             }
         }
 
@@ -723,9 +749,19 @@ namespace EFT_OverlayAPP
         {
             try
             {
-                if (System.IO.File.Exists("manual_combined_quantities.json"))
+                string manualQuantitiesFile = App.IsPVEMode ? "manual_combined_quantities_pve.json" : "manual_combined_quantities.json";
+                if (App.IsPVEMode)
                 {
-                    string json = System.IO.File.ReadAllText("manual_combined_quantities.json");
+                    loadedManualAsPVE = true;
+                }
+                else
+                {
+                    loadedManualAsPVE = false;
+                }
+
+                if (File.Exists(manualQuantitiesFile))
+                {
+                    string json = File.ReadAllText(manualQuantitiesFile);
                     var quantitiesData = JsonConvert.DeserializeObject<List<RequiredItemQuantity>>(json);
                     foreach (var data in quantitiesData)
                     {
@@ -736,10 +772,15 @@ namespace EFT_OverlayAPP
                         }
                     }
                 }
+                else
+                {
+                    logger.Warn($"Manual combined quantities file '{manualQuantitiesFile}' does not exist.");
+                }
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error loading manual combined quantities: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                logger.Error(ex, "Failed to load manual combined quantities.");
             }
         }
 

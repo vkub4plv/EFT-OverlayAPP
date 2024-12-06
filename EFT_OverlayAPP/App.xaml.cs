@@ -8,6 +8,7 @@ namespace EFT_OverlayAPP
     public partial class App : Application
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        public static bool IsPVEMode { get; set; }
 
         protected override void OnStartup(StartupEventArgs e)
         {
