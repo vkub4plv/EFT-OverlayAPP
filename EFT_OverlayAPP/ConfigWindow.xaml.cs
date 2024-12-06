@@ -35,7 +35,6 @@ namespace EFT_OverlayAPP
             InitializeComponent();
             LoadConfig();
             this.DataContext = AppConfig;
-            this.Owner = mainWindow;
             MainWindow = mainWindow;
             InitializeMonitorList();
             InitializeStartingTabs();
