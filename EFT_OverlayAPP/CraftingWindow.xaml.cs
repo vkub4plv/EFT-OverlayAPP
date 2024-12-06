@@ -168,7 +168,7 @@ namespace EFT_OverlayAPP
             ApplySorting();
 
             // Load saved craft instances
-            var loadedCraftInstances = CraftingDataManager.LoadCraftInstancesData(ConfigWindow.AppConfig.CraftInstancesDataFileName);
+            var loadedCraftInstances = CraftingDataManager.LoadCraftInstancesData();
             foreach (var craftInstance in loadedCraftInstances)
             {
                 // Find the corresponding CraftableItem
@@ -528,10 +528,10 @@ namespace EFT_OverlayAPP
                 .Where(c => c.CraftStatus != CraftStatus.NotStarted)
                 .ToList();
 
-            CraftingDataManager.SaveCraftsData(activeCrafts, ConfigWindow.AppConfig.CraftsDataFileName);
+            CraftingDataManager.SaveCraftsData(activeCrafts);
 
             // Save craft instances
-            CraftingDataManager.SaveCraftInstancesData(CraftInstances.ToList(), ConfigWindow.AppConfig.CraftInstancesDataFileName);
+            CraftingDataManager.SaveCraftInstancesData(CraftInstances.ToList());
         }
 
         private CraftInstance FindActiveCraftInstance(CraftableItem item)

@@ -63,6 +63,7 @@ namespace EFT_OverlayAPP
         {
             if (App.IsPVEMode)
             {
+                SaveCraftsDataWithPVE = true;
                 try
                 {
                     if (File.Exists("craftsDataPVE.json"))
@@ -84,6 +85,7 @@ namespace EFT_OverlayAPP
             }
             else
             {
+                SaveCraftsDataWithPVE = false;
                 try
                 {
                     if (File.Exists("craftsData.json"))
@@ -141,6 +143,7 @@ namespace EFT_OverlayAPP
         {
             if (App.IsPVEMode)
             {
+                SaveCraftInstancesDataWithPVE = true;
                 try
                 {
                     if (File.Exists("craftInstancesDataPVE.json"))
@@ -162,6 +165,7 @@ namespace EFT_OverlayAPP
             }
             else
             {
+                SaveCraftInstancesDataWithPVE = false;
                 try
                 {
                     if (File.Exists("craftInstancesData.json"))

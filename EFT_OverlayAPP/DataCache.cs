@@ -402,7 +402,7 @@ namespace EFT_OverlayAPP
 
                 // Load crafts data
                 logger.Info("Loading saved crafts data.");
-                var savedCrafts = CraftingDataManager.LoadCraftsData(ConfigWindow.AppConfig.CraftsDataFileName);
+                var savedCrafts = CraftingDataManager.LoadCraftsData();
 
                 logger.Info("Fetching craftable items from API.");
                 CraftableItems = await FetchCraftableItemsAsync(ConfigWindow);
