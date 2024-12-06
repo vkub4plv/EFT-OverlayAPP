@@ -149,7 +149,7 @@ namespace EFT_OverlayAPP
             }
 
             // Load saved favorite item order
-            DataCache.LoadFavoriteItemOrder(FavoriteItems, ConfigWindow.AppConfig.FavoritesItemOrderFileName);
+            DataCache.LoadFavoriteItemOrder(FavoriteItems);
 
             // Set up views and filters
             ComputeCraftStats();
@@ -742,7 +742,7 @@ namespace EFT_OverlayAPP
                 e.Action == NotifyCollectionChangedAction.Add ||
                 e.Action == NotifyCollectionChangedAction.Remove)
             {
-                DataCache.SaveFavoriteItemOrder(FavoriteItems, ConfigWindow.AppConfig.FavoritesItemOrderFileName);
+                DataCache.SaveFavoriteItemOrder(FavoriteItems);
             }
         }
 
@@ -866,7 +866,7 @@ namespace EFT_OverlayAPP
                     FavoritesView.Refresh();
 
                     // Save the updated order
-                    DataCache.SaveFavoriteItemOrder(FavoriteItems, ConfigWindow.AppConfig.FavoritesItemOrderFileName);
+                    DataCache.SaveFavoriteItemOrder(FavoriteItems);
                 }
             }
         }

@@ -24,6 +24,8 @@ namespace EFT_OverlayAPP
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         private const string ConfigFilePath = "config.json";
+        private static bool SaveFavoritesWithPVE = false;
+        private static bool SaveFavoriteItemOrderWithPVE = false;
 
         // Define the static category order
         public static readonly List<string> StaticCategoryOrder = new List<string>
@@ -324,7 +326,7 @@ namespace EFT_OverlayAPP
             if (!favoriteIds.Contains(id))
             {
                 favoriteIds.Add(id);
-                SaveFavorites(ConfigWindow.AppConfig.FavoritesFileName);
+                SaveFavorites();
             }
         }
 
@@ -333,27 +335,49 @@ namespace EFT_OverlayAPP
             if (favoriteIds.Contains(id))
             {
                 favoriteIds.Remove(id);
-                SaveFavorites(ConfigWindow.AppConfig.FavoritesFileName);
+                SaveFavorites();
             }
         }
 
-        private static void SaveFavorites(string filePath)
+        private static void SaveFavorites()
         {
             string json = JsonConvert.SerializeObject(favoriteIds);
-            File.WriteAllText(filePath, json);
+            if (SaveFavoritesWithPVE)
+            {
+                File.WriteAllText("favoritesPVE.json", json);
+            }
+            else
+            {
+                File.WriteAllText("favorites.json", json);
+            }
         }
 
-        private static void LoadFavorites(string filePath)
+        private static void LoadFavorites()
         {
-            if (File.Exists(filePath))
+            if (App.IsPVEMode)
             {
-                string json = File.ReadAllText(filePath);
-                favoriteIds = JsonConvert.DeserializeObject<List<string>>(json);
+                SaveFavoritesWithPVE = true;
+                if (File.Exists("favoritesPVE.json"))
+                {
+                    string json = File.ReadAllText("favoritesPVE.json");
+                    favoriteIds = JsonConvert.DeserializeObject<List<string>>(json);
+                }
             }
+            else
+            {
+
+                SaveFavoritesWithPVE = false;
+                if (File.Exists("favorites.json"))
+                {
+                    string json = File.ReadAllText("favorites.json");
+                    favoriteIds = JsonConvert.DeserializeObject<List<string>>(json);
+                }
+            }
+
         }
 
         // Methods for saving and loading favorite item order
-        public static void SaveFavoriteItemOrder(IList<CraftableItem> favoriteItems, string filePath)
+        public static void SaveFavoriteItemOrder(IList<CraftableItem> favoriteItems)
         {
             for (int i = 0; i < favoriteItems.Count; i++)
             {
@@ -361,32 +385,71 @@ namespace EFT_OverlayAPP
             }
             var itemOrder = favoriteItems.Select(i => i.Id).ToList();
             string json = JsonConvert.SerializeObject(itemOrder);
-            File.WriteAllText(filePath, json);
+            if (SaveFavoriteItemOrderWithPVE)
+            {
+                File.WriteAllText("favoritesItemOrderPVE.json", json);
+            }
+            else
+            {
+                File.WriteAllText("favoritesItemOrder.json", json);
+            }
         }
 
-        public static void LoadFavoriteItemOrder(ObservableCollection<CraftableItem> favoriteItems, string filePath)
+        public static void LoadFavoriteItemOrder(ObservableCollection<CraftableItem> favoriteItems)
         {
-            if (File.Exists(filePath))
+            if (App.IsPVEMode)
             {
-                string json = File.ReadAllText(filePath);
-                var itemOrder = JsonConvert.DeserializeObject<List<string>>(json);
-
-                int sortOrder = 0;
-                foreach (var id in itemOrder)
+                SaveFavoriteItemOrderWithPVE = true;
+                if (File.Exists("favoritesItemOrderPVE.json"))
                 {
-                    var item = favoriteItems.FirstOrDefault(i => i.Id == id);
-                    if (item != null)
+                    string json = File.ReadAllText("favoritesItemOrderPVE.json");
+                    var itemOrder = JsonConvert.DeserializeObject<List<string>>(json);
+
+                    int sortOrder = 0;
+                    foreach (var id in itemOrder)
                     {
-                        item.FavoriteSortOrder = sortOrder++;
+                        var item = favoriteItems.FirstOrDefault(i => i.Id == id);
+                        if (item != null)
+                        {
+                            item.FavoriteSortOrder = sortOrder++;
+                        }
+                    }
+
+                    // Assign FavoriteSortOrder to new items
+                    foreach (var item in favoriteItems)
+                    {
+                        if (item.FavoriteSortOrder == 0 && !itemOrder.Contains(item.Id))
+                        {
+                            item.FavoriteSortOrder = sortOrder++;
+                        }
                     }
                 }
-
-                // Assign FavoriteSortOrder to new items
-                foreach (var item in favoriteItems)
+            }
+            else
+            {
+                SaveFavoriteItemOrderWithPVE = false;
+                if (File.Exists("favoritesItemOrder.json"))
                 {
-                    if (item.FavoriteSortOrder == 0 && !itemOrder.Contains(item.Id))
+                    string json = File.ReadAllText("favoritesItemOrder.json");
+                    var itemOrder = JsonConvert.DeserializeObject<List<string>>(json);
+
+                    int sortOrder = 0;
+                    foreach (var id in itemOrder)
                     {
-                        item.FavoriteSortOrder = sortOrder++;
+                        var item = favoriteItems.FirstOrDefault(i => i.Id == id);
+                        if (item != null)
+                        {
+                            item.FavoriteSortOrder = sortOrder++;
+                        }
+                    }
+
+                    // Assign FavoriteSortOrder to new items
+                    foreach (var item in favoriteItems)
+                    {
+                        if (item.FavoriteSortOrder == 0 && !itemOrder.Contains(item.Id))
+                        {
+                            item.FavoriteSortOrder = sortOrder++;
+                        }
                     }
                 }
             }
@@ -398,7 +461,7 @@ namespace EFT_OverlayAPP
             {
                 logger.Info("Starting data load.");
 
-                LoadFavorites(ConfigWindow.AppConfig.FavoritesFileName);
+                LoadFavorites();
 
                 // Load crafts data
                 logger.Info("Loading saved crafts data.");
@@ -450,7 +513,7 @@ namespace EFT_OverlayAPP
                 }
 
                 // Load saved favorite item order
-                LoadFavoriteItemOrder(new ObservableCollection<CraftableItem>(favoriteItems), ConfigWindow.AppConfig.FavoritesItemOrderFileName);
+                LoadFavoriteItemOrder(new ObservableCollection<CraftableItem>(favoriteItems));
 
                 IsDataLoaded = true;
 
