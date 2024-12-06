@@ -16,9 +16,6 @@ namespace EFT_OverlayAPP
 
             logger.Info("Application starting up.");
 
-            // Start data loading
-            Task.Run(() => DataCache.LoadDataAsync());
-
             // Show the main window
             MainWindow mainWindow = new MainWindow();
             MainWindow = mainWindow; // Set the main window

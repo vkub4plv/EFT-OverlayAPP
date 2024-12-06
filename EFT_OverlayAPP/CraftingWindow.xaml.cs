@@ -722,12 +722,12 @@ namespace EFT_OverlayAPP
                 {
                     item.FavoriteSortOrder = FavoriteItems.Count; // Assign the next sort order
                     FavoriteItems.Add(item);
-                    DataCache.AddFavoriteId(item.Id);
+                    DataCache.AddFavoriteId(item.Id, ConfigWindow);
                 }
                 else if (!item.IsFavorite && FavoriteItems.Contains(item))
                 {
                     FavoriteItems.Remove(item);
-                    DataCache.RemoveFavoriteId(item.Id);
+                    DataCache.RemoveFavoriteId(item.Id, ConfigWindow);
                 }
 
                 // Update the favorites category filter

@@ -65,6 +65,13 @@ namespace EFT_OverlayAPP
             this.Closed += MainWindow_Closed;
             DataContext = this;
 
+            configWindow = new ConfigWindow(this);
+
+            configWindow.PropertyChanged += ConfigWindow_PropertyChanged;
+
+            // Start data loading
+            Task.Run(() => DataCache.LoadDataAsync(configWindow));
+
             // Subscribe to DataLoaded event
             DataCache.DataLoaded += OnDataLoaded;
 
@@ -82,13 +89,6 @@ namespace EFT_OverlayAPP
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            configWindow = new ConfigWindow(this)
-            {
-                Owner = this
-            };
-
-            configWindow.PropertyChanged += ConfigWindow_PropertyChanged;
-
             try
             {
                 gameStateManager = new GameStateManager(configWindow.AppConfig.EftLogsPath);
@@ -302,10 +302,7 @@ namespace EFT_OverlayAPP
         {
             if (configWindow == null)
             {
-                configWindow = new ConfigWindow(this)
-                {
-                    Owner = this
-                };
+                configWindow = new ConfigWindow(this);
             }
 
             if (!configWindow.IsVisible)

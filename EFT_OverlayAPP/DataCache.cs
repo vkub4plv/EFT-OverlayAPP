@@ -23,30 +23,7 @@ namespace EFT_OverlayAPP
     public static class DataCache
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
-        public static AppConfig appConfig { get; set; }
         private const string ConfigFilePath = "config.json";
-        private static void LoadConfig()
-        {
-            if (File.Exists(ConfigFilePath))
-            {
-                try
-                {
-                    string json = File.ReadAllText(ConfigFilePath);
-                    appConfig = JsonConvert.DeserializeObject<AppConfig>(json);
-                }
-                catch (Exception ex)
-                {
-                    logger.Error(ex, "Failed to load configuration. Initializing with Crafting Level 0.");
-                    appConfig.CurrentCraftingLevel = 0;
-                    appConfig.EffectiveProfileMode = ProfileMode.Regular;
-                }
-            }
-            else
-            {
-                appConfig.CurrentCraftingLevel = 0;
-                appConfig.EffectiveProfileMode = ProfileMode.Regular;
-            }
-        }
 
         // Define the static category order
         public static readonly List<string> StaticCategoryOrder = new List<string>
@@ -77,9 +54,8 @@ namespace EFT_OverlayAPP
         private static List<string> favoriteIds = new List<string>();
 
         // Fetch data from the GraphQL API
-        public static async Task<List<CraftableItem>> FetchCraftableItemsAsync()
+        public static async Task<List<CraftableItem>> FetchCraftableItemsAsync(ConfigWindow ConfigWindow)
         {
-            LoadConfig();
             var craftableItems = new List<CraftableItem>();
             using (HttpClient client = new HttpClient())
             {
@@ -124,7 +100,7 @@ namespace EFT_OverlayAPP
                             foreach (var craft in graphQLResponse.Data.Crafts)
                             {
                                 CraftableItem craftableItem;
-                                if (appConfig.CurrentCraftingLevel == 51)
+                                if (ConfigWindow.AppConfig.CurrentCraftingLevel == 51)
                                 {
                                     craftableItem = new CraftableItem
                                     {
@@ -148,7 +124,7 @@ namespace EFT_OverlayAPP
                                     {
                                         Id = craft.Id,
                                         Station = NormalizeStationName(craft.Station?.Name),
-                                        CraftTime = TimeSpan.FromSeconds(craft.Duration * (1-(appConfig.CurrentCraftingLevel*0.0075)) ?? 0),
+                                        CraftTime = TimeSpan.FromSeconds(craft.Duration * (1-(ConfigWindow.AppConfig.CurrentCraftingLevel*0.0075)) ?? 0),
                                         RewardItems = craft.RewardItems.Select(rewardItem => new RewardItemDetail
                                         {
                                             Id = rewardItem.Item.Id,
@@ -343,21 +319,21 @@ namespace EFT_OverlayAPP
             return stationName?.Trim() ?? "Unknown";
         }
 
-        public static void AddFavoriteId(string id)
+        public static void AddFavoriteId(string id, ConfigWindow ConfigWindow)
         {
             if (!favoriteIds.Contains(id))
             {
                 favoriteIds.Add(id);
-                SaveFavorites(appConfig.FavoritesFileName);
+                SaveFavorites(ConfigWindow.AppConfig.FavoritesFileName);
             }
         }
 
-        public static void RemoveFavoriteId(string id)
+        public static void RemoveFavoriteId(string id, ConfigWindow ConfigWindow)
         {
             if (favoriteIds.Contains(id))
             {
                 favoriteIds.Remove(id);
-                SaveFavorites(appConfig.FavoritesFileName);
+                SaveFavorites(ConfigWindow.AppConfig.FavoritesFileName);
             }
         }
 
@@ -416,21 +392,20 @@ namespace EFT_OverlayAPP
             }
         }
 
-        public static async Task LoadDataAsync()
+        public static async Task LoadDataAsync(ConfigWindow ConfigWindow)
         {
-            LoadConfig();
             if (!IsDataLoaded)
             {
                 logger.Info("Starting data load.");
 
-                LoadFavorites(appConfig.FavoritesFileName);
+                LoadFavorites(ConfigWindow.AppConfig.FavoritesFileName);
 
                 // Load crafts data
                 logger.Info("Loading saved crafts data.");
-                var savedCrafts = CraftingDataManager.LoadCraftsData(appConfig.CraftsDataFileName);
+                var savedCrafts = CraftingDataManager.LoadCraftsData(ConfigWindow.AppConfig.CraftsDataFileName);
 
                 logger.Info("Fetching craftable items from API.");
-                CraftableItems = await FetchCraftableItemsAsync();
+                CraftableItems = await FetchCraftableItemsAsync(ConfigWindow);
 
                 logger.Info("Fetching craft module settings from API.");
                 var craftModules = await FetchCraftModuleSettingsAsync();
@@ -475,7 +450,7 @@ namespace EFT_OverlayAPP
                 }
 
                 // Load saved favorite item order
-                LoadFavoriteItemOrder(new ObservableCollection<CraftableItem>(favoriteItems), appConfig.FavoritesItemOrderFileName);
+                LoadFavoriteItemOrder(new ObservableCollection<CraftableItem>(favoriteItems), ConfigWindow.AppConfig.FavoritesItemOrderFileName);
 
                 IsDataLoaded = true;
 
