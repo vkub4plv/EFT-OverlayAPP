@@ -21,7 +21,7 @@ using Microsoft.Win32;
 
 namespace EFT_OverlayAPP
 {
-    public partial class ConfigWindow : Window
+    public partial class ConfigWindow : Window, INotifyPropertyChanged
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         private const string ConfigFilePath = "config.json";
@@ -394,10 +394,25 @@ namespace EFT_OverlayAPP
                         break;
                 }
 
-                // Update CurrentProfileModeTextBlock
-                CurrentProfileModeTextBlock.Text = selectedContent;
+                // Notify of property change SelectedProfileMode
+                OnPropertyChanged(nameof(AppConfig.SelectedProfileMode));
 
                 // Optionally, trigger changes based on profile mode
+            }
+        }
+
+        public void ChangeCurrentProfileModeTextBlock_Text(ProfileMode effectiveProfileMode)
+        {
+            switch (effectiveProfileMode)
+            {
+                case ProfileMode.Regular:
+                    CurrentProfileModeTextBlock.Text = "Regular (PVP)";
+                    logger.Info("Profile mode textblock set to Regular (PVP).");
+                    break;
+                case ProfileMode.Pve:
+                    CurrentProfileModeTextBlock.Text = "PVE";
+                    logger.Info("Profile mode textblock set to PVE.");
+                    break;
             }
         }
 
@@ -870,5 +885,9 @@ namespace EFT_OverlayAPP
                 debounceDispatcher.Debounce(() => SaveConfig());
             }
         }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string propertyName) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }

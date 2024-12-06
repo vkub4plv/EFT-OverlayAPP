@@ -84,6 +84,8 @@ namespace EFT_OverlayAPP
                 Owner = this
             };
 
+            configWindow.PropertyChanged += ConfigWindow_PropertyChanged;
+
             try
             {
                 gameStateManager = new GameStateManager(configWindow.AppConfig.EftLogsPath);
@@ -708,6 +710,9 @@ namespace EFT_OverlayAPP
 
                 logger.Info($"GameState changed: IsInRaid={IsInRaid}, IsMatching={IsMatching}, CurrentMap='{CurrentMap}', SessionMode='{SessionMode}'");
 
+                // Determine the effective profile mode and use it to update config window
+                UtilizeAndUpdateProfileMode();
+
                 // Show or hide the WebViewWindow based on CurrentMap
                 if (string.IsNullOrEmpty(CurrentMap))
                 {
@@ -741,6 +746,29 @@ namespace EFT_OverlayAPP
                 }
 
             });
+        }
+
+        private void ConfigWindow_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            UtilizeAndUpdateProfileMode();
+        }
+
+        private void UtilizeAndUpdateProfileMode()
+        {
+            // Determine the effective profile mode and use it to update config window
+            ProfileMode effectiveProfileMode = configWindow.AppConfig.SelectedProfileMode;
+
+            if (configWindow.AppConfig.SelectedProfileMode == ProfileMode.Automatic)
+            {
+                effectiveProfileMode = SessionMode == SessionMode.Regular ? ProfileMode.Regular : ProfileMode.Pve;
+                logger.Info($"Profile mode set to Automatic. Effective Profile Mode: {effectiveProfileMode}");
+            }
+            else
+            {
+                logger.Info($"Profile mode set manually to: {effectiveProfileMode}");
+            }
+
+            configWindow.ChangeCurrentProfileModeTextBlock_Text(effectiveProfileMode);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
