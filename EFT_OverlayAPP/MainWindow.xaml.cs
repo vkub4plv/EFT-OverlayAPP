@@ -769,6 +769,7 @@ namespace EFT_OverlayAPP
             }
 
             configWindow.ChangeCurrentProfileModeTextBlock_Text(effectiveProfileMode);
+            configWindow.DetermineListContent(effectiveProfileMode);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

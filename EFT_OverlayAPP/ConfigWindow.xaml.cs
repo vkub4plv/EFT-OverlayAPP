@@ -49,7 +49,7 @@ namespace EFT_OverlayAPP
 
         private async void ConfigWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            await LoadHideoutModulesAsync();
+            await InitializeHideoutModulesAsync();
             LoadCraftModuleSettingsAsync();
         }
 
@@ -416,6 +416,21 @@ namespace EFT_OverlayAPP
             }
         }
 
+        public void DetermineListContent(ProfileMode effectiveProfileMode)
+        {
+            switch (effectiveProfileMode)
+            {
+                case ProfileMode.Regular:
+                    CurrentProfileModeTextBlock.Text = "Regular (PVP)";
+                    logger.Info("Profile mode textblock set to Regular (PVP).");
+                    break;
+                case ProfileMode.Pve:
+                    CurrentProfileModeTextBlock.Text = "PVE";
+                    logger.Info("Profile mode textblock set to PVE.");
+                    break;
+            }
+        }
+
         // Event Handler for Crafting Level Slider
         private void CraftingLevelSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
@@ -470,66 +485,6 @@ namespace EFT_OverlayAPP
                 MessageBox.Show($"Failed to load craft module settings: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 logger.Error(ex, "Failed to load craft module settings.");
             }
-        }
-
-        private async Task LoadHideoutModulesAsync()
-        {
-            await DataCache.LoadRequiredItemsData();
-
-            if (DataCache.HideoutStations == null || !DataCache.HideoutStations.Any())
-            {
-                MessageBox.Show("No hideout stations data available.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                logger.Error("Hideout stations data is empty.");
-                return;
-            }
-
-            // Preserve existing settings by using a dictionary
-            var existingSettingsDict = AppConfig.HideoutModuleSettings.ToDictionary(h => h.ModuleName, h => h.SelectedLevel);
-
-            // Clear existing settings to prevent duplicates
-            AppConfig.HideoutModuleSettings.Clear();
-
-            foreach (var station in DataCache.HideoutStations)
-            {
-                var levels = station.Levels.Select(l => l.Level).OrderBy(l => l).ToList();
-
-                // Insert 0 for unbuilt
-                var availableLevels = new List<int> { 0 };
-                availableLevels.AddRange(levels);
-
-                // Determine selected level
-                int selectedLevel = 0; // default to unbuilt
-
-                if (existingSettingsDict.TryGetValue(station.Name, out int level))
-                {
-                    // Validate the selected level exists for the station or is 0
-                    if (level == 0 || levels.Contains(level))
-                    {
-                        selectedLevel = level;
-                    }
-                    else
-                    {
-                        selectedLevel = levels.Min();
-                    }
-                }
-
-                var moduleSetting = new HideoutModuleSetting
-                {
-                    ModuleName = station.Name,
-                    SelectedLevel = selectedLevel
-                };
-
-                // Populate AvailableLevels
-                foreach (var lvl in availableLevels)
-                {
-                    moduleSetting.AvailableLevels.Add(lvl);
-                }
-
-                AppConfig.HideoutModuleSettings.Add(moduleSetting);
-            }
-
-            // Bind the collection to the ListView
-            HideoutModulesListView.ItemsSource = AppConfig.HideoutModuleSettings;
         }
 
         // Event Handler for PropertyChanged events in HideoutModuleSettings
@@ -595,6 +550,9 @@ namespace EFT_OverlayAPP
                     {
                         moduleSetting.AvailableLevels.Add(lvl);
                     }
+
+                    // UnSubscribe from PropertyChanged event to prevent memory leaks
+                    moduleSetting.PropertyChanged -= HideoutModuleSetting_PropertyChanged;
 
                     // Subscribe to PropertyChanged event for automatic saving
                     moduleSetting.PropertyChanged += HideoutModuleSetting_PropertyChanged;
