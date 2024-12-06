@@ -779,6 +779,7 @@ namespace EFT_OverlayAPP
                 logger.Info($"Profile mode set manually to: {EffectiveProfileMode}");
             }
 
+            configWindow.SaveEffectiveProfileMode(EffectiveProfileMode);
             configWindow.ChangeCurrentProfileModeTextBlock_Text(EffectiveProfileMode);
             configWindow.DetermineListContent(EffectiveProfileMode);
             switch (EffectiveProfileMode)

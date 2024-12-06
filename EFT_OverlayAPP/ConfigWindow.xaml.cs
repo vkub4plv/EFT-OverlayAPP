@@ -435,7 +435,22 @@ namespace EFT_OverlayAPP
                 case ProfileMode.Pve:
                     await InitializeHideoutModulesAsyncPVE();
                     await LoadCraftModuleSettingsAsyncPVE();
-                    logger.Info("PLoaded lists with PVE profile.");
+                    logger.Info("Loaded lists with PVE profile.");
+                    break;
+            }
+        }
+
+        public void SaveEffectiveProfileMode(ProfileMode effectiveProfileMode)
+        {
+            switch (effectiveProfileMode)
+            {
+                case ProfileMode.Regular:
+                    AppConfig.EffectiveProfileMode = ProfileMode.Regular;
+                    logger.Info("Loaded lists with Regular profile.");
+                    break;
+                case ProfileMode.Pve:
+                    AppConfig.EffectiveProfileMode = ProfileMode.Pve;
+                    logger.Info("Loaded lists with PVE profile.");
                     break;
             }
         }

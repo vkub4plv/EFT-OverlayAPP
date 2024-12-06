@@ -599,6 +599,32 @@ namespace EFT_OverlayAPP
 
     public class AppConfig : INotifyPropertyChanged
     {
+        // Define file name templates
+        public string FavoritesFileName => EffectiveProfileMode == ProfileMode.Pve ? "favoritesPVE.json" : "favorites.json";
+        public string FavoritesItemOrderFileName => EffectiveProfileMode == ProfileMode.Pve ? "favoritesItemOrderPVE.json" : "favoritesItemOrder.json";
+        public string CraftsDataFileName => EffectiveProfileMode == ProfileMode.Pve ? "craftsDataPVE.json" : "craftsData.json";
+        public string CraftInstancesDataFileName => EffectiveProfileMode == ProfileMode.Pve ? "craftInstancesDataPVE.json" : "craftInstancesData.json";
+
+        // Property to hold EffectiveProfileMode
+        private ProfileMode effectiveProfileMode;
+        public ProfileMode EffectiveProfileMode
+        {
+            get => effectiveProfileMode;
+            set
+            {
+                if (effectiveProfileMode != value)
+                {
+                    effectiveProfileMode = value;
+                    OnPropertyChanged(nameof(EffectiveProfileMode));
+                    OnPropertyChanged(nameof(FavoritesFileName));
+                    OnPropertyChanged(nameof(FavoritesItemOrderFileName));
+                    OnPropertyChanged(nameof(CraftsDataFileName));
+                    OnPropertyChanged(nameof(CraftInstancesDataFileName));
+                    // Notify other dependent properties if any
+                }
+            }
+        }
+
         private bool _isManualHideoutSource;
         public bool IsManualHideoutSource
         {

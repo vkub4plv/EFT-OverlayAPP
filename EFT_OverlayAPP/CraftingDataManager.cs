@@ -12,8 +12,6 @@ namespace EFT_OverlayAPP
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        private static readonly string CraftsDataFilePath = "craftsData.json";
-
         // Create serializer settings with appropriate converters
         private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
         {
@@ -30,12 +28,12 @@ namespace EFT_OverlayAPP
 
 
         // Method to save crafts data
-        public static void SaveCraftsData(List<CraftableItem> crafts)
+        public static void SaveCraftsData(List<CraftableItem> crafts, string filePath)
         {
             try
             {
                 string json = JsonConvert.SerializeObject(crafts, SerializerSettings);
-                File.WriteAllText(CraftsDataFilePath, json);
+                File.WriteAllText(filePath, json);
             }
             catch (Exception ex)
             {
@@ -44,20 +42,20 @@ namespace EFT_OverlayAPP
         }
 
         // Method to load crafts data
-        public static List<CraftableItem> LoadCraftsData()
+        public static List<CraftableItem> LoadCraftsData(string filePath)
         {
             try
             {
-                if (File.Exists(CraftsDataFilePath))
+                if (File.Exists(filePath))
                 {
-                    string json = File.ReadAllText(CraftsDataFilePath);
+                    string json = File.ReadAllText(filePath);
                     var crafts = JsonConvert.DeserializeObject<List<CraftableItem>>(json, SerializerSettings);
-                    Logger.Info($"Loaded {crafts.Count} crafts from craftsData.json.");
+                    Logger.Info($"Loaded {crafts.Count} crafts from {filePath}.");
                     return crafts;
                 }
                 else
                 {
-                    Logger.Info("No craftsData.json file found. Starting with no saved crafts.");
+                    Logger.Info($"No {filePath} file found. Starting with no saved crafts.");
                 }
             }
             catch (Exception ex)
@@ -67,16 +65,13 @@ namespace EFT_OverlayAPP
             return new List<CraftableItem>();
         }
 
-        // File path for craft instances data
-        private static readonly string CraftInstancesDataFilePath = "craftInstancesData.json";
-
         // Method to save craft instances data
-        public static void SaveCraftInstancesData(List<CraftInstance> craftInstances)
+        public static void SaveCraftInstancesData(List<CraftInstance> craftInstances, string filePath)
         {
             try
             {
                 string json = JsonConvert.SerializeObject(craftInstances, SerializerSettings);
-                File.WriteAllText(CraftInstancesDataFilePath, json);
+                File.WriteAllText(filePath, json);
             }
             catch (Exception ex)
             {
@@ -85,20 +80,20 @@ namespace EFT_OverlayAPP
         }
 
         // Method to load craft instances data
-        public static List<CraftInstance> LoadCraftInstancesData()
+        public static List<CraftInstance> LoadCraftInstancesData(string filePath)
         {
             try
             {
-                if (File.Exists(CraftInstancesDataFilePath))
+                if (File.Exists(filePath))
                 {
-                    string json = File.ReadAllText(CraftInstancesDataFilePath);
+                    string json = File.ReadAllText(filePath);
                     var craftInstances = JsonConvert.DeserializeObject<List<CraftInstance>>(json, SerializerSettings);
-                    Logger.Info($"Loaded {craftInstances.Count} craft instances from craftInstancesData.json.");
+                    Logger.Info($"Loaded {craftInstances.Count} craft instances from {filePath}.");
                     return craftInstances;
                 }
                 else
                 {
-                    Logger.Info("No craftInstancesData.json file found. Starting with empty craft instances.");
+                    Logger.Info($"No {filePath} file found. Starting with empty craft instances.");
                 }
             }
             catch (Exception ex)

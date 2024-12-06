@@ -23,7 +23,7 @@ namespace EFT_OverlayAPP
     public static class DataCache
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
-        public static AppConfig AppConfig { get; set; }
+        public static AppConfig appConfig { get; set; }
         private const string ConfigFilePath = "config.json";
         private static void LoadConfig()
         {
@@ -32,17 +32,19 @@ namespace EFT_OverlayAPP
                 try
                 {
                     string json = File.ReadAllText(ConfigFilePath);
-                    AppConfig = JsonConvert.DeserializeObject<AppConfig>(json);
+                    appConfig = JsonConvert.DeserializeObject<AppConfig>(json);
                 }
                 catch (Exception ex)
                 {
                     logger.Error(ex, "Failed to load configuration. Initializing with Crafting Level 0.");
-                    AppConfig.CurrentCraftingLevel = 0;
+                    appConfig.CurrentCraftingLevel = 0;
+                    appConfig.EffectiveProfileMode = ProfileMode.Regular;
                 }
             }
             else
             {
-                AppConfig.CurrentCraftingLevel = 0;
+                appConfig.CurrentCraftingLevel = 0;
+                appConfig.EffectiveProfileMode = ProfileMode.Regular;
             }
         }
 
@@ -122,7 +124,7 @@ namespace EFT_OverlayAPP
                             foreach (var craft in graphQLResponse.Data.Crafts)
                             {
                                 CraftableItem craftableItem;
-                                if (AppConfig.CurrentCraftingLevel == 51)
+                                if (appConfig.CurrentCraftingLevel == 51)
                                 {
                                     craftableItem = new CraftableItem
                                     {
@@ -146,7 +148,7 @@ namespace EFT_OverlayAPP
                                     {
                                         Id = craft.Id,
                                         Station = NormalizeStationName(craft.Station?.Name),
-                                        CraftTime = TimeSpan.FromSeconds(craft.Duration * (1-(AppConfig.CurrentCraftingLevel*0.0075)) ?? 0),
+                                        CraftTime = TimeSpan.FromSeconds(craft.Duration * (1-(appConfig.CurrentCraftingLevel*0.0075)) ?? 0),
                                         RewardItems = craft.RewardItems.Select(rewardItem => new RewardItemDetail
                                         {
                                             Id = rewardItem.Item.Id,
@@ -346,7 +348,7 @@ namespace EFT_OverlayAPP
             if (!favoriteIds.Contains(id))
             {
                 favoriteIds.Add(id);
-                SaveFavorites();
+                SaveFavorites(appConfig.FavoritesFileName);
             }
         }
 
@@ -355,27 +357,27 @@ namespace EFT_OverlayAPP
             if (favoriteIds.Contains(id))
             {
                 favoriteIds.Remove(id);
-                SaveFavorites();
+                SaveFavorites(appConfig.FavoritesFileName);
             }
         }
 
-        private static void SaveFavorites()
+        private static void SaveFavorites(string filePath)
         {
             string json = JsonConvert.SerializeObject(favoriteIds);
-            File.WriteAllText("favorites.json", json);
+            File.WriteAllText(filePath, json);
         }
 
-        private static void LoadFavorites()
+        private static void LoadFavorites(string filePath)
         {
-            if (File.Exists("favorites.json"))
+            if (File.Exists(filePath))
             {
-                string json = File.ReadAllText("favorites.json");
+                string json = File.ReadAllText(filePath);
                 favoriteIds = JsonConvert.DeserializeObject<List<string>>(json);
             }
         }
 
         // Methods for saving and loading favorite item order
-        public static void SaveFavoriteItemOrder(IList<CraftableItem> favoriteItems)
+        public static void SaveFavoriteItemOrder(IList<CraftableItem> favoriteItems, string filePath)
         {
             for (int i = 0; i < favoriteItems.Count; i++)
             {
@@ -383,14 +385,14 @@ namespace EFT_OverlayAPP
             }
             var itemOrder = favoriteItems.Select(i => i.Id).ToList();
             string json = JsonConvert.SerializeObject(itemOrder);
-            File.WriteAllText("favoritesItemOrder.json", json);
+            File.WriteAllText(filePath, json);
         }
 
-        public static void LoadFavoriteItemOrder(ObservableCollection<CraftableItem> favoriteItems)
+        public static void LoadFavoriteItemOrder(ObservableCollection<CraftableItem> favoriteItems, string filePath)
         {
-            if (File.Exists("favoritesItemOrder.json"))
+            if (File.Exists(filePath))
             {
-                string json = File.ReadAllText("favoritesItemOrder.json");
+                string json = File.ReadAllText(filePath);
                 var itemOrder = JsonConvert.DeserializeObject<List<string>>(json);
 
                 int sortOrder = 0;
@@ -416,15 +418,16 @@ namespace EFT_OverlayAPP
 
         public static async Task LoadDataAsync()
         {
+            LoadConfig();
             if (!IsDataLoaded)
             {
                 logger.Info("Starting data load.");
 
-                LoadFavorites();
+                LoadFavorites(appConfig.FavoritesFileName);
 
                 // Load crafts data
                 logger.Info("Loading saved crafts data.");
-                var savedCrafts = CraftingDataManager.LoadCraftsData();
+                var savedCrafts = CraftingDataManager.LoadCraftsData(appConfig.CraftsDataFileName);
 
                 logger.Info("Fetching craftable items from API.");
                 CraftableItems = await FetchCraftableItemsAsync();
@@ -472,7 +475,7 @@ namespace EFT_OverlayAPP
                 }
 
                 // Load saved favorite item order
-                LoadFavoriteItemOrder(new ObservableCollection<CraftableItem>(favoriteItems));
+                LoadFavoriteItemOrder(new ObservableCollection<CraftableItem>(favoriteItems), appConfig.FavoritesItemOrderFileName);
 
                 IsDataLoaded = true;
 

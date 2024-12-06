@@ -149,7 +149,7 @@ namespace EFT_OverlayAPP
             }
 
             // Load saved favorite item order
-            DataCache.LoadFavoriteItemOrder(FavoriteItems);
+            DataCache.LoadFavoriteItemOrder(FavoriteItems, ConfigWindow.AppConfig.FavoritesItemOrderFileName);
 
             // Set up views and filters
             ComputeCraftStats();
@@ -168,7 +168,7 @@ namespace EFT_OverlayAPP
             ApplySorting();
 
             // Load saved craft instances
-            var loadedCraftInstances = CraftingDataManager.LoadCraftInstancesData();
+            var loadedCraftInstances = CraftingDataManager.LoadCraftInstancesData(ConfigWindow.AppConfig.CraftInstancesDataFileName);
             foreach (var craftInstance in loadedCraftInstances)
             {
                 // Find the corresponding CraftableItem
@@ -528,10 +528,10 @@ namespace EFT_OverlayAPP
                 .Where(c => c.CraftStatus != CraftStatus.NotStarted)
                 .ToList();
 
-            CraftingDataManager.SaveCraftsData(activeCrafts);
+            CraftingDataManager.SaveCraftsData(activeCrafts, ConfigWindow.AppConfig.CraftsDataFileName);
 
             // Save craft instances
-            CraftingDataManager.SaveCraftInstancesData(CraftInstances.ToList());
+            CraftingDataManager.SaveCraftInstancesData(CraftInstances.ToList(), ConfigWindow.AppConfig.CraftInstancesDataFileName);
         }
 
         private CraftInstance FindActiveCraftInstance(CraftableItem item)
@@ -742,7 +742,7 @@ namespace EFT_OverlayAPP
                 e.Action == NotifyCollectionChangedAction.Add ||
                 e.Action == NotifyCollectionChangedAction.Remove)
             {
-                DataCache.SaveFavoriteItemOrder(FavoriteItems);
+                DataCache.SaveFavoriteItemOrder(FavoriteItems, ConfigWindow.AppConfig.FavoritesItemOrderFileName);
             }
         }
 
@@ -866,7 +866,7 @@ namespace EFT_OverlayAPP
                     FavoritesView.Refresh();
 
                     // Save the updated order
-                    DataCache.SaveFavoriteItemOrder(FavoriteItems);
+                    DataCache.SaveFavoriteItemOrder(FavoriteItems, ConfigWindow.AppConfig.FavoritesItemOrderFileName);
                 }
             }
         }
@@ -888,9 +888,9 @@ namespace EFT_OverlayAPP
 
         private void FavoritesResetOrderButton_Click(object sender, RoutedEventArgs e)
         {
-            if (File.Exists("favoritesItemOrder.json"))
+            if (File.Exists(ConfigWindow.AppConfig.FavoritesItemOrderFileName))
             {
-                File.Delete("favoritesItemOrder.json");
+                File.Delete(ConfigWindow.AppConfig.FavoritesItemOrderFileName);
             }
 
             IsLoading = true; // Show loading indicator
