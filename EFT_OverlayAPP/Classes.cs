@@ -126,7 +126,7 @@ namespace EFT_OverlayAPP
 
     public class CraftableItem : INotifyPropertyChanged, IDeserializationCallback
     {
-        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         public string Id { get; set; } // Unique identifier
         public string Station { get; set; } // Crafting station (category)
 

@@ -20,7 +20,7 @@ namespace EFT_OverlayAPP
 {
     public partial class CraftingWindow : Window, INotifyPropertyChanged
     {
-        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         // Reference to MainWindow to update overlay
         public MainWindow MainWindow { get; set; }
@@ -89,7 +89,7 @@ namespace EFT_OverlayAPP
             // Subscribe to event handlers after initialization
             SortingComboBox.SelectionChanged += SortingComboBox_SelectionChanged;
 
-            Logger.Info("Initializing active crafts from loaded data.");
+            logger.Info("Initializing active crafts from loaded data.");
             // Subscribe to property changes to update the UI
             foreach (var item in DataCache.CraftableItems)
             {
@@ -98,7 +98,7 @@ namespace EFT_OverlayAPP
                 // If the craft is in progress or ready, update the display
                 if (item.CraftStatus != CraftStatus.NotStarted)
                 {
-                    Logger.Info($"Adding active craft: Item ID {item.Id}, Station {item.Station}, Status {item.CraftStatus}");
+                    logger.Info($"Adding active craft: Item ID {item.Id}, Station {item.Station}, Status {item.CraftStatus}");
                     activeCraftsPerStation[item.Station] = item;
                     ActiveCrafts.Add(item);
                     mainWindow.UpdateCraftDisplay(item, remove: false);
@@ -183,7 +183,7 @@ namespace EFT_OverlayAPP
                 }
                 else
                 {
-                    Logger.Warn($"CraftableItem not found for CraftInstance ID: {craftInstance.Id}");
+                    logger.Warn($"CraftableItem not found for CraftInstance ID: {craftInstance.Id}");
                 }
             }
 
@@ -380,7 +380,7 @@ namespace EFT_OverlayAPP
 
         private void StartCraft(CraftableItem item)
         {
-            Logger.Info($"Attempting to start craft: Item ID {item.Id}, Station {item.Station}");
+            logger.Info($"Attempting to start craft: Item ID {item.Id}, Station {item.Station}");
             // Check for existing craft in the same station
             if (activeCraftsPerStation.TryGetValue(item.Station, out var existingItem))
             {
@@ -445,7 +445,7 @@ namespace EFT_OverlayAPP
 
         private void StopCraft(CraftableItem item)
         {
-            Logger.Info($"Stopping craft: Item ID {item.Id}, Station {item.Station}");
+            logger.Info($"Stopping craft: Item ID {item.Id}, Station {item.Station}");
             // Stop the timer
             if (craftTimers.TryGetValue(item, out var timer))
             {
@@ -479,7 +479,7 @@ namespace EFT_OverlayAPP
 
         private void FinishCraft(CraftableItem item)
         {
-            Logger.Info($"Finishing craft: Item ID {item.Id}, Station {item.Station}");
+            logger.Info($"Finishing craft: Item ID {item.Id}, Station {item.Station}");
             // Stop the timer
             if (craftTimers.TryGetValue(item, out var timer))
             {
@@ -507,11 +507,11 @@ namespace EFT_OverlayAPP
             {
                 craftInstance.Status = CraftInstanceStatus.Finished;
                 craftInstance.FinishedTime = DateTime.Now;
-                Logger.Info($"CraftInstance Updated: ID={craftInstance.Id}, Status={craftInstance.Status}, FinishedTime={craftInstance.FinishedTime}");
+                logger.Info($"CraftInstance Updated: ID={craftInstance.Id}, Status={craftInstance.Status}, FinishedTime={craftInstance.FinishedTime}");
             }
             else
             {
-                Logger.Warn($"No active CraftInstance found for item ID {item.Id} at station {item.Station} to set FinishedTime.");
+                logger.Warn($"No active CraftInstance found for item ID {item.Id} at station {item.Station} to set FinishedTime.");
             }
 
             // Save crafts data
@@ -546,7 +546,7 @@ namespace EFT_OverlayAPP
 
         private void StartCraftTimer(CraftableItem item)
         {
-            Logger.Info($"Starting timer for craft: Item ID {item.Id}, Station {item.Station}");
+            logger.Info($"Starting timer for craft: Item ID {item.Id}, Station {item.Station}");
             // If a timer already exists for this item, don't create a new one
             if (craftTimers.ContainsKey(item))
                 return;

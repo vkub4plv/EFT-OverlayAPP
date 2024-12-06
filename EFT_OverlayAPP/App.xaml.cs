@@ -7,14 +7,14 @@ namespace EFT_OverlayAPP
 {
     public partial class App : Application
     {
-        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         public static bool IsPVEMode { get; set; }
 
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
 
-            Logger.Info("Application starting up.");
+            logger.Info("Application starting up.");
 
             // Start data loading
             Task.Run(() => DataCache.LoadDataAsync());

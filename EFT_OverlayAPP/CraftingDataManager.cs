@@ -10,7 +10,7 @@ namespace EFT_OverlayAPP
 {
     public static class CraftingDataManager
     {
-        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         // Create serializer settings with appropriate converters
         private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
@@ -50,17 +50,17 @@ namespace EFT_OverlayAPP
                 {
                     string json = File.ReadAllText(filePath);
                     var crafts = JsonConvert.DeserializeObject<List<CraftableItem>>(json, SerializerSettings);
-                    Logger.Info($"Loaded {crafts.Count} crafts from {filePath}.");
+                    logger.Info($"Loaded {crafts.Count} crafts from {filePath}.");
                     return crafts;
                 }
                 else
                 {
-                    Logger.Info($"No {filePath} file found. Starting with no saved crafts.");
+                    logger.Info($"No {filePath} file found. Starting with no saved crafts.");
                 }
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Error loading crafts data.");
+                logger.Error(ex, "Error loading crafts data.");
             }
             return new List<CraftableItem>();
         }
@@ -75,7 +75,7 @@ namespace EFT_OverlayAPP
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Error saving craft instances data.");
+                logger.Error(ex, "Error saving craft instances data.");
             }
         }
 
@@ -88,17 +88,17 @@ namespace EFT_OverlayAPP
                 {
                     string json = File.ReadAllText(filePath);
                     var craftInstances = JsonConvert.DeserializeObject<List<CraftInstance>>(json, SerializerSettings);
-                    Logger.Info($"Loaded {craftInstances.Count} craft instances from {filePath}.");
+                    logger.Info($"Loaded {craftInstances.Count} craft instances from {filePath}.");
                     return craftInstances;
                 }
                 else
                 {
-                    Logger.Info($"No {filePath} file found. Starting with empty craft instances.");
+                    logger.Info($"No {filePath} file found. Starting with empty craft instances.");
                 }
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Error loading craft instances data.");
+                logger.Error(ex, "Error loading craft instances data.");
             }
             return new List<CraftInstance>();
         }
