@@ -1004,6 +1004,22 @@ namespace EFT_OverlayAPP
                 }
             }
         }
+
+        // Add the following property for PVE Hideout Module Settings
+        private ObservableCollection<HideoutModuleSetting> _hideoutModuleSettingsPVE;
+        public ObservableCollection<HideoutModuleSetting> HideoutModuleSettingsPVE
+        {
+            get => _hideoutModuleSettingsPVE;
+            set
+            {
+                if (_hideoutModuleSettingsPVE != value)
+                {
+                    _hideoutModuleSettingsPVE = value;
+                    OnPropertyChanged(nameof(HideoutModuleSettingsPVE));
+                }
+            }
+        }
+
         // Collection for Craft Module Settings
         private ObservableCollection<CraftModuleSetting> _craftModuleSettings;
         public ObservableCollection<CraftModuleSetting> CraftModuleSettings
@@ -1019,11 +1035,28 @@ namespace EFT_OverlayAPP
             }
         }
 
+        // Collection for PVE Craft Module Settings
+        private ObservableCollection<CraftModuleSetting> _craftModuleSettingsPVE;
+        public ObservableCollection<CraftModuleSetting> CraftModuleSettingsPVE
+        {
+            get => _craftModuleSettingsPVE;
+            set
+            {
+                if (_craftModuleSettingsPVE != value)
+                {
+                    _craftModuleSettingsPVE = value;
+                    OnPropertyChanged(nameof(CraftModuleSettingsPVE));
+                }
+            }
+        }
+
         public AppConfig()
         {
             // Initialize collections to prevent null references
             _craftModuleSettings = new ObservableCollection<CraftModuleSetting>();
             _hideoutModuleSettings = new ObservableCollection<HideoutModuleSetting>();
+            _craftModuleSettingsPVE = new ObservableCollection<CraftModuleSetting>();
+            _hideoutModuleSettingsPVE = new ObservableCollection<HideoutModuleSetting>();
         }
 
         // INotifyPropertyChanged implementation

@@ -79,7 +79,7 @@ namespace EFT_OverlayAPP
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            configWindow = new ConfigWindow
+            configWindow = new ConfigWindow(this)
             {
                 Owner = this
             };
@@ -291,7 +291,7 @@ namespace EFT_OverlayAPP
         {
             if (configWindow == null)
             {
-                configWindow = new ConfigWindow
+                configWindow = new ConfigWindow(this)
                 {
                     Owner = this
                 };
@@ -753,7 +753,7 @@ namespace EFT_OverlayAPP
             UtilizeAndUpdateProfileMode();
         }
 
-        private void UtilizeAndUpdateProfileMode()
+        public void UtilizeAndUpdateProfileMode()
         {
             // Determine the effective profile mode and use it to update config window
             ProfileMode effectiveProfileMode = configWindow.AppConfig.SelectedProfileMode;
