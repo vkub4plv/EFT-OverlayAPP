@@ -1369,7 +1369,7 @@ namespace EFT_OverlayAPP
             }
         }
 
-        private void RefreshAllViews()
+        public void RefreshAllViews()
         {
             ItemsView?.Refresh();
             FavoritesView?.Refresh();

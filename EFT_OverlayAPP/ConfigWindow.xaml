@@ -225,6 +225,7 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <!-- Instructions -->
@@ -240,9 +241,14 @@
                                 <GridViewColumn Header="Keybind" Width="100">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
-                                            <TextBox Text="{Binding Keybind, UpdateSourceTrigger=PropertyChanged}" 
-                                                     Width="80" 
-                                                     HorizontalAlignment="Left"/>
+                                            <TextBox 
+                                                x:Name="KeybindTextBox"
+                                                Text="{Binding Keybind, UpdateSourceTrigger=PropertyChanged}" 
+                                                Width="80" 
+                                                HorizontalAlignment="Left"
+                                                PreviewKeyDown="KeybindTextBox_PreviewKeyDown" 
+                                                GotFocus="KeybindTextBox_GotFocus"
+                                                LostFocus="KeybindTextBox_LostFocus"/>
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
@@ -250,9 +256,16 @@
                         </ListView.View>
                     </ListView>
 
+                    <Button Grid.Row="2"
+                            Content="Save Changes"
+                            Width="120"
+                            HorizontalAlignment="Right"
+                            Margin="0,0,0,10"
+                            VerticalAlignment="Bottom"
+                            Click="SaveChangesButton_Click"/>
                     <!-- Reset Keybinds Button -->
                     <Button Content="Reset to Default" 
-                            Grid.Row="2" 
+                            Grid.Row="3" 
                             Width="120" 
                             HorizontalAlignment="Right" 
                             Click="ResetKeybindsButton_Click"/>

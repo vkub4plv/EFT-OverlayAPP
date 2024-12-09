@@ -42,6 +42,10 @@ namespace EFT_OverlayAPP
 
             // Subscribe to PropertyChanged for auto-saving
             AppConfig.PropertyChanged += AppConfig_PropertyChanged;
+            foreach (var entry in AppConfig.Keybinds)
+            {
+                entry.PropertyChanged += KeybindEntry_PropertyChanged;
+            }
 
             // Subscribe to CollectionChanged for HideoutModuleSettings
             AppConfig.HideoutModuleSettings.CollectionChanged += HideoutModuleSettings_CollectionChanged;
@@ -51,6 +55,8 @@ namespace EFT_OverlayAPP
             AppConfig.HideoutModuleSettingsPVE.CollectionChanged += HideoutModuleSettings_CollectionChanged;
             // Subscribe to CollectionChanged for CraftModuleSettingsPVE
             AppConfig.CraftModuleSettingsPVE.CollectionChanged += CraftModuleSettings_CollectionChanged;
+            // Subscribe to CollectionChanged for Keybinds
+            AppConfig.Keybinds.CollectionChanged += Keybinds_CollectionChanged;
         }
 
         private void ConfigWindow_Loaded(object sender, RoutedEventArgs e)
@@ -107,7 +113,7 @@ namespace EFT_OverlayAPP
         {
             return new AppConfig
             {
-                Keybinds = new List<KeybindEntry>
+                Keybinds = new ObservableCollection<KeybindEntry>
                 {
                     new KeybindEntry { Functionality = "Raid Timer OCR", Keybind = "F1" },
                     new KeybindEntry { Functionality = "Open Crafting Window", Keybind = "F2" },
@@ -788,6 +794,8 @@ namespace EFT_OverlayAPP
                 KeybindsListView.ItemsSource = null;
                 KeybindsListView.ItemsSource = AppConfig.Keybinds;
 
+                MainWindow?.RegisterConfiguredHotKeys();
+
                 logger.Info("Keybinds have been reset to default.");
                 MessageBox.Show("Keybinds have been reset to their default values.",
                                 "Reset Successful",
@@ -797,9 +805,9 @@ namespace EFT_OverlayAPP
         }
 
         // Helper method to get default keybinds
-        private List<KeybindEntry> GetDefaultKeybinds()
+        private ObservableCollection<KeybindEntry> GetDefaultKeybinds()
         {
-            return new List<KeybindEntry>
+            return new ObservableCollection<KeybindEntry>
                 {
                     new KeybindEntry { Functionality = "Raid Timer OCR", Keybind = "F1" },
                     new KeybindEntry { Functionality = "Open Crafting Window", Keybind = "F2" },
@@ -833,6 +841,7 @@ namespace EFT_OverlayAPP
                         AppConfig.CraftModuleSettings.CollectionChanged -= CraftModuleSettings_CollectionChanged;
                         AppConfig.HideoutModuleSettingsPVE.CollectionChanged -= HideoutModuleSettings_CollectionChanged;
                         AppConfig.CraftModuleSettingsPVE.CollectionChanged -= CraftModuleSettings_CollectionChanged;
+                        AppConfig.Keybinds.CollectionChanged -= Keybinds_CollectionChanged;
 
                         foreach (var moduleSetting in AppConfig.HideoutModuleSettings)
                         {
@@ -877,6 +886,7 @@ namespace EFT_OverlayAPP
                     AppConfig.CraftModuleSettings.CollectionChanged += CraftModuleSettings_CollectionChanged;
                     AppConfig.HideoutModuleSettingsPVE.CollectionChanged += HideoutModuleSettings_CollectionChanged;
                     AppConfig.CraftModuleSettingsPVE.CollectionChanged += CraftModuleSettings_CollectionChanged;
+                    AppConfig.Keybinds.CollectionChanged += Keybinds_CollectionChanged;
 
                     // Initialize Hideout Modules and Crafting Window List with default settings
                     MainWindow.UtilizeAndUpdateProfileMode();
@@ -980,6 +990,130 @@ namespace EFT_OverlayAPP
                 // Debounce the save operation
                 debounceDispatcher.Debounce(() => SaveConfig());
             }
+        }
+
+        private void Keybinds_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            // Handle additions
+            if (e.NewItems != null)
+            {
+                foreach (KeybindEntry newItem in e.NewItems)
+                {
+                    newItem.PropertyChanged += KeybindEntry_PropertyChanged;
+                }
+            }
+
+            // Handle removals
+            if (e.OldItems != null)
+            {
+                foreach (KeybindEntry oldItem in e.OldItems)
+                {
+                    oldItem.PropertyChanged -= KeybindEntry_PropertyChanged;
+                }
+            }
+
+            // Trigger save or other actions
+            debounceDispatcher.Debounce(() => SaveConfig());
+        }
+
+        private void KeybindEntry_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(KeybindEntry.Keybind) || e.PropertyName == nameof(KeybindEntry.Functionality))
+            {
+                var entry = sender as KeybindEntry;
+                if (entry == null) return;
+
+                // Check for duplicates
+                var duplicates = AppConfig.Keybinds
+                    .Where(k => k != entry && k.Keybind == entry.Keybind)
+                    .ToList();
+
+                if (duplicates.Any())
+                {
+                    // Inform user
+                    MessageBox.Show($"The keybind '{entry.Keybind}' is already in use by '{duplicates.First().Functionality}'. Please choose a different keybind.",
+                        "Duplicate Keybind", MessageBoxButton.OK, MessageBoxImage.Warning);
+
+                    // Revert the keybind or clear it
+                    entry.Keybind = string.Empty;
+                    return;
+                }
+
+                // If no duplicates, proceed normally
+                debounceDispatcher.Debounce(() =>
+                {
+                    SaveConfig();
+                });
+            }
+        }
+
+
+        private void KeybindTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            var textBox = (TextBox)sender;
+            var entry = textBox.DataContext as KeybindEntry;
+            if (entry == null) return;
+
+            textBox.Text = string.Empty;
+
+            // Determine modifiers
+            var modifiers = new List<string>();
+            if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control) modifiers.Add("Ctrl");
+            if ((Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift) modifiers.Add("Shift");
+            if ((Keyboard.Modifiers & ModifierKeys.Alt) == ModifierKeys.Alt) modifiers.Add("Alt");
+
+            Key actualKey = e.Key;
+
+            // If key is 'System', use SystemKey to get the actual key pressed (often for Alt combos)
+            if (actualKey == Key.System)
+            {
+                actualKey = e.SystemKey;
+            }
+
+            // Ignore pure modifier keys
+            if (actualKey == Key.LeftCtrl || actualKey == Key.RightCtrl ||
+                actualKey == Key.LeftShift || actualKey == Key.RightShift ||
+                actualKey == Key.LeftAlt || actualKey == Key.RightAlt ||
+                actualKey == Key.Tab) // Example of ignoring Tab as well
+            {
+                // Wait for another key
+                return;
+            }
+
+            string mainKey = actualKey.ToString();
+
+            // Handle D1, D2, etc. by removing leading 'D'
+            if (mainKey.StartsWith("D") && mainKey.Length == 2 && char.IsDigit(mainKey[1]))
+            {
+                mainKey = mainKey.Substring(1); // "D1" -> "1"
+            }
+
+            // Now build the final keybind string
+            string keybind = modifiers.Count > 0
+                ? string.Join("+", modifiers) + "+" + mainKey
+                : mainKey;
+
+            entry.Keybind = keybind;
+
+            e.Handled = true;
+        }
+
+        private void SaveChangesButton_Click(object sender, RoutedEventArgs e)
+        {
+            SaveConfig();
+            MainWindow?.RegisterConfiguredHotKeys();
+            MessageBox.Show("Changes saved and hotkeys updated.", "Saved", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void KeybindTextBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            MainWindow?.DisableHotkeysTemporarily();
+        }
+
+        private void KeybindTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            // If user clicks away without finishing, just re-enable hotkeys
+            MainWindow?.ReenableHotkeys();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

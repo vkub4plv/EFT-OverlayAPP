@@ -37,6 +37,7 @@ namespace EFT_OverlayAPP
         private DispatcherTimer timer;
         private DispatcherTimer craftsTimer;
         private TimeSpan remainingTime;
+        private bool craftingWindowActivated = false;
 
         private bool isRaidTimerVisible;
         public bool IsRaidTimerVisible
@@ -52,9 +53,17 @@ namespace EFT_OverlayAPP
             }
         }
 
+        public bool IsEditingKeybind { get; set; }
+
         // Hotkey IDs
         private const int HOTKEY_ID_RAID_TIMER = 9001; // Unique ID for Raid Timer OCR hotkey
         private const int HOTKEY_ID_CRAFTING_WINDOW = 9002; // Unique ID for CraftingWindow hotkey
+        private const int HOTKEY_ID_REQUIRED_ITEMS_WINDOW = 9003;
+        private const int HOTKEY_ID_CONFIG_WINDOW = 9004;
+        private const int HOTKEY_ID_MINIMAP_VISIBILITY = 9005;
+        private const int HOTKEY_ID_RAID_TIMER_VISIBILITY = 9006;
+        private const int HOTKEY_ID_CRAFTING_TIMERS_VISIBILITY = 9007;
+        private const int HOTKEY_ID_OTHERBUTTONS_WINDOW = 9008;
 
         private HwndSource source;
 
@@ -119,7 +128,12 @@ namespace EFT_OverlayAPP
             // Register the global hotkeys
             source = HwndSource.FromHwnd(hwnd);
             source.AddHook(HwndHook);
-            RegisterHotKeys();
+            RegisterConfiguredHotKeys();
+
+            if (craftingWindowActivated)
+            {
+                craftingWindow.RefreshAllViews();
+            }
         }
 
         private void MainWindow_Closed(object sender, EventArgs e)
@@ -208,55 +222,17 @@ namespace EFT_OverlayAPP
         private const uint MOD_WIN = 0x0008;
         private const int WM_HOTKEY = 0x0312;
 
-        // Method to register the global hotkeys
-        private void RegisterHotKeys()
-        {
-            // Hotkey for Raid Timer OCR (e.g., Ctrl + Shift + T)
-            uint modifiersTimer = MOD_CONTROL | MOD_SHIFT;
-            uint virtualKeyTimer = (uint)KeyInterop.VirtualKeyFromKey(Key.T);
-
-            if (!RegisterHotKey(hwnd, HOTKEY_ID_RAID_TIMER, modifiersTimer, virtualKeyTimer))
-            {
-                MessageBox.Show("Failed to register hotkey for Raid Timer OCR.");
-            }
-
-            // Hotkey for CraftingWindow (e.g., Ctrl + Shift + C)
-            uint modifiersCrafting = MOD_CONTROL | MOD_SHIFT;
-            uint virtualKeyCrafting = (uint)KeyInterop.VirtualKeyFromKey(Key.C);
-
-            if (!RegisterHotKey(hwnd, HOTKEY_ID_CRAFTING_WINDOW, modifiersCrafting, virtualKeyCrafting))
-            {
-                MessageBox.Show("Failed to register hotkey for Crafting Window.");
-            }
-        }
-
         private void UnregisterHotKeys()
         {
             UnregisterHotKey(hwnd, HOTKEY_ID_RAID_TIMER);
             UnregisterHotKey(hwnd, HOTKEY_ID_CRAFTING_WINDOW);
-        }
-
-        // Window message hook to capture hotkey presses
-        private IntPtr HwndHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
-        {
-            if (msg == WM_HOTKEY)
-            {
-                int id = wParam.ToInt32();
-                if (id == HOTKEY_ID_RAID_TIMER)
-                {
-                    // Handle hotkey press for Raid Timer OCR
-                    CaptureAndProcessRaidTimer();
-                    handled = true;
-                }
-                else if (id == HOTKEY_ID_CRAFTING_WINDOW)
-                {
-                    // Handle hotkey press for opening Crafting Window
-                    OpenCraftingWindow();
-                    handled = true;
-                }
-            }
-            return IntPtr.Zero;
-        }
+            UnregisterHotKey(hwnd, HOTKEY_ID_REQUIRED_ITEMS_WINDOW);
+            UnregisterHotKey(hwnd, HOTKEY_ID_CONFIG_WINDOW);
+            UnregisterHotKey(hwnd, HOTKEY_ID_MINIMAP_VISIBILITY);
+            UnregisterHotKey(hwnd, HOTKEY_ID_RAID_TIMER_VISIBILITY);
+            UnregisterHotKey(hwnd, HOTKEY_ID_CRAFTING_TIMERS_VISIBILITY);
+            UnregisterHotKey(hwnd, HOTKEY_ID_OTHERBUTTONS_WINDOW);
+    }
 
         // Method to open the CraftingWindow
         public void OpenCraftingWindow()
@@ -273,6 +249,7 @@ namespace EFT_OverlayAPP
             else
             {
                 craftingWindow.Activate();
+                craftingWindowActivated = true;
             }
         }
 
@@ -837,5 +814,132 @@ namespace EFT_OverlayAPP
             }
         }
 
+        public void RegisterConfiguredHotKeys()
+        {
+            // First, unregister all previously registered hotkeys
+            UnregisterHotKeys();
+
+            // Iterate over AppConfig.Keybinds
+            foreach (var keybindEntry in configWindow.AppConfig.Keybinds)
+            {
+                // Parse the keybindEntry.Keybind to extract modifiers and main key
+                (uint modifiers, uint virtualKey) = ParseKeybind(keybindEntry.Keybind);
+
+                // Assign a unique ID for each functionality, maybe using a dictionary
+                int hotkeyId = GetHotkeyIdForFunctionality(keybindEntry.Functionality);
+
+                if (!RegisterHotKey(hwnd, hotkeyId, modifiers, virtualKey))
+                {
+                    logger.Warn($"Failed to register hotkey for {keybindEntry.Functionality}.");
+                }
+                else
+                {
+                    logger.Info($"Registered hotkey for {keybindEntry.Functionality}: {keybindEntry.Keybind}");
+                }
+            }
+        }
+
+        private (uint modifiers, uint virtualKey) ParseKeybind(string keybind)
+        {
+            // Example assumes a format: "Ctrl+Shift+T" or "Alt+F1"
+            // You can implement a more robust parser here.
+            uint mods = 0;
+            uint vk = 0;
+            var parts = keybind.Split('+');
+            foreach (var part in parts)
+            {
+                try
+                {
+                    string trimmedPart = part.Trim();
+                    switch (trimmedPart.ToLowerInvariant())
+                    {
+                        case "ctrl":
+                            mods |= MOD_CONTROL;
+                            break;
+                        case "shift":
+                            mods |= MOD_SHIFT;
+                            break;
+                        case "alt":
+                            mods |= MOD_ALT;
+                            break;
+                        default:
+                            // Assume this is the main key
+                            vk = (uint)KeyInterop.VirtualKeyFromKey((Key)Enum.Parse(typeof(Key), trimmedPart, true));
+                            break;
+                    }
+                }
+                catch
+                {
+                    logger.Warn("Invalid keybind, skipping it.");
+                    continue; // Skip this hotkey
+                }
+            }
+
+            return (mods, vk);
+        }
+
+        private Dictionary<string, int> functionalityToHotkeyId = new Dictionary<string, int>
+        {
+            {"Raid Timer OCR", HOTKEY_ID_RAID_TIMER},
+            {"Open Crafting Window", HOTKEY_ID_CRAFTING_WINDOW},
+            {"Open Required Items Window", HOTKEY_ID_REQUIRED_ITEMS_WINDOW},
+            {"Open Config Window", HOTKEY_ID_CONFIG_WINDOW},
+            {"Toggle Minimap Visibility", HOTKEY_ID_MINIMAP_VISIBILITY},
+            {"Toggle Raid Timer Visibility", HOTKEY_ID_RAID_TIMER_VISIBILITY},
+            {"Toggle Crafting Timers Visibility", HOTKEY_ID_CRAFTING_TIMERS_VISIBILITY},
+            {"Toggle OtherWindow Buttons", HOTKEY_ID_OTHERBUTTONS_WINDOW},
+        };
+
+        private int GetHotkeyIdForFunctionality(string functionality)
+        {
+            return functionalityToHotkeyId.TryGetValue(functionality, out int id) ? id : -1;
+        }
+
+        private IntPtr HwndHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            if (msg == WM_HOTKEY)
+            {
+                int id = wParam.ToInt32();
+
+                string functionality = functionalityToHotkeyId.FirstOrDefault(x => x.Value == id).Key;
+                if (!string.IsNullOrEmpty(functionality))
+                {
+                    // Perform action based on functionality
+                    switch (functionality)
+                    {
+                        case "Raid Timer OCR":
+                            CaptureAndProcessRaidTimer();
+                            handled = true;
+                            break;
+                        case "Open Crafting Window":
+                            OpenCraftingWindow();
+                            handled = true;
+                            break;
+                        case "Open Required Items Window":
+                            OpenRequiredItemsWindow();
+                            handled = true;
+                            break;
+                        case "Open Config Window":
+                            OpenConfigWindow();
+                            handled = true;
+                            break;
+                            // Add more cases for other functionalities
+                    }
+                }
+            }
+            return IntPtr.Zero;
+        }
+
+        public void DisableHotkeysTemporarily()
+        {
+            IsEditingKeybind = true;
+            UnregisterHotKeys();
+        }
+
+        public void ReenableHotkeys()
+        {
+            IsEditingKeybind = false;
+            RegisterConfiguredHotKeys();
+        }
     }
 }

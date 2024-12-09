@@ -584,10 +584,39 @@ namespace EFT_OverlayAPP
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 
-    public class KeybindEntry
+    public class KeybindEntry : INotifyPropertyChanged
     {
-        public string Functionality { get; set; }
-        public string Keybind { get; set; }
+        private string functionality;
+        public string Functionality
+        {
+            get => functionality;
+            set
+            {
+                if (functionality != value)
+                {
+                    functionality = value;
+                    OnPropertyChanged(nameof(Functionality));
+                }
+            }
+        }
+
+        private string keybind;
+        public string Keybind
+        {
+            get => keybind;
+            set
+            {
+                if (keybind != value)
+                {
+                    keybind = value;
+                    OnPropertyChanged(nameof(Keybind));
+                }
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string propertyName) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
     // Define the ProfileMode enum
@@ -682,9 +711,6 @@ namespace EFT_OverlayAPP
                 }
             }
         }
-
-        // Keybinds
-        public List<KeybindEntry> Keybinds { get; set; }
 
         // Tarkov Tracker API
         private bool isTarkovTrackerApiEnabled;
@@ -1077,6 +1103,21 @@ namespace EFT_OverlayAPP
             }
         }
 
+        // Add the following property for Keybinds
+        private ObservableCollection<KeybindEntry> _keybinds;
+        public ObservableCollection<KeybindEntry> Keybinds
+        {
+            get => _keybinds;
+            set
+            {
+                if (_keybinds != value)
+                {
+                    _keybinds = value;
+                    OnPropertyChanged(nameof(Keybinds));
+                }
+            }
+        }
+
         public AppConfig()
         {
             // Initialize collections to prevent null references
@@ -1084,6 +1125,7 @@ namespace EFT_OverlayAPP
             _hideoutModuleSettings = new ObservableCollection<HideoutModuleSetting>();
             _craftModuleSettingsPVE = new ObservableCollection<CraftModuleSetting>();
             _hideoutModuleSettingsPVE = new ObservableCollection<HideoutModuleSetting>();
+            _keybinds = new ObservableCollection<KeybindEntry>();
         }
 
         // INotifyPropertyChanged implementation
