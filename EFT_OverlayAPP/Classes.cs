@@ -1233,7 +1233,7 @@ namespace EFT_OverlayAPP
         private static GraphQLCraftsResponse craftModuleSettingsData;
 
         private static bool isRequiredItemsDataLoaded = false;
-        private static JObject requiredItemsData;
+        private static GraphQLRequiredItemsResponse requiredItemsResponseData;
 
         public static async Task<GraphQLCraftsResponse> GetCraftableItemsDataAsync()
         {
@@ -1380,11 +1380,11 @@ namespace EFT_OverlayAPP
             return null;
         }
 
-        public static async Task<JObject> GetRequiredItemsDataAsync()
+        public static async Task<GraphQLRequiredItemsResponse> GetRequiredItemsDataAsync()
         {
             if (isRequiredItemsDataLoaded)
             {
-                return requiredItemsData;
+                return requiredItemsResponseData;
             }
 
             string query = @"
@@ -1432,30 +1432,24 @@ namespace EFT_OverlayAPP
             }";
 
             var queryObject = new { query = query };
+
             try
             {
                 var responseContent = await PostQueryAsync(queryObject);
-                JObject responseObject = JObject.Parse(responseContent);
+                if (responseContent == null) return null;
 
-                // Check for errors
-                if (responseObject["errors"] != null)
+                var graphQLResponse = JsonConvert.DeserializeObject<GraphQLRequiredItemsResponse>(responseContent);
+
+                if (graphQLResponse == null || graphQLResponse.Data == null)
                 {
-                    var errors = responseObject["errors"].ToString();
-                    MessageBox.Show($"API returned errors: {errors}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show("No data received from GraphQL API (Required Items).", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     return null;
                 }
 
-                JObject data = responseObject["data"] as JObject;
-                if (data != null)
-                {
-                    requiredItemsData = responseObject;
-                    isRequiredItemsDataLoaded = true;
-                    return requiredItemsData;
-                }
-                else
-                {
-                    MessageBox.Show("API returned null data (Required Items).", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+                // If we reach here, we have valid data
+                requiredItemsResponseData = graphQLResponse;
+                isRequiredItemsDataLoaded = true;
+                return requiredItemsResponseData;
             }
             catch (Exception ex)
             {
@@ -1484,4 +1478,73 @@ namespace EFT_OverlayAPP
             }
         }
     }
+
+    public class GraphQLRequiredItemsResponse
+    {
+        [JsonProperty("data")]
+        public RequiredItemsData Data { get; set; }
+    }
+
+    public class RequiredItemsData
+    {
+        [JsonProperty("tasks")]
+        public List<TaskInfo> Tasks { get; set; }
+
+        [JsonProperty("hideoutStations")]
+        public List<StationInfo> HideoutStations { get; set; }
+    }
+
+    public class TaskInfo
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public TraderInfo Trader { get; set; }
+        public List<TaskObjectiveInfo> Objectives { get; set; }
+    }
+
+    public class TraderInfo
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string ImageLink { get; set; }
+    }
+
+    public class TaskObjectiveInfo
+    {
+        public string Id { get; set; }
+        public string Type { get; set; }
+        public string Description { get; set; }
+        public List<ItemInfo> Items { get; set; }
+        public int Count { get; set; }
+        public bool FoundInRaid { get; set; }
+    }
+
+    public class ItemInfo
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string IconLink { get; set; }
+    }
+
+    public class StationInfo
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string NormalizedName { get; set; }
+        public string ImageLink { get; set; }
+        public List<StationLevelInfo> Levels { get; set; }
+    }
+
+    public class StationLevelInfo
+    {
+        public int Level { get; set; }
+        public List<ItemRequirementInfo> ItemRequirements { get; set; }
+    }
+
+    public class ItemRequirementInfo
+    {
+        public ItemInfo Item { get; set; }
+        public int Count { get; set; }
+    }
+
 }

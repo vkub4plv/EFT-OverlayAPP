@@ -373,72 +373,61 @@ namespace EFT_OverlayAPP
             if (IsRequiredItemsDataLoaded)
                 return;
 
-            var responseObject = await TarkovApiService.GetRequiredItemsDataAsync();
-            if (responseObject == null)
+            var graphQLResponse = await TarkovApiService.GetRequiredItemsDataAsync();
+            if (graphQLResponse == null || graphQLResponse.Data == null)
             {
-                // Already handled errors in the service call
+                // Error handling is done in the service. Just return here.
                 return;
             }
 
-            JObject data = responseObject["data"] as JObject;
-            if (data != null)
-            {
-                ParseTasks(data["tasks"] as JArray);
-                ParseHideoutStations(data["hideoutStations"] as JArray);
-                IsRequiredItemsDataLoaded = true;
-            }
-            else
-            {
-                MessageBox.Show("API returned null data.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private static void ParseTasks(JArray tasksArray)
-        {
+            // Clear lists before re-populating
             Quests.Clear();
-            foreach (var taskToken in tasksArray)
+            HideoutStations.Clear();
+
+            // Parse tasks into Quests
+            foreach (var taskInfo in graphQLResponse.Data.Tasks)
             {
                 var quest = new Quest
                 {
-                    Id = taskToken["id"].ToString(),
-                    Name = taskToken["name"].ToString(),
+                    Id = taskInfo.Id,
+                    Name = taskInfo.Name,
                     Trader = new Trader
                     {
-                        Id = taskToken["trader"]["id"].ToString(),
-                        Name = taskToken["trader"]["name"].ToString(),
-                        ImageLink = taskToken["trader"]["imageLink"].ToString()
+                        Id = taskInfo.Trader.Id,
+                        Name = taskInfo.Trader.Name,
+                        ImageLink = taskInfo.Trader.ImageLink
                     },
                     Objectives = new List<QuestObjective>()
                 };
 
-                var objectivesArray = taskToken["objectives"] as JArray;
-                foreach (var objectiveToken in objectivesArray)
+                if (taskInfo.Objectives != null)
                 {
-                    string type = objectiveToken["type"].ToString();
-                    if (type == "giveItem" || type == "plantItem")
+                    foreach (var objectiveInfo in taskInfo.Objectives)
                     {
-                        var itemsArray = objectiveToken["items"] as JArray;
-                        if (itemsArray != null)
+                        // We only care about 'giveItem' or 'plantItem'
+                        if (objectiveInfo.Type == "giveItem" || objectiveInfo.Type == "plantItem")
                         {
                             var objective = new QuestObjective
                             {
-                                Id = objectiveToken["id"].ToString(),
-                                Type = type,
-                                Description = objectiveToken["description"].ToString(),
-                                Items = new List<Item>(),
-                                Count = (int)objectiveToken["count"],
-                                FoundInRaid = (bool)objectiveToken["foundInRaid"]
+                                Id = objectiveInfo.Id,
+                                Type = objectiveInfo.Type,
+                                Description = objectiveInfo.Description,
+                                Count = objectiveInfo.Count,
+                                FoundInRaid = objectiveInfo.FoundInRaid,
+                                Items = new List<Item>()
                             };
 
-                            foreach (var itemToken in itemsArray)
+                            if (objectiveInfo.Items != null)
                             {
-                                var item = new Item
+                                foreach (var itemInfo in objectiveInfo.Items)
                                 {
-                                    Id = itemToken["id"].ToString(),
-                                    Name = itemToken["name"].ToString(),
-                                    IconLink = itemToken["iconLink"].ToString()
-                                };
-                                objective.Items.Add(item);
+                                    objective.Items.Add(new Item
+                                    {
+                                        Id = itemInfo.Id,
+                                        Name = itemInfo.Name,
+                                        IconLink = itemInfo.IconLink
+                                    });
+                                }
                             }
 
                             quest.Objectives.Add(objective);
@@ -451,52 +440,48 @@ namespace EFT_OverlayAPP
                     Quests.Add(quest);
                 }
             }
-        }
 
-        private static void ParseHideoutStations(JArray stationsArray)
-        {
-            HideoutStations.Clear();
-            foreach (var stationToken in stationsArray)
+            // Parse hideout stations
+            foreach (var stationInfo in graphQLResponse.Data.HideoutStations)
             {
                 var station = new HideoutStation
                 {
-                    Id = stationToken["id"].ToString(),
-                    Name = stationToken["name"].ToString(),
-                    NormalizedName = stationToken["normalizedName"].ToString(),
-                    ImageLink = stationToken["imageLink"].ToString(),
+                    Id = stationInfo.Id,
+                    Name = stationInfo.Name,
+                    NormalizedName = stationInfo.NormalizedName,
+                    ImageLink = stationInfo.ImageLink,
                     Levels = new List<HideoutStationLevel>()
                 };
 
-                var levelsArray = stationToken["levels"] as JArray;
-                foreach (var levelToken in levelsArray)
+                if (stationInfo.Levels != null)
                 {
-                    var level = new HideoutStationLevel
+                    foreach (var levelInfo in stationInfo.Levels)
                     {
-                        Level = (int)levelToken["level"],
-                        ItemRequirements = new List<ItemRequirement>()
-                    };
-
-                    var itemRequirementsArray = levelToken["itemRequirements"] as JArray;
-                    foreach (var reqToken in itemRequirementsArray)
-                    {
-                        var itemToken = reqToken["item"];
-                        var item = new Item
+                        var level = new HideoutStationLevel
                         {
-                            Id = itemToken["id"].ToString(),
-                            Name = itemToken["name"].ToString(),
-                            IconLink = itemToken["iconLink"].ToString()
+                            Level = levelInfo.Level,
+                            ItemRequirements = new List<ItemRequirement>()
                         };
 
-                        var itemRequirement = new ItemRequirement
+                        if (levelInfo.ItemRequirements != null)
                         {
-                            Item = item,
-                            Count = (int)reqToken["count"]
-                        };
+                            foreach (var reqInfo in levelInfo.ItemRequirements)
+                            {
+                                level.ItemRequirements.Add(new ItemRequirement
+                                {
+                                    Item = new Item
+                                    {
+                                        Id = reqInfo.Item.Id,
+                                        Name = reqInfo.Item.Name,
+                                        IconLink = reqInfo.Item.IconLink
+                                    },
+                                    Count = reqInfo.Count
+                                });
+                            }
+                        }
 
-                        level.ItemRequirements.Add(itemRequirement);
+                        station.Levels.Add(level);
                     }
-
-                    station.Levels.Add(level);
                 }
 
                 if (station.Levels.Any())
@@ -504,6 +489,8 @@ namespace EFT_OverlayAPP
                     HideoutStations.Add(station);
                 }
             }
+
+            IsRequiredItemsDataLoaded = true;
         }
     }
 }
