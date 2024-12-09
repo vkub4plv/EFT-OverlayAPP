@@ -43,14 +43,8 @@ namespace EFT_OverlayAPP
         // Cached data collections
         public static List<CraftableItem> CraftableItems { get; private set; } = new List<CraftableItem>();
 
-        // Indicates whether data has been loaded
-        public static bool IsDataLoaded { get; set; } = false;
-
         // Event to notify when data loading is complete
         public static event Action DataLoaded;
-
-        // Flag to indicate whether the data has already been loaded
-        public static bool IsRequiredItemsDataLoaded { get; private set; } = false;
 
         // List to store favorite item IDs
         private static List<string> favoriteIds = new List<string>();
@@ -293,76 +287,65 @@ namespace EFT_OverlayAPP
 
         public static async Task LoadDataAsync(ConfigWindow ConfigWindow)
         {
-            if (!IsDataLoaded)
+            logger.Info("Starting data load.");
+
+            LoadFavorites();
+
+            // Load crafts data
+            logger.Info("Loading saved crafts data.");
+            var savedCrafts = CraftingDataManager.LoadCraftsData();
+
+            logger.Info("Fetching craftable items from API.");
+            CraftableItems = await FetchCraftableItemsAsync(ConfigWindow);
+
+            logger.Info("Fetching craft module settings from API.");
+            var craftModules = await FetchCraftModuleSettingsAsync();
+
+            logger.Info("Matching saved crafts with fetched craftable items.");
+            foreach (var item in CraftableItems)
             {
-                logger.Info("Starting data load.");
+                item.IsFavorite = favoriteIds.Contains(item.Id);
 
-                LoadFavorites();
-
-                // Load crafts data
-                logger.Info("Loading saved crafts data.");
-                var savedCrafts = CraftingDataManager.LoadCraftsData();
-
-                logger.Info("Fetching craftable items from API.");
-                CraftableItems = await FetchCraftableItemsAsync(ConfigWindow);
-
-                logger.Info("Fetching craft module settings from API.");
-                var craftModules = await FetchCraftModuleSettingsAsync();
-
-                logger.Info("Matching saved crafts with fetched craftable items.");
-                foreach (var item in CraftableItems)
+                // Restore saved properties from saved crafts
+                var savedItem = savedCrafts.FirstOrDefault(c => c.Id == item.Id && c.Station == item.Station);
+                if (savedItem != null)
                 {
-                    item.IsFavorite = favoriteIds.Contains(item.Id);
+                    logger.Info($"Restoring saved craft for Item ID: {item.Id}, Station: {item.Station}");
+                    item.CraftStatus = savedItem.CraftStatus;
+                    item.CraftStartTime = savedItem.CraftStartTime;
+                    item.CraftCompletedTime = savedItem.CraftCompletedTime;
+                    item.CraftFinishedTime = savedItem.CraftFinishedTime;
+                    item.CraftStoppedTime = savedItem.CraftStoppedTime;
 
-                    // Restore saved properties from saved crafts
-                    var savedItem = savedCrafts.FirstOrDefault(c => c.Id == item.Id && c.Station == item.Station);
-                    if (savedItem != null)
+                    // Check if the craft should now be marked as Ready
+                    if (item.CraftStatus == CraftStatus.InProgress && item.CraftStartTime.HasValue)
                     {
-                        logger.Info($"Restoring saved craft for Item ID: {item.Id}, Station: {item.Station}");
-                        item.CraftStatus = savedItem.CraftStatus;
-                        item.CraftStartTime = savedItem.CraftStartTime;
-                        item.CraftCompletedTime = savedItem.CraftCompletedTime;
-                        item.CraftFinishedTime = savedItem.CraftFinishedTime;
-                        item.CraftStoppedTime = savedItem.CraftStoppedTime;
-
-                        // Check if the craft should now be marked as Ready
-                        if (item.CraftStatus == CraftStatus.InProgress && item.CraftStartTime.HasValue)
+                        var elapsed = DateTime.Now - item.CraftStartTime.Value; // Use UtcNow
+                        if (elapsed >= item.CraftTime)
                         {
-                            var elapsed = DateTime.Now - item.CraftStartTime.Value; // Use UtcNow
-                            if (elapsed >= item.CraftTime)
-                            {
-                                // Craft has completed while the app was closed
-                                item.CraftStatus = CraftStatus.Ready;
-                                item.CraftCompletedTime = item.CraftStartTime.Value.Add(item.CraftTime);
-                                item.OnPropertyChanged(nameof(item.CraftStatus));
-                                item.OnPropertyChanged(nameof(item.CraftCompletedTime));
-                            }
+                            // Craft has completed while the app was closed
+                            item.CraftStatus = CraftStatus.Ready;
+                            item.CraftCompletedTime = item.CraftStartTime.Value.Add(item.CraftTime);
+                            item.OnPropertyChanged(nameof(item.CraftStatus));
+                            item.OnPropertyChanged(nameof(item.CraftCompletedTime));
                         }
                     }
                 }
-
-                // Initialize FavoriteSortOrder for favorites
-                var favoriteItems = CraftableItems.Where(i => i.IsFavorite).ToList();
-                foreach (var favoriteItem in favoriteItems)
-                {
-                    favoriteItem.FavoriteSortOrder = favoriteItems.IndexOf(favoriteItem);
-                }
-
-                // Load saved favorite item order
-                LoadFavoriteItemOrder(new ObservableCollection<CraftableItem>(favoriteItems));
-
-                IsDataLoaded = true;
-
-                logger.Info("Data load completed.");
-
-                DataLoaded?.Invoke();
             }
-        }
 
-        public static void ClearData()
-        {
-            CraftableItems.Clear();
-            IsDataLoaded = false;
+            // Initialize FavoriteSortOrder for favorites
+            var favoriteItems = CraftableItems.Where(i => i.IsFavorite).ToList();
+            foreach (var favoriteItem in favoriteItems)
+            {
+                favoriteItem.FavoriteSortOrder = favoriteItems.IndexOf(favoriteItem);
+            }
+
+            // Load saved favorite item order
+            LoadFavoriteItemOrder(new ObservableCollection<CraftableItem>(favoriteItems));
+
+            logger.Info("Data load completed.");
+
+            DataLoaded?.Invoke();
         }
 
         public static List<Quest> Quests { get; set; } = new List<Quest>();
@@ -370,8 +353,6 @@ namespace EFT_OverlayAPP
 
         public static async Task LoadRequiredItemsData()
         {
-            if (IsRequiredItemsDataLoaded)
-                return;
 
             var graphQLResponse = await TarkovApiService.GetRequiredItemsDataAsync();
             if (graphQLResponse == null || graphQLResponse.Data == null)
@@ -489,8 +470,6 @@ namespace EFT_OverlayAPP
                     HideoutStations.Add(station);
                 }
             }
-
-            IsRequiredItemsDataLoaded = true;
         }
     }
 }

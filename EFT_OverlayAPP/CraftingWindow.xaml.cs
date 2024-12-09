@@ -75,16 +75,8 @@ namespace EFT_OverlayAPP
             // Subscribe to the DataLoaded event
             DataCache.DataLoaded += OnDataLoaded;
 
-            // Check if data is already loaded
-            if (DataCache.IsDataLoaded)
-            {
-                InitializeData();
-                isInitialized = true;
-            }
-            else
-            {
-                IsLoading = true;
-            }
+            InitializeData();
+            isInitialized = true;
 
             // Subscribe to event handlers after initialization
             SortingComboBox.SelectionChanged += SortingComboBox_SelectionChanged;
