@@ -1262,6 +1262,9 @@ namespace EFT_OverlayAPP
                 // Apply current sorting
                 ApplySorting();
 
+                // Refresh all views
+                RefreshAllViews();
+
                 logger.Info("Data reloaded successfully in CraftingWindow.");
             }
             catch (Exception ex)

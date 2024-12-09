@@ -19,7 +19,7 @@ using System.Windows.Shapes;
 
 namespace EFT_OverlayAPP
 {
-    public partial class RequiredItemsWindow : Window
+    public partial class RequiredItemsWindow : Window, INotifyPropertyChanged
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         private Dictionary<string, CombinedRequiredItemEntry> combinedItemDictionary = new Dictionary<string, CombinedRequiredItemEntry>();
@@ -28,6 +28,16 @@ namespace EFT_OverlayAPP
         public ConfigWindow ConfigWindow { get; set; }
         private bool loadedAsPVE = false;
         private bool loadedManualAsPVE = false;
+        private bool isRequiredDataLoading;
+        public bool IsRequiredDataLoading
+        {
+            get => isRequiredDataLoading;
+            set
+            {
+                isRequiredDataLoading = value;
+                OnPropertyChanged(nameof(IsRequiredDataLoading));
+            }
+        }
 
         public RequiredItemsWindow(ConfigWindow configWindow)
         {
@@ -45,8 +55,7 @@ namespace EFT_OverlayAPP
         private async void InitializeData()
         {
             // Show loading indicator
-            LoadingGrid.Visibility = Visibility.Visible;
-            MainContent.Visibility = Visibility.Collapsed;
+            IsRequiredDataLoading = true;
 
             // Load data from DataCache
             await DataCache.LoadRequiredItemsData();
@@ -89,8 +98,7 @@ namespace EFT_OverlayAPP
             }
 
             // Hide loading indicator
-            LoadingGrid.Visibility = Visibility.Collapsed;
-            MainContent.Visibility = Visibility.Visible;
+            IsRequiredDataLoading = false;
         }
 
         private void LoadRequiredItems()
@@ -851,8 +859,7 @@ namespace EFT_OverlayAPP
                 SaveManualCombinedQuantities();
 
                 // Show loading indicator
-                LoadingGrid.Visibility = Visibility.Visible;
-                MainContent.Visibility = Visibility.Collapsed;
+                IsRequiredDataLoading = true;
 
                 // Clear existing data
                 RequiredItems.Clear();
@@ -892,8 +899,7 @@ namespace EFT_OverlayAPP
                 ManualCombinedRequiredItemsView.Refresh();
 
                 // Hide loading indicator
-                LoadingGrid.Visibility = Visibility.Collapsed;
-                MainContent.Visibility = Visibility.Visible;
+                IsRequiredDataLoading = false;
             }
             catch (Exception ex)
             {
@@ -910,5 +916,10 @@ namespace EFT_OverlayAPP
             RequiredItemsView.Filter = RequiredItemsFilter;
             RequiredItemsListView.ItemsSource = RequiredItemsView;
         }
+
+        // Implement INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string name) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 }

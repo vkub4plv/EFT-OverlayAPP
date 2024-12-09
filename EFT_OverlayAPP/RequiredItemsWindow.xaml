@@ -11,7 +11,7 @@
         Topmost="True">
     <!-- Main Content Grid -->
     <Grid>
-        <Grid x:Name="MainContent" Visibility="Collapsed">
+        <Grid x:Name="MainContent" Visibility="{Binding IsRequiredDataLoading, Converter={StaticResource InverseBooleanVisibilityConverter}}">
             <DockPanel>
                 <!-- Tabs -->
                 <TabControl x:Name="MainTabControl">
@@ -258,7 +258,7 @@
             </DockPanel>
         </Grid>
         <!-- Loading Indicator -->
-        <Grid x:Name="LoadingGrid" Background="#AA000000">
+        <Grid x:Name="LoadingGrid" Background="#AA000000" Visibility="{Binding IsRequiredDataLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
             <TextBlock Text="Loading..." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="24" Foreground="White"/>
         </Grid>
     </Grid>
