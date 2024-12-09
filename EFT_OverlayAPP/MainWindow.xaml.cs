@@ -802,6 +802,12 @@ namespace EFT_OverlayAPP
                 requiredItemsWindow.ReloadData();
             }
 
+            // Reload data in CraftingWindow
+            if (LastProfileMode != EffectiveProfileMode && craftingWindow != null && craftingWindow.IsVisible)
+            {
+                craftingWindow.ReloadData();
+            }
+
             LastProfileMode = EffectiveProfileMode;
         }
 

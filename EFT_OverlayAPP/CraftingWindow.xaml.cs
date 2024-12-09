@@ -1240,5 +1240,18 @@ namespace EFT_OverlayAPP
                     break;
             }
         }
+
+        public async void ReloadData()
+        {
+            try
+            {
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error reloading data: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                logger.Error(ex, "Failed to reload data in CraftingWindow.");
+            }
+        }
     }
 }
