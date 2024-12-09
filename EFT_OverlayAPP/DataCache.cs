@@ -58,116 +58,44 @@ namespace EFT_OverlayAPP
         // Fetch data from the GraphQL API
         public static async Task<List<CraftableItem>> FetchCraftableItemsAsync(ConfigWindow ConfigWindow)
         {
+            // Get or load craftable items data
+            var graphQLResponse = await TarkovApiService.GetCraftableItemsDataAsync();
+
             var craftableItems = new List<CraftableItem>();
-            using (HttpClient client = new HttpClient())
+            if (graphQLResponse != null && graphQLResponse.Data != null && graphQLResponse.Data.Crafts != null)
             {
-                try
+                int index = 0;
+                foreach (var craft in graphQLResponse.Data.Crafts)
                 {
-                    var queryObject = new
+                    CraftableItem craftableItem;
+                    double speedReduction = (ConfigWindow.AppConfig.CurrentCraftingLevel == 51)
+                        ? 0.375
+                        : (ConfigWindow.AppConfig.CurrentCraftingLevel * 0.0075);
+
+                    craftableItem = new CraftableItem
                     {
-                        query = @"{
-                            crafts {
-                                id
-                                station {
-                                    name
-                                }
-                                duration
-                                rewardItems {
-                                    item {
-                                        id
-                                        name
-                                        shortName
-                                        iconLink
-                                    }
-                                    quantity
-                                }
-                            }
-                        }"
+                        Id = craft.Id,
+                        Station = NormalizeStationName(craft.Station?.Name),
+                        CraftTime = TimeSpan.FromSeconds(craft.Duration * (1 - speedReduction) ?? 0),
+                        RewardItems = craft.RewardItems.Select(rewardItem => new RewardItemDetail
+                        {
+                            Id = rewardItem.Item.Id,
+                            Name = rewardItem.Item.Name,
+                            ShortName = rewardItem.Item.ShortName,
+                            IconLink = rewardItem.Item.IconLink,
+                            Quantity = rewardItem.Quantity
+                        }).ToList(),
+                        OriginalIndex = index++
                     };
-                    var queryJson = JsonConvert.SerializeObject(queryObject);
-                    var content = new StringContent(queryJson, Encoding.UTF8, "application/json");
 
-                    HttpResponseMessage response = await client.PostAsync("https://api.tarkov.dev/graphql", content);
-
-                    if (response.IsSuccessStatusCode)
-                    {
-                        string responseContent = await response.Content.ReadAsStringAsync();
-
-                        // Deserialize the response
-                        var graphQLResponse = JsonConvert.DeserializeObject<GraphQLCraftsResponse>(responseContent);
-
-                        if (graphQLResponse.Data != null && graphQLResponse.Data.Crafts != null)
-                        {
-                            int index = 0;
-                            foreach (var craft in graphQLResponse.Data.Crafts)
-                            {
-                                CraftableItem craftableItem;
-                                if (ConfigWindow.AppConfig.CurrentCraftingLevel == 51)
-                                {
-                                    craftableItem = new CraftableItem
-                                    {
-                                        Id = craft.Id,
-                                        Station = NormalizeStationName(craft.Station?.Name),
-                                        CraftTime = TimeSpan.FromSeconds(craft.Duration * (1-0.375) ?? 0),
-                                        RewardItems = craft.RewardItems.Select(rewardItem => new RewardItemDetail
-                                        {
-                                            Id = rewardItem.Item.Id,
-                                            Name = rewardItem.Item.Name,
-                                            ShortName = rewardItem.Item.ShortName,
-                                            IconLink = rewardItem.Item.IconLink,
-                                            Quantity = rewardItem.Quantity
-                                        }).ToList(),
-                                        OriginalIndex = index++
-                                    };
-                                }
-                                else
-                                {
-                                    craftableItem = new CraftableItem
-                                    {
-                                        Id = craft.Id,
-                                        Station = NormalizeStationName(craft.Station?.Name),
-                                        CraftTime = TimeSpan.FromSeconds(craft.Duration * (1-(ConfigWindow.AppConfig.CurrentCraftingLevel*0.0075)) ?? 0),
-                                        RewardItems = craft.RewardItems.Select(rewardItem => new RewardItemDetail
-                                        {
-                                            Id = rewardItem.Item.Id,
-                                            Name = rewardItem.Item.Name,
-                                            ShortName = rewardItem.Item.ShortName,
-                                            IconLink = rewardItem.Item.IconLink,
-                                            Quantity = rewardItem.Quantity
-                                        }).ToList(),
-                                        OriginalIndex = index++
-                                    };
-                                }
-                                craftableItems.Add(craftableItem);
-                            }
-
-                            // Assign StationIndex based on StaticCategoryOrder
-                            foreach (var item in craftableItems)
-                            {
-                                int idx = StaticCategoryOrder.IndexOf(item.Station);
-                                item.StationIndex = idx >= 0 ? idx : StaticCategoryOrder.Count;
-                            }
-                        }
-                        else if (graphQLResponse.Errors != null && graphQLResponse.Errors.Length > 0)
-                        {
-                            var errorMessages = string.Join("\n", graphQLResponse.Errors.Select(e => e.Message));
-                            MessageBox.Show($"GraphQL errors:\n{errorMessages}");
-                        }
-                        else
-                        {
-                            MessageBox.Show("No data received from GraphQL API.");
-                        }
-                    }
-                    else
-                    {
-                        // Log the status code and reason
-                        string errorContent = await response.Content.ReadAsStringAsync();
-                        MessageBox.Show($"API request failed with status code {response.StatusCode}: {response.ReasonPhrase}\nContent: {errorContent}");
-                    }
+                    craftableItems.Add(craftableItem);
                 }
-                catch (Exception ex)
+
+                // Assign StationIndex based on StaticCategoryOrder
+                foreach (var item in craftableItems)
                 {
-                    MessageBox.Show($"Error fetching craftable items: {ex.Message}");
+                    int idx = StaticCategoryOrder.IndexOf(item.Station);
+                    item.StationIndex = idx >= 0 ? idx : StaticCategoryOrder.Count;
                 }
             }
             return craftableItems;
@@ -175,144 +103,52 @@ namespace EFT_OverlayAPP
 
         public static async Task<List<CraftModuleSetting>> FetchCraftModuleSettingsAsync()
         {
+            // Get or load craft module settings data
+            var graphQLResponse = await TarkovApiService.GetCraftModuleSettingsDataAsync();
+
             var craftModuleSettings = new List<CraftModuleSetting>();
-            using (HttpClient client = new HttpClient())
+            if (graphQLResponse != null && graphQLResponse.Data != null && graphQLResponse.Data.Tasks != null)
             {
-                try
+                foreach (var task in graphQLResponse.Data.Tasks)
                 {
-                    var queryObject = new
+                    // Process startRewards
+                    if (task.StartRewards?.CraftUnlock != null)
                     {
-                        query = @"{
-                            tasks {
-                                id
-                                name
-                                startRewards {
-                                    craftUnlock {
-                                        id
-                                        station {
-                                            name
-                                        }
-                                        duration
-                                        rewardItems {
-                                            item {
-                                                id
-                                                name
-                                                shortName
-                                                iconLink
-                                            }
-                                            quantity
-                                        }
-                                    }
-                                }
-                                finishRewards {
-                                    craftUnlock {
-                                        id
-                                        station {
-                                            name
-                                        }
-                                        duration
-                                        rewardItems {
-                                            item {
-                                                id
-                                                name
-                                                shortName
-                                                iconLink
-                                            }
-                                            quantity
-                                        }
-                                    }
-                                }
-                                trader {
-                                    id
-                                    name
-                                    imageLink
-                                }
-                           }
-                        }"
-                    };
-                    var queryJson = JsonConvert.SerializeObject(queryObject);
-                    var content = new StringContent(queryJson, Encoding.UTF8, "application/json");
-
-                    HttpResponseMessage response = await client.PostAsync("https://api.tarkov.dev/graphql", content);
-
-                    if (response.IsSuccessStatusCode)
-                    {
-                        string responseContent = await response.Content.ReadAsStringAsync();
-
-                        // Deserialize the response
-                        var graphQLResponse = JsonConvert.DeserializeObject<GraphQLCraftsResponse>(responseContent);
-
-                        if (graphQLResponse.Data != null && graphQLResponse.Data.Tasks != null)
+                        foreach (var craftUnlock in task.StartRewards.CraftUnlock)
                         {
-                            foreach (var task in graphQLResponse.Data.Tasks)
+                            var craftModule = new CraftModuleSetting
                             {
-                                // Process startRewards
-                                if (task.StartRewards != null)
-                                {
-                                    var reward = task.StartRewards;
-                                    if (reward.CraftUnlock != null)
-                                    {
-                                        foreach (var craftUnlock in reward.CraftUnlock)
-                                        {
-                                            var craftModule = new CraftModuleSetting
-                                            {
-                                                CraftId = craftUnlock.Id,
-                                                CraftName = craftUnlock.RewardItems.FirstOrDefault()?.Item.Name ?? "Unknown Craft",
-                                                CraftIconLink = craftUnlock.RewardItems.FirstOrDefault()?.Item.IconLink ?? "",
-                                                TraderIconLink = task.Trader?.ImageLink ?? "",
-                                                QuestName = task.Name,
-                                                IsUnlocked = false // Default to locked; user can unlock manually
-                                            };
-                                            craftModuleSettings.Add(craftModule);
-                                        }
-                                    }
-                                }
+                                CraftId = craftUnlock.Id,
+                                CraftName = craftUnlock.RewardItems.FirstOrDefault()?.Item.Name ?? "Unknown Craft",
+                                CraftIconLink = craftUnlock.RewardItems.FirstOrDefault()?.Item.IconLink ?? "",
+                                TraderIconLink = task.Trader?.ImageLink ?? "",
+                                QuestName = task.Name,
+                                IsUnlocked = false
+                            };
+                            craftModuleSettings.Add(craftModule);
+                        }
+                    }
 
-                                // Optionally, process finishRewards if needed
-                                if (task.FinishRewards != null)
-                                {
-                                    var reward = task.FinishRewards;
-                                    if (reward.CraftUnlock != null)
-                                    {
-                                        foreach (var craftUnlock in reward.CraftUnlock)
-                                        {
-                                            var craftModule = new CraftModuleSetting
-                                            {
-                                                CraftId = craftUnlock.Id,
-                                                CraftName = craftUnlock.RewardItems.FirstOrDefault()?.Item.Name ?? "Unknown Craft",
-                                                CraftIconLink = craftUnlock.RewardItems.FirstOrDefault()?.Item.IconLink ?? "",
-                                                TraderIconLink = task.Trader?.ImageLink ?? "",
-                                                QuestName = task.Name,
-                                                IsUnlocked = false // Default to locked; user can unlock manually
-                                            };
-                                            craftModuleSettings.Add(craftModule);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        else if (graphQLResponse.Errors != null && graphQLResponse.Errors.Length > 0)
-                        {
-                            var errorMessages = string.Join("\n", graphQLResponse.Errors.Select(e => e.Message));
-                            MessageBox.Show($"GraphQL errors:\n{errorMessages}");
-                        }
-                        else
-                        {
-                            MessageBox.Show("No data received from GraphQL API.");
-                        }
-                    }
-                    else
+                    // Process finishRewards
+                    if (task.FinishRewards?.CraftUnlock != null)
                     {
-                        // Log the status code and reason
-                        string errorContent = await response.Content.ReadAsStringAsync();
-                        MessageBox.Show($"API request failed with status code {response.StatusCode}: {response.ReasonPhrase}\nContent: {errorContent}");
+                        foreach (var craftUnlock in task.FinishRewards.CraftUnlock)
+                        {
+                            var craftModule = new CraftModuleSetting
+                            {
+                                CraftId = craftUnlock.Id,
+                                CraftName = craftUnlock.RewardItems.FirstOrDefault()?.Item.Name ?? "Unknown Craft",
+                                CraftIconLink = craftUnlock.RewardItems.FirstOrDefault()?.Item.IconLink ?? "",
+                                TraderIconLink = task.Trader?.ImageLink ?? "",
+                                QuestName = task.Name,
+                                IsUnlocked = false
+                            };
+                            craftModuleSettings.Add(craftModule);
+                        }
                     }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error fetching craft module settings: {ex.Message}");
                 }
             }
+
             return craftModuleSettings;
         }
 
@@ -535,99 +371,27 @@ namespace EFT_OverlayAPP
         public static async Task LoadRequiredItemsData()
         {
             if (IsRequiredItemsDataLoaded)
-                return; // Data is already loaded, no need to load again
+                return;
 
-            string query = @"
+            var responseObject = await TarkovApiService.GetRequiredItemsDataAsync();
+            if (responseObject == null)
             {
-              tasks {
-                id
-                name
-                trader {
-                  id
-                  name
-                  imageLink
-                }
-                objectives {
-                  id
-                  type
-                  description
-                  ... on TaskObjectiveItem {
-                    items {
-                      id
-                      name
-                      iconLink
-                    }
-                    count
-                    foundInRaid
-                  }
-                }
-              }
-              hideoutStations {
-                id
-                name
-                normalizedName
-                imageLink
-                levels {
-                  level
-                  itemRequirements {
-                    item {
-                      id
-                      name
-                      iconLink 
-                    }
-                    count
-                  }
-                }
-              }
-            }";
-
-
-            try
-            {
-                using (HttpClient client = new HttpClient())
-                {
-                    // Create an anonymous object for the query
-                    var queryObject = new { query = query };
-                    var jsonContent = JsonConvert.SerializeObject(queryObject);
-                    var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-                    HttpResponseMessage response = await client.PostAsync("https://api.tarkov.dev/graphql", content);
-
-                    string result = await response.Content.ReadAsStringAsync();
-
-                    // Log the response
-                    // MessageBox.Show(result, "API Response", MessageBoxButton.OK, MessageBoxImage.Information);
-
-                    JObject responseObject = JObject.Parse(result);
-
-                    // Check for errors in the response
-                    if (responseObject["errors"] != null)
-                    {
-                        var errors = responseObject["errors"].ToString();
-                        MessageBox.Show($"API returned errors: {errors}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                        return;
-                    }
-
-                    JObject data = responseObject["data"] as JObject;
-                    if (data != null)
-                    {
-                        ParseTasks(data["tasks"] as JArray);
-                        ParseHideoutStations(data["hideoutStations"] as JArray);
-                        IsRequiredItemsDataLoaded = true; // Set the flag after successful loading
-                    }
-                    else
-                    {
-                        // Handle the case where 'data' is null
-                        MessageBox.Show("API returned null data.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
-                }
+                // Already handled errors in the service call
+                return;
             }
-            catch (Exception ex)
+
+            JObject data = responseObject["data"] as JObject;
+            if (data != null)
             {
-                MessageBox.Show($"Error loading required items data: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                ParseTasks(data["tasks"] as JArray);
+                ParseHideoutStations(data["hideoutStations"] as JArray);
+                IsRequiredItemsDataLoaded = true;
+            }
+            else
+            {
+                MessageBox.Show("API returned null data.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
 
         private static void ParseTasks(JArray tasksArray)
         {

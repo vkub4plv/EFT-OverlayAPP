@@ -1220,4 +1220,268 @@ namespace EFT_OverlayAPP
     {
         public List<Craft> CraftUnlock { get; set; }
     }
+
+    public static class TarkovApiService
+    {
+        private const string ApiUrl = "https://api.tarkov.dev/graphql";
+
+        // Cached data and flags
+        private static bool isCraftableItemsDataLoaded = false;
+        private static GraphQLCraftsResponse craftableItemsData;
+
+        private static bool isCraftModuleSettingsDataLoaded = false;
+        private static GraphQLCraftsResponse craftModuleSettingsData;
+
+        private static bool isRequiredItemsDataLoaded = false;
+        private static JObject requiredItemsData;
+
+        public static async Task<GraphQLCraftsResponse> GetCraftableItemsDataAsync()
+        {
+            if (isCraftableItemsDataLoaded)
+            {
+                return craftableItemsData;
+            }
+
+            var queryObject = new
+            {
+                query = @"{
+                            crafts {
+                                id
+                                station {
+                                    name
+                                }
+                                duration
+                                rewardItems {
+                                    item {
+                                        id
+                                        name
+                                        shortName
+                                        iconLink
+                                    }
+                                    quantity
+                                }
+                            }
+                        }"
+            };
+
+            try
+            {
+                var responseContent = await PostQueryAsync(queryObject);
+                var graphQLResponse = JsonConvert.DeserializeObject<GraphQLCraftsResponse>(responseContent);
+
+                if (graphQLResponse != null && graphQLResponse.Data != null && graphQLResponse.Data.Crafts != null)
+                {
+                    craftableItemsData = graphQLResponse;
+                    isCraftableItemsDataLoaded = true;
+                    return craftableItemsData;
+                }
+                else if (graphQLResponse != null && graphQLResponse.Errors != null && graphQLResponse.Errors.Length > 0)
+                {
+                    var errorMessages = string.Join("\n", graphQLResponse.Errors.Select(e => e.Message));
+                    MessageBox.Show($"GraphQL errors:\n{errorMessages}");
+                }
+                else
+                {
+                    MessageBox.Show("No data received from GraphQL API (Craftable Items).");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error fetching craftable items: {ex.Message}");
+            }
+
+            return null;
+        }
+
+        public static async Task<GraphQLCraftsResponse> GetCraftModuleSettingsDataAsync()
+        {
+            if (isCraftModuleSettingsDataLoaded)
+            {
+                return craftModuleSettingsData;
+            }
+
+            var queryObject = new
+            {
+                query = @"{
+                            tasks {
+                                id
+                                name
+                                startRewards {
+                                    craftUnlock {
+                                        id
+                                        station {
+                                            name
+                                        }
+                                        duration
+                                        rewardItems {
+                                            item {
+                                                id
+                                                name
+                                                shortName
+                                                iconLink
+                                            }
+                                            quantity
+                                        }
+                                    }
+                                }
+                                finishRewards {
+                                    craftUnlock {
+                                        id
+                                        station {
+                                            name
+                                        }
+                                        duration
+                                        rewardItems {
+                                            item {
+                                                id
+                                                name
+                                                shortName
+                                                iconLink
+                                            }
+                                            quantity
+                                        }
+                                    }
+                                }
+                                trader {
+                                    id
+                                    name
+                                    imageLink
+                                }
+                           }
+                        }"
+            };
+
+            try
+            {
+                var responseContent = await PostQueryAsync(queryObject);
+                var graphQLResponse = JsonConvert.DeserializeObject<GraphQLCraftsResponse>(responseContent);
+
+                if (graphQLResponse != null && graphQLResponse.Data != null && graphQLResponse.Data.Tasks != null)
+                {
+                    craftModuleSettingsData = graphQLResponse;
+                    isCraftModuleSettingsDataLoaded = true;
+                    return craftModuleSettingsData;
+                }
+                else if (graphQLResponse != null && graphQLResponse.Errors != null && graphQLResponse.Errors.Length > 0)
+                {
+                    var errorMessages = string.Join("\n", graphQLResponse.Errors.Select(e => e.Message));
+                    MessageBox.Show($"GraphQL errors:\n{errorMessages}");
+                }
+                else
+                {
+                    MessageBox.Show("No data received from GraphQL API (Craft Module Settings).");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error fetching craft module settings: {ex.Message}");
+            }
+
+            return null;
+        }
+
+        public static async Task<JObject> GetRequiredItemsDataAsync()
+        {
+            if (isRequiredItemsDataLoaded)
+            {
+                return requiredItemsData;
+            }
+
+            string query = @"
+            {
+              tasks {
+                id
+                name
+                trader {
+                  id
+                  name
+                  imageLink
+                }
+                objectives {
+                  id
+                  type
+                  description
+                  ... on TaskObjectiveItem {
+                    items {
+                      id
+                      name
+                      iconLink
+                    }
+                    count
+                    foundInRaid
+                  }
+                }
+              }
+              hideoutStations {
+                id
+                name
+                normalizedName
+                imageLink
+                levels {
+                  level
+                  itemRequirements {
+                    item {
+                      id
+                      name
+                      iconLink 
+                    }
+                    count
+                  }
+                }
+              }
+            }";
+
+            var queryObject = new { query = query };
+            try
+            {
+                var responseContent = await PostQueryAsync(queryObject);
+                JObject responseObject = JObject.Parse(responseContent);
+
+                // Check for errors
+                if (responseObject["errors"] != null)
+                {
+                    var errors = responseObject["errors"].ToString();
+                    MessageBox.Show($"API returned errors: {errors}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return null;
+                }
+
+                JObject data = responseObject["data"] as JObject;
+                if (data != null)
+                {
+                    requiredItemsData = responseObject;
+                    isRequiredItemsDataLoaded = true;
+                    return requiredItemsData;
+                }
+                else
+                {
+                    MessageBox.Show("API returned null data (Required Items).", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading required items data: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+            return null;
+        }
+
+        private static async Task<string> PostQueryAsync(object queryObject)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                var queryJson = JsonConvert.SerializeObject(queryObject);
+                var content = new StringContent(queryJson, Encoding.UTF8, "application/json");
+                HttpResponseMessage response = await client.PostAsync(ApiUrl, content);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    string errorContent = await response.Content.ReadAsStringAsync();
+                    MessageBox.Show($"API request failed with status code {response.StatusCode}: {response.ReasonPhrase}\nContent: {errorContent}");
+                    return null;
+                }
+
+                return await response.Content.ReadAsStringAsync();
+            }
+        }
+    }
 }
