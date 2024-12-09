@@ -37,7 +37,6 @@ namespace EFT_OverlayAPP
         private DispatcherTimer timer;
         private DispatcherTimer craftsTimer;
         private TimeSpan remainingTime;
-        private bool craftingWindowActivated = false;
 
         private bool isRaidTimerVisible;
         public bool IsRaidTimerVisible
@@ -130,10 +129,9 @@ namespace EFT_OverlayAPP
             source.AddHook(HwndHook);
             RegisterConfiguredHotKeys();
 
-            if (craftingWindowActivated)
-            {
-                craftingWindow.RefreshAllViews();
-            }
+            craftingWindow = new CraftingWindow(this, configWindow);
+            craftingWindow.Activate();
+            craftingWindow.RefreshAllViews();
         }
 
         private void MainWindow_Closed(object sender, EventArgs e)
@@ -249,7 +247,6 @@ namespace EFT_OverlayAPP
             else
             {
                 craftingWindow.Activate();
-                craftingWindowActivated = true;
             }
         }
 

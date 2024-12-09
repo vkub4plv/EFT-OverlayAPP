@@ -605,6 +605,7 @@ namespace EFT_OverlayAPP
                     var moduleSetting = new HideoutModuleSetting
                     {
                         ModuleName = station.Name,
+                        StationImageLink = station.ImageLink,
                         SelectedLevel = selectedLevel
                     };
 
@@ -681,6 +682,7 @@ namespace EFT_OverlayAPP
                     var moduleSetting = new HideoutModuleSetting
                     {
                         ModuleName = station.Name,
+                        StationImageLink = station.ImageLink,
                         SelectedLevel = selectedLevel
                     };
 

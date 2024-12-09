@@ -1137,6 +1137,7 @@ namespace EFT_OverlayAPP
     public class HideoutModuleSetting : INotifyPropertyChanged
     {
         public string ModuleName { get; set; }
+        public string StationImageLink { get; set; }
         // Collection of available levels including 0 (Unbuilt)
         public ObservableCollection<int> AvailableLevels { get; set; }
 
@@ -1151,6 +1152,19 @@ namespace EFT_OverlayAPP
                     selectedLevel = value;
                     OnPropertyChanged(nameof(SelectedLevel));
                 }
+            }
+        }
+
+        private BitmapImage _stationIcon;
+        public BitmapImage StationIcon
+        {
+            get
+            {
+                if (_stationIcon == null && !string.IsNullOrEmpty(StationImageLink))
+                {
+                    _stationIcon = new BitmapImage(new Uri(StationImageLink, UriKind.Absolute));
+                }
+                return _stationIcon;
             }
         }
 
