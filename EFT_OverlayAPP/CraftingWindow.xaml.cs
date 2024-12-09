@@ -118,16 +118,6 @@ namespace EFT_OverlayAPP
 
         private void InitializeData()
         {
-            // Unsubscribe from event handlers to prevent multiple subscriptions
-            foreach (var item in CraftableItems)
-            {
-                item.PropertyChanged -= Item_PropertyChanged;
-            }
-
-            // Clear existing items
-            CraftableItems.Clear();
-            FavoriteItems.Clear();
-
             // Populate the observable collections with cached data
             foreach (var item in DataCache.CraftableItems)
             {
@@ -195,16 +185,7 @@ namespace EFT_OverlayAPP
             StatsView?.Refresh();
 
             // Subscribe to event handlers
-            SearchTextBox.TextChanged += SearchTextBox_TextChanged;
-            CategoryFilterComboBox.SelectionChanged += CategoryFilterComboBox_SelectionChanged;
-
-            FavoritesSearchTextBox.TextChanged += FavoritesSearchTextBox_TextChanged;
-            FavoritesCategoryFilterComboBox.SelectionChanged += FavoritesCategoryFilterComboBox_SelectionChanged;
-
-            ActiveCraftsSearchTextBox.TextChanged += ActiveCraftsSearchTextBox_TextChanged;
-            ActiveCraftsCategoryFilterComboBox.SelectionChanged += ActiveCraftsCategoryFilterComboBox_SelectionChanged;
-
-            CraftInstances.CollectionChanged += CraftInstances_CollectionChanged;
+            // (Handled in SubscribeEvents method)
 
             // Compute and set up Logs and Stats views
             SetupLogsView();
@@ -1245,13 +1226,162 @@ namespace EFT_OverlayAPP
         {
             try
             {
+                if (IsLoading)
+                {
+                    logger.Info("ReloadData called, but data is already loading.");
+                    return;
+                }
 
+                IsLoading = true;
+                logger.Info("Reloading data in CraftingWindow.");
+
+                // Unsubscribe from existing events to prevent duplicate handlers
+                UnsubscribeEvents();
+
+                // Clear existing collections
+                ClearCollections();
+
+                // Reload data from DataCache
+                await DataCache.LoadDataAsync(ConfigWindow);
+
+                // Reinitialize data
+                InitializeData();
+
+                // Re-subscribe to events
+                SubscribeEvents();
+
+                // Reinitialize crafting timers based on MainWindow's active crafts
+                InitializeActiveCraftTimers();
+
+                // Refresh all views
+                RefreshAllViews();
+
+                // Re-populate category filters
+                PopulateAllCategoryFilters();
+
+                // Apply current sorting
+                ApplySorting();
+
+                logger.Info("Data reloaded successfully in CraftingWindow.");
             }
             catch (Exception ex)
             {
+                logger.Error(ex, "Error reloading data in CraftingWindow.");
                 MessageBox.Show($"Error reloading data: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                logger.Error(ex, "Failed to reload data in CraftingWindow.");
             }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        // Helper methods
+
+        private void UnsubscribeEvents()
+        {
+            // Unsubscribe from existing event handlers
+            FavoriteItems.CollectionChanged -= FavoriteItems_CollectionChanged;
+            ActiveCrafts.CollectionChanged -= ActiveCrafts_CollectionChanged;
+            DataCache.DataLoaded -= OnDataLoaded;
+
+            SortingComboBox.SelectionChanged -= SortingComboBox_SelectionChanged;
+            SearchTextBox.TextChanged -= SearchTextBox_TextChanged;
+            CategoryFilterComboBox.SelectionChanged -= CategoryFilterComboBox_SelectionChanged;
+            FavoritesSearchTextBox.TextChanged -= FavoritesSearchTextBox_TextChanged;
+            FavoritesCategoryFilterComboBox.SelectionChanged -= FavoritesCategoryFilterComboBox_SelectionChanged;
+            ActiveCraftsSearchTextBox.TextChanged -= ActiveCraftsSearchTextBox_TextChanged;
+            ActiveCraftsCategoryFilterComboBox.SelectionChanged -= ActiveCraftsCategoryFilterComboBox_SelectionChanged;
+            CraftInstances.CollectionChanged -= CraftInstances_CollectionChanged;
+
+            LogsSearchTextBox.TextChanged -= LogsSearchTextBox_TextChanged;
+            LogsCategoryFilterComboBox.SelectionChanged -= LogsCategoryFilterComboBox_SelectionChanged;
+            LogsSortingComboBox.SelectionChanged -= LogsSortingComboBox_SelectionChanged;
+
+            StatsSearchTextBox.TextChanged -= StatsSearchTextBox_TextChanged;
+            StatsCategoryFilterComboBox.SelectionChanged -= StatsCategoryFilterComboBox_SelectionChanged;
+            StatsSortingComboBox.SelectionChanged -= StatsSortingComboBox_SelectionChanged;
+        }
+
+        private void SubscribeEvents()
+        {
+            // Subscribe to events again
+            FavoriteItems.CollectionChanged += FavoriteItems_CollectionChanged;
+            ActiveCrafts.CollectionChanged += ActiveCrafts_CollectionChanged;
+            DataCache.DataLoaded += OnDataLoaded;
+
+            SortingComboBox.SelectionChanged += SortingComboBox_SelectionChanged;
+            SearchTextBox.TextChanged += SearchTextBox_TextChanged;
+            CategoryFilterComboBox.SelectionChanged += CategoryFilterComboBox_SelectionChanged;
+            FavoritesSearchTextBox.TextChanged += FavoritesSearchTextBox_TextChanged;
+            FavoritesCategoryFilterComboBox.SelectionChanged += FavoritesCategoryFilterComboBox_SelectionChanged;
+            ActiveCraftsSearchTextBox.TextChanged += ActiveCraftsSearchTextBox_TextChanged;
+            ActiveCraftsCategoryFilterComboBox.SelectionChanged += ActiveCraftsCategoryFilterComboBox_SelectionChanged;
+            CraftInstances.CollectionChanged += CraftInstances_CollectionChanged;
+
+            LogsSearchTextBox.TextChanged += LogsSearchTextBox_TextChanged;
+            LogsCategoryFilterComboBox.SelectionChanged += LogsCategoryFilterComboBox_SelectionChanged;
+            LogsSortingComboBox.SelectionChanged += LogsSortingComboBox_SelectionChanged;
+
+            StatsSearchTextBox.TextChanged += StatsSearchTextBox_TextChanged;
+            StatsCategoryFilterComboBox.SelectionChanged += StatsCategoryFilterComboBox_SelectionChanged;
+            StatsSortingComboBox.SelectionChanged += StatsSortingComboBox_SelectionChanged;
+        }
+
+        private void ClearCollections()
+        {
+            // Unsubscribe from item property changed events
+            foreach (var item in CraftableItems)
+            {
+                item.PropertyChanged -= Item_PropertyChanged;
+            }
+
+            CraftableItems.Clear();
+            FavoriteItems.Clear();
+            ActiveCrafts.Clear();
+            CraftInstances.Clear();
+            CraftStatsCollection.Clear();
+
+            // Clear craftTimers and activeCraftsPerStation
+            craftTimers.Clear();
+            activeCraftsPerStation.Clear();
+        }
+
+        private void InitializeActiveCraftTimers()
+        {
+            // Iterate through CraftableItems to initialize active crafts based on their status
+            foreach (var item in CraftableItems)
+            {
+                if (item.CraftStatus == CraftStatus.InProgress || item.CraftStatus == CraftStatus.Ready)
+                {
+                    if (!activeCraftsPerStation.ContainsKey(item.Station))
+                    {
+                        activeCraftsPerStation[item.Station] = item;
+                        ActiveCrafts.Add(item);
+                        MainWindow?.UpdateCraftDisplay(item, remove: false);
+
+                        // Start the timer for this craft
+                        StartCraftTimer(item);
+                    }
+                }
+            }
+        }
+
+        private void RefreshAllViews()
+        {
+            ItemsView?.Refresh();
+            FavoritesView?.Refresh();
+            ActiveCraftsView?.Refresh();
+            LogsView?.Refresh();
+            StatsView?.Refresh();
+        }
+
+        private void PopulateAllCategoryFilters()
+        {
+            PopulateCategoryFilter();
+            PopulateFavoritesCategoryFilter();
+            PopulateActiveCraftsCategoryFilter();
+            PopulateLogsCategoryFilter();
+            PopulateStatsCategoryFilter();
         }
     }
 }

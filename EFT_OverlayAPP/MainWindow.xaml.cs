@@ -168,6 +168,7 @@ namespace EFT_OverlayAPP
         {
             Dispatcher.Invoke(() =>
             {
+                ActiveCraftTimers.Clear();
                 // Subscribe to property changes and update the UI
                 foreach (var item in DataCache.CraftableItems)
                 {
@@ -347,6 +348,7 @@ namespace EFT_OverlayAPP
             craftsTimer.Interval = TimeSpan.FromSeconds(1);
             craftsTimer.Tick += CraftsTimer_Tick;
             craftsTimer.Start();
+            logger.Info("CraftsTimer initialized and started.");
         }
 
         private void Timer_Tick(object sender, EventArgs e)
@@ -365,6 +367,7 @@ namespace EFT_OverlayAPP
 
         private void CraftsTimer_Tick(object sender, EventArgs e)
         {
+            logger.Info("CraftsTimer_Tick invoked.");
             foreach (var displayItem in ActiveCraftTimers)
             {
                 displayItem.CraftItem.UpdateRemainingTime();
@@ -803,7 +806,7 @@ namespace EFT_OverlayAPP
             }
 
             // Reload data in CraftingWindow
-            if (LastProfileMode != EffectiveProfileMode && craftingWindow != null && craftingWindow.IsVisible)
+            if (LastProfileMode != EffectiveProfileMode && craftingWindow != null)
             {
                 craftingWindow.ReloadData();
             }
