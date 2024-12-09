@@ -1160,9 +1160,44 @@ namespace EFT_OverlayAPP
         {
             get
             {
-                if (_stationIcon == null && !string.IsNullOrEmpty(StationImageLink))
+                if (ModuleName.Equals("Cultist Circle", StringComparison.OrdinalIgnoreCase) || ModuleName.Equals("Gear Rack", StringComparison.OrdinalIgnoreCase))
                 {
-                    _stationIcon = new BitmapImage(new Uri(StationImageLink, UriKind.Absolute));
+                    // Use local icon
+                    string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                    string iconFileName = ModuleName.Equals("Cultist Circle", StringComparison.OrdinalIgnoreCase)
+                        ? "Cultist Circle.png"
+                        : "Gear Rack.png";
+                    string localIconPath = Path.Combine(baseDir, "StationIcons", iconFileName);
+                    if (File.Exists(localIconPath))
+                    {
+                        _stationIcon = new BitmapImage(new Uri(localIconPath, UriKind.Absolute));
+                    }
+                    else
+                    {
+                        // If icon doesn't exist locally, consider loading a default fallback
+                        string defaultIconPath = Path.Combine(baseDir, "StationIcons", "default.png");
+                        if (File.Exists(defaultIconPath))
+                        {
+                            _stationIcon = new BitmapImage(new Uri(defaultIconPath, UriKind.Absolute));
+                        }
+                    }
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(StationImageLink))
+                    {
+                        _stationIcon = new BitmapImage(new Uri(StationImageLink, UriKind.Absolute));
+                    }
+                    else
+                    {
+                        // If StationImageLink is empty, fallback to a default icon
+                        string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                        string defaultIconPath = Path.Combine(baseDir, "StationIcons", "default.png");
+                        if (File.Exists(defaultIconPath))
+                        {
+                            _stationIcon = new BitmapImage(new Uri(defaultIconPath, UriKind.Absolute));
+                        }
+                    }
                 }
                 return _stationIcon;
             }
