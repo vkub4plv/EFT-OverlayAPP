@@ -87,7 +87,7 @@
                                                     <!-- Source Info (Trader Icon and Quest Name or Hideout Station Icon and Level) -->
                                                     <StackPanel Orientation="Horizontal">
                                                         <!-- Source Icon -->
-                                                        <Image Source="{Binding SourceIcon}" Width="20" Height="20" Margin="0,0,5,0"/>
+                                                        <Image Source="{Binding DisplaySourceIcon}" Width="20" Height="20" Margin="0,0,5,0"/>
                                                         <!-- Source Detail -->
                                                         <TextBlock Text="{Binding SourceDetail}"/>
                                                     </StackPanel>
@@ -167,7 +167,7 @@
                                                         <ItemsControl.ItemTemplate>
                                                             <DataTemplate>
                                                                 <StackPanel Orientation="Horizontal" Margin="0,0,10,0">
-                                                                    <Image Source="{Binding Icon}" Width="20" Height="20" Margin="0,0,5,0"/>
+                                                                    <Image Source="{Binding DisplayIcon}" Width="20" Height="20" Margin="0,0,5,0"/>
                                                                     <TextBlock Text="{Binding Name}"/>
                                                                 </StackPanel>
                                                             </DataTemplate>
@@ -240,7 +240,7 @@
                                                         <ItemsControl.ItemTemplate>
                                                             <DataTemplate>
                                                                 <StackPanel Orientation="Horizontal" Margin="0,0,10,0">
-                                                                    <Image Source="{Binding Icon}" Width="20" Height="20" Margin="0,0,5,0"/>
+                                                                    <Image Source="{Binding DisplayIcon}" Width="20" Height="20" Margin="0,0,5,0"/>
                                                                     <TextBlock Text="{Binding Name}"/>
                                                                 </StackPanel>
                                                             </DataTemplate>

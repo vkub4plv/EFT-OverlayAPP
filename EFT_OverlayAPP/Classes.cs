@@ -480,15 +480,155 @@ namespace EFT_OverlayAPP
         public RequiredItemEntry ParentEntry { get; set; }
         public List<RequiredItemEntry> ChildEntries { get; set; }
 
+        private ImageSource _displaySourceIcon;
+        public ImageSource DisplaySourceIcon
+        {
+            get
+            {
+                if (_displaySourceIcon == null)
+                {
+                    // Check if we need to use a local override
+                    if (SourceName.Equals("Cultist Circle", StringComparison.OrdinalIgnoreCase) ||
+                        SourceName.Equals("Gear Rack", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Use local icon from /StationIcons
+                        string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                        string iconFileName = SourceName.Equals("Cultist Circle", StringComparison.OrdinalIgnoreCase)
+                            ? "Cultist Circle.png"
+                            : "Gear Rack.png";
+
+                        string localIconPath = Path.Combine(baseDir, "StationIcons", iconFileName);
+                        if (File.Exists(localIconPath))
+                        {
+                            _displaySourceIcon = new BitmapImage(new Uri(localIconPath, UriKind.Absolute));
+                        }
+                        else
+                        {
+                            // Fallback to a default icon if missing
+                            string defaultIconPath = Path.Combine(baseDir, "StationIcons", "default.png");
+                            if (File.Exists(defaultIconPath))
+                            {
+                                _displaySourceIcon = new BitmapImage(new Uri(defaultIconPath, UriKind.Absolute));
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // Use the API-provided icon
+                        if (!string.IsNullOrEmpty(SourceIcon))
+                        {
+                            try
+                            {
+                                _displaySourceIcon = new BitmapImage(new Uri(SourceIcon, UriKind.Absolute));
+                            }
+                            catch
+                            {
+                                // If failed to load from URL, fallback to default
+                                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                                string defaultIconPath = Path.Combine(baseDir, "StationIcons", "default.png");
+                                if (File.Exists(defaultIconPath))
+                                {
+                                    _displaySourceIcon = new BitmapImage(new Uri(defaultIconPath, UriKind.Absolute));
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // If SourceIcon is empty, fallback to default
+                            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                            string defaultIconPath = Path.Combine(baseDir, "StationIcons", "default.png");
+                            if (File.Exists(defaultIconPath))
+                            {
+                                _displaySourceIcon = new BitmapImage(new Uri(defaultIconPath, UriKind.Absolute));
+                            }
+                        }
+                    }
+                }
+                return _displaySourceIcon;
+            }
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
         public void OnPropertyChanged(string name) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 
-    public class SourceDetail
+    public class SourceDetail : INotifyPropertyChanged
     {
         public string Icon { get; set; } // URL or path to the icon image
         public string Name { get; set; } // Quest name or hideout level
+
+        private ImageSource _displayIcon;
+        public ImageSource DisplayIcon
+        {
+            get
+            {
+                if (_displayIcon == null)
+                {
+                    // Check for special stations
+                    if (Name.Contains("Cultist Circle", StringComparison.OrdinalIgnoreCase) ||
+                        Name.Contains("Gear Rack", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Use local icon
+                        string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                        string iconFileName = Name.Contains("Cultist Circle", StringComparison.OrdinalIgnoreCase)
+                            ? "Cultist Circle.png"
+                            : "Gear Rack.png";
+
+                        string localIconPath = Path.Combine(baseDir, "StationIcons", iconFileName);
+                        if (File.Exists(localIconPath))
+                        {
+                            _displayIcon = new BitmapImage(new Uri(localIconPath, UriKind.Absolute));
+                        }
+                        else
+                        {
+                            // Fallback to default if missing
+                            string defaultIconPath = Path.Combine(baseDir, "StationIcons", "default.png");
+                            if (File.Exists(defaultIconPath))
+                            {
+                                _displayIcon = new BitmapImage(new Uri(defaultIconPath, UriKind.Absolute));
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // Use API-provided icon if available
+                        if (!string.IsNullOrEmpty(Icon))
+                        {
+                            try
+                            {
+                                _displayIcon = new BitmapImage(new Uri(Icon, UriKind.Absolute));
+                            }
+                            catch
+                            {
+                                // If failed, fallback to default
+                                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                                string defaultIconPath = Path.Combine(baseDir, "StationIcons", "default.png");
+                                if (File.Exists(defaultIconPath))
+                                {
+                                    _displayIcon = new BitmapImage(new Uri(defaultIconPath, UriKind.Absolute));
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // If no icon URL, use default
+                            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                            string defaultIconPath = Path.Combine(baseDir, "StationIcons", "default.png");
+                            if (File.Exists(defaultIconPath))
+                            {
+                                _displayIcon = new BitmapImage(new Uri(defaultIconPath, UriKind.Absolute));
+                            }
+                        }
+                    }
+                }
+                return _displayIcon;
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string name) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 
     public enum CraftInstanceStatus
