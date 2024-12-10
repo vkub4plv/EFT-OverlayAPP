@@ -303,7 +303,7 @@
                     <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,10">
                         <TextBlock Text="Source of Hideout Station Levels:" VerticalAlignment="Center" Margin="0,0,10,0"/>
                         <RadioButton x:Name="ManualHideoutSourceRadioButton" Content="Manual (In-App)" GroupName="HideoutSource" IsChecked="{Binding IsManualHideoutSource, Mode=TwoWay}" />
-                        <RadioButton x:Name="TarkovTrackerHideoutSourceRadioButton" Content="Tarkov Tracker" GroupName="HideoutSource" IsChecked="{Binding IsManualHideoutSource, Mode=TwoWay, Converter={StaticResource InverseBooleanConverter}}"  Margin="20,0,0,0"/>
+                        <RadioButton x:Name="TarkovTrackerHideoutSourceRadioButton" Content="Tarkov Tracker" GroupName="HideoutSource" IsChecked="{Binding IsManualHideoutSource, Mode=TwoWay, Converter={StaticResource InverseBooleanConverter}}"  Margin="20,0,0,0" IsEnabled="{Binding IsTarkovTrackerApiEnabled}"/>
                     </StackPanel>
 
                     <!-- Hideout Modules List -->
@@ -434,7 +434,8 @@
                                              Content="Tarkov Tracker" 
                                              GroupName="CraftSource" 
                                              Margin="20,0,0,0" 
-                                             IsChecked="{Binding IsManualCraftSource, Mode=TwoWay, Converter={StaticResource InverseBooleanConverter}}"/>
+                                             IsChecked="{Binding IsManualCraftSource, Mode=TwoWay, Converter={StaticResource InverseBooleanConverter}}"
+                                             IsEnabled="{Binding IsTarkovTrackerApiEnabled}"/>
                         </StackPanel>
                     </StackPanel>
 

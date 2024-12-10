@@ -861,6 +861,13 @@ namespace EFT_OverlayAPP
             {
                 if (isTarkovTrackerApiEnabled != value)
                 {
+                    if (!value)
+                    {
+                        _isManualCraftSource = true;
+                        _isManualHideoutSource = true;
+                        OnPropertyChanged(nameof(IsManualCraftSource));
+                        OnPropertyChanged(nameof(IsManualHideoutSource));
+                    }
                     isTarkovTrackerApiEnabled = value;
                     OnPropertyChanged(nameof(IsTarkovTrackerApiEnabled));
                 }
