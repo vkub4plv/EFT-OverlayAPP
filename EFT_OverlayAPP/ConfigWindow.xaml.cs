@@ -32,6 +32,7 @@ namespace EFT_OverlayAPP
         private const string DefaultLogsFolderName = "Logs";
         private TarkovTrackerService tarkovTrackerService;
         private bool CurentApiKeyValid = false;
+        private bool isLoaded { get; set; } = false;
         // Declare a class-level property to store the processed list
         private static List<ProcessedLevel> HideoutTTAPIDataList { get; set; }
         public ConfigWindow(MainWindow mainWindow)
@@ -90,6 +91,7 @@ namespace EFT_OverlayAPP
 
         private void ConfigWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            isLoaded = true;
             MainWindow.UtilizeAndUpdateProfileMode(slider: false);
         }
 
@@ -801,7 +803,6 @@ namespace EFT_OverlayAPP
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to initialize hideout modules: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 logger.Error(ex, "Failed to initialize hideout modules.");
             }
         }
@@ -879,13 +880,16 @@ namespace EFT_OverlayAPP
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to initialize hideout modules: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 logger.Error(ex, "Failed to initialize hideout modules.");
             }
         }
 
         private async Task InitializeHideoutModulesAsyncTT()
         {
+            if (!isLoaded)
+            {
+                return;
+            }
             try
             {
                 await DataCache.LoadRequiredItemsData();
@@ -948,13 +952,16 @@ namespace EFT_OverlayAPP
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to initialize hideout modules: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 logger.Error(ex, "Failed to initialize hideout modules.");
             }
         }
 
         private async Task InitializeHideoutModulesAsyncPVETT()
         {
+            if (!isLoaded)
+            {
+                return;
+            }
             try
             {
                 await DataCache.LoadRequiredItemsData();
@@ -1017,7 +1024,6 @@ namespace EFT_OverlayAPP
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to initialize hideout modules: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 logger.Error(ex, "Failed to initialize hideout modules.");
             }
         }

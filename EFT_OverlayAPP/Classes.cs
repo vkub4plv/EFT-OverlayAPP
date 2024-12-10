@@ -2229,6 +2229,8 @@ namespace EFT_OverlayAPP
         // Get progress data
         public async Task<ProgressResponse> GetProgressAsync()
         {
+            UpdateToken();
+
             if (string.IsNullOrWhiteSpace(currentToken))
             {
                 logger.Warn("API token is empty. Cannot retrieve progress.");
