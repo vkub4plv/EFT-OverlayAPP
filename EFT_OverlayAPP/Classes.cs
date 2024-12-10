@@ -21,6 +21,8 @@ using System.Runtime.Serialization; // Required for StreamingContext
 using System.Threading;
 using System.Windows.Threading;
 using Newtonsoft.Json.Converters;
+using Refit;
+using System.Net;
 
 namespace EFT_OverlayAPP
 {
@@ -1979,5 +1981,346 @@ namespace EFT_OverlayAPP
             }
             return new List<CraftInstance>();
         }
+    }
+
+    // Models for API responses
+    public class TokenResponse
+    {
+        public List<string> Permissions { get; set; }
+        public string Token { get; set; }
+    }
+
+    public class ProgressResponse
+    {
+        public ProgressData Data { get; set; }
+        public ProgressMeta Meta { get; set; }
+    }
+
+    public class ProgressData
+    {
+        public List<TaskProgress> TasksProgress { get; set; }
+        public List<HideoutModuleProgress> HideoutModulesProgress { get; set; }
+        public string DisplayName { get; set; }
+        public string UserId { get; set; }
+        public int PlayerLevel { get; set; }
+        public int GameEdition { get; set; }
+        public string PmcFaction { get; set; }
+    }
+
+    public class TaskProgress
+    {
+        public string Id { get; set; }
+        public bool Complete { get; set; }
+        public bool Invalid { get; set; }
+        public bool Failed { get; set; }
+    }
+
+    public class HideoutModuleProgress
+    {
+        public string Id { get; set; }
+        public bool Complete { get; set; }
+    }
+
+    public class ProgressMeta
+    {
+        public string Self { get; set; }
+    }
+
+    public class TaskStatusBody
+    {
+        public string Id { get; set; }
+        public string State { get; set; }
+
+        public static TaskStatusBody From(TaskStatus status)
+        {
+            return new TaskStatusBody
+            {
+                State = status.ToString().ToLower() // e.g., "finished" -> "finished"
+            };
+        }
+    }
+
+    public enum TaskStatus
+    {
+        Finished,
+        Failed,
+        None
+    }
+
+    public interface ITarkovTrackerAPI
+    {
+        // Test the token
+        [Get("/token")]
+        [Headers("Authorization: Bearer")]
+        Task<TokenResponse> TestToken([Header("Authorization")] string bearerToken);
+
+        // Get progress
+        [Get("/progress")]
+        [Headers("Authorization: Bearer")]
+        Task<ProgressResponse> GetProgress([Header("Authorization")] string bearerToken);
+
+        // Update a single task status
+        [Post("/progress/task/{id}")]
+        [Headers("Authorization: Bearer")]
+        Task<string> SetTaskStatus(string id, [Body] TaskStatusBody body, [Header("Authorization")] string bearerToken);
+
+        // Update multiple task statuses
+        [Post("/progress/tasks")]
+        [Headers("Authorization: Bearer")]
+        Task<string> SetTaskStatuses([Body] List<TaskStatusBody> body, [Header("Authorization")] string bearerToken);
+    }
+
+    public class TarkovTrackerService
+    {
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        private const string BaseUrl = "https://tarkovtracker.io/api/v2";
+
+        private ITarkovTrackerAPI apiClient;
+        private string currentToken;
+        private AppConfig appConfig;
+
+        // Events to notify other parts of the application
+        public event EventHandler TokenValidated;
+        public event EventHandler TokenInvalid;
+        public event EventHandler ProgressRetrieved;
+
+        public TarkovTrackerService(AppConfig config)
+        {
+            appConfig = config;
+            InitializeClient();
+        }
+
+        private void InitializeClient()
+        {
+            apiClient = RestService.For<ITarkovTrackerAPI>(BaseUrl);
+            UpdateToken();
+        }
+
+        // Call this method whenever the profile mode or API key changes
+        public void UpdateToken()
+        {
+            if (App.IsPVEMode)
+            {
+                currentToken = appConfig.PveApiKey;
+            }
+            else
+            {
+                currentToken = appConfig.PvpApiKey;
+            }
+
+            logger.Info($"Using API Token: {currentToken}");
+        }
+
+        // Validate the current token
+        public async Task<bool> ValidateTokenAsync()
+        {
+            if (string.IsNullOrWhiteSpace(currentToken))
+            {
+                logger.Warn("API token is empty.");
+                TokenInvalid?.Invoke(this, EventArgs.Empty);
+                return false;
+            }
+
+            try
+            {
+                var response = await apiClient.TestToken($"Bearer {currentToken}");
+                if (response.Permissions.Contains("WP")) // Assuming "WP" is a valid permission
+                {
+                    TokenValidated?.Invoke(this, EventArgs.Empty);
+                    logger.Info("API token validated successfully.");
+                    return true;
+                }
+                else
+                {
+                    TokenInvalid?.Invoke(this, EventArgs.Empty);
+                    logger.Warn("API token does not have required permissions.");
+                    return false;
+                }
+            }
+            catch (ApiException ex)
+            {
+                if (ex.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    TokenInvalid?.Invoke(this, EventArgs.Empty);
+                    logger.Error("API token is unauthorized.");
+                }
+                else if (ex.StatusCode == HttpStatusCode.TooManyRequests)
+                {
+                    logger.Error("Rate limited by Tarkov Tracker API.");
+                }
+                else
+                {
+                    logger.Error(ex, $"API exception occurred: {ex.Message}");
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Unexpected error during token validation: {ex.Message}");
+                return false;
+            }
+        }
+
+        // Get progress data
+        public async Task<ProgressResponse> GetProgressAsync()
+        {
+            if (string.IsNullOrWhiteSpace(currentToken))
+            {
+                logger.Warn("API token is empty. Cannot retrieve progress.");
+                return null;
+            }
+
+            try
+            {
+                var response = await apiClient.GetProgress($"Bearer {currentToken}");
+                ProgressRetrieved?.Invoke(this, EventArgs.Empty);
+                logger.Info("Progress data retrieved successfully.");
+                return response;
+            }
+            catch (ApiException ex)
+            {
+                if (ex.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    TokenInvalid?.Invoke(this, EventArgs.Empty);
+                    logger.Error("API token is unauthorized.");
+                }
+                else if (ex.StatusCode == HttpStatusCode.TooManyRequests)
+                {
+                    logger.Error("Rate limited by Tarkov Tracker API.");
+                }
+                else
+                {
+                    logger.Error(ex, $"API exception occurred: {ex.Message}");
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Unexpected error during GetProgressAsync: {ex.Message}");
+                return null;
+            }
+        }
+
+        // Update a single task status
+        public async Task<bool> UpdateTaskStatusAsync(string taskId, TaskStatus status)
+        {
+            if (string.IsNullOrWhiteSpace(currentToken))
+            {
+                logger.Warn("API token is empty. Cannot update task status.");
+                return false;
+            }
+
+            try
+            {
+                var body = TaskStatusBody.From(status);
+                var response = await apiClient.SetTaskStatus(taskId, body, $"Bearer {currentToken}");
+                logger.Info($"Task {taskId} status updated to {status}.");
+                return true;
+            }
+            catch (ApiException ex)
+            {
+                if (ex.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    TokenInvalid?.Invoke(this, EventArgs.Empty);
+                    logger.Error("API token is unauthorized.");
+                }
+                else if (ex.StatusCode == HttpStatusCode.TooManyRequests)
+                {
+                    logger.Error("Rate limited by Tarkov Tracker API.");
+                }
+                else
+                {
+                    logger.Error(ex, $"API exception occurred: {ex.Message}");
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Unexpected error during UpdateTaskStatusAsync: {ex.Message}");
+                return false;
+            }
+        }
+
+        // Update multiple task statuses
+        public async Task<bool> UpdateMultipleTaskStatusesAsync(Dictionary<string, TaskStatus> taskStatuses)
+        {
+            if (string.IsNullOrWhiteSpace(currentToken))
+            {
+                logger.Warn("API token is empty. Cannot update multiple task statuses.");
+                return false;
+            }
+
+            try
+            {
+                var body = new List<TaskStatusBody>();
+                foreach (var kvp in taskStatuses)
+                {
+                    var taskStatusBody = TaskStatusBody.From(kvp.Value);
+                    taskStatusBody.Id = kvp.Key;
+                    body.Add(taskStatusBody);
+                }
+
+                var response = await apiClient.SetTaskStatuses(body, $"Bearer {currentToken}");
+                logger.Info($"Multiple task statuses updated successfully.");
+                return true;
+            }
+            catch (ApiException ex)
+            {
+                if (ex.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    TokenInvalid?.Invoke(this, EventArgs.Empty);
+                    logger.Error("API token is unauthorized.");
+                }
+                else if (ex.StatusCode == HttpStatusCode.TooManyRequests)
+                {
+                    logger.Error("Rate limited by Tarkov Tracker API.");
+                }
+                else
+                {
+                    logger.Error(ex, $"API exception occurred: {ex.Message}");
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Unexpected error during UpdateMultipleTaskStatusesAsync: {ex.Message}");
+                return false;
+            }
+        }
+
+        // Fetch hideout station levels
+        public async Task<List<HideoutModuleProgress>> GetHideoutModuleLevelsAsync()
+        {
+            var progress = await GetProgressAsync();
+            if (progress?.Data?.HideoutModulesProgress != null)
+            {
+                logger.Info("Hideout module levels fetched successfully.");
+                return progress.Data.HideoutModulesProgress;
+            }
+            else
+            {
+                logger.Warn("Hideout module levels data is null.");
+                return new List<HideoutModuleProgress>();
+            }
+        }
+
+        // Fetch finished quests
+        public async Task<List<TaskProgress>> GetFinishedQuestsAsync()
+        {
+            var progress = await GetProgressAsync();
+            if (progress?.Data?.TasksProgress != null)
+            {
+                var finishedTasks = progress.Data.TasksProgress.FindAll(t => t.Complete);
+                logger.Info($"Fetched {finishedTasks.Count} finished quests.");
+                return finishedTasks;
+            }
+            else
+            {
+                logger.Warn("Tasks progress data is null.");
+                return new List<TaskProgress>();
+            }
+        }
+
+        // Additional methods can be added here for other API interactions
     }
 }

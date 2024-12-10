@@ -30,6 +30,7 @@ namespace EFT_OverlayAPP
         private MainWindow MainWindow { get; set; }
         private DebounceDispatcher debounceDispatcher = new DebounceDispatcher(1000); // 1 second debounce
         private const string DefaultLogsFolderName = "Logs";
+        private TarkovTrackerService tarkovTrackerService;
         public ConfigWindow(MainWindow mainWindow)
         {
             InitializeComponent();
@@ -38,6 +39,10 @@ namespace EFT_OverlayAPP
             MainWindow = mainWindow;
             InitializeMonitorList();
             InitializeStartingTabs();
+
+            // Initialize the Tarkov Tracker Service
+            tarkovTrackerService = new TarkovTrackerService(AppConfig);
+
             this.Loaded += ConfigWindow_Loaded; // Subscribe to Loaded event
 
             // Subscribe to PropertyChanged for auto-saving
@@ -57,6 +62,16 @@ namespace EFT_OverlayAPP
             AppConfig.CraftModuleSettingsPVE.CollectionChanged += CraftModuleSettings_CollectionChanged;
             // Subscribe to CollectionChanged for Keybinds
             AppConfig.Keybinds.CollectionChanged += Keybinds_CollectionChanged;
+            // Subscribe to events
+            tarkovTrackerService.TokenValidated += TarkovTrackerService_TokenValidated;
+            tarkovTrackerService.TokenInvalid += TarkovTrackerService_TokenInvalid;
+            tarkovTrackerService.ProgressRetrieved += TarkovTrackerService_ProgressRetrieved;
+
+            // Validate the token on startup
+            if (AppConfig.IsTarkovTrackerApiEnabled)
+            {
+                ValidateApiTokenAsync();
+            }
         }
 
         private void ConfigWindow_Loaded(object sender, RoutedEventArgs e)
@@ -947,17 +962,25 @@ namespace EFT_OverlayAPP
             }
         }
 
-        private void AppConfig_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        private async void AppConfig_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            // Optionally, filter which properties should trigger a save
-            // For example, only save for certain properties:
-            // if (e.PropertyName == "SomeProperty")
-            // {
-            //     debounceDispatcher.Debounce(() => SaveConfig());
-            // }
-
-            // For simplicity, save on any property change
             debounceDispatcher.Debounce(() => SaveConfig());
+            if ((e.PropertyName == nameof(AppConfig.PvpApiKey) || e.PropertyName == nameof(AppConfig.PveApiKey) || e.PropertyName == nameof(AppConfig.SelectedProfileMode) || e.PropertyName == nameof(AppConfig.EffectiveProfileMode)) && AppConfig.IsTarkovTrackerApiEnabled)
+            {
+                // Update the Tarkov Tracker Service token
+                tarkovTrackerService.UpdateToken();
+
+                // Optionally, validate the token again
+                bool isValid = await tarkovTrackerService.ValidateTokenAsync();
+                if (isValid)
+                {
+                    logger.Info("API token validated successfully.");
+                }
+                else
+                {
+                    MessageBox.Show("API token is invalid. Please check your input.", "Validation Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
         }
 
         private void HideoutModuleSettings_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -1137,6 +1160,42 @@ namespace EFT_OverlayAPP
         {
             // If user clicks away without finishing, just re-enable hotkeys
             MainWindow?.ReenableHotkeys();
+        }
+
+        private async void ValidateApiTokenAsync()
+        {
+            bool isValid = await tarkovTrackerService.ValidateTokenAsync();
+            if (isValid)
+            {
+                // Proceed with fetching data
+                var hideoutLevels = await tarkovTrackerService.GetHideoutModuleLevelsAsync();
+                var finishedQuests = await tarkovTrackerService.GetFinishedQuestsAsync();
+
+                // TODO: Process and bind the data to your UI
+            }
+            else
+            {
+                // Inform the user to configure the API key
+                MessageBox.Show("Invalid or missing Tarkov Tracker API token. Please configure it in the settings.", "API Token Invalid", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        private void TarkovTrackerService_ProgressRetrieved(object sender, EventArgs e)
+        {
+            // Handle progress retrieval events
+            // For example, update UI elements or notify other components
+        }
+
+        private void TarkovTrackerService_TokenInvalid(object sender, EventArgs e)
+        {
+            // Handle invalid token events
+            MessageBox.Show("Your Tarkov Tracker API token is invalid. Please update it in the settings.", "Invalid Token", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+
+        private void TarkovTrackerService_TokenValidated(object sender, EventArgs e)
+        {
+            // Handle successful token validation
+            logger.Info("Tarkov Tracker API token validated successfully.");
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
