@@ -590,6 +590,14 @@ namespace EFT_OverlayAPP
             // This could involve resetting specific properties in AppConfig
             AppConfig.HideItemsForCompletedQuests = false;
             AppConfig.HideQuestsHideoutModulesNames = false;
+            if (File.Exists("quantities.json"))
+            {
+                File.Delete("quantities.json");
+            }
+            if (File.Exists("manual_combined_quantities.json"))
+            {
+                File.Delete("manual_combined_quantities.json");
+            }
             SaveConfig();
             MessageBox.Show("PVP profile required items have been reset.", "Reset Complete", MessageBoxButton.OK, MessageBoxImage.Information);
         }
@@ -600,6 +608,14 @@ namespace EFT_OverlayAPP
             // This could involve resetting specific properties in AppConfig
             AppConfig.HideItemsForCompletedQuests = false;
             AppConfig.HideQuestsHideoutModulesNames = false;
+            if (File.Exists("quantities_pve.json"))
+            {
+                File.Delete("quantities_pve.json");
+            }
+            if (File.Exists("manual_combined_quantities_pve.json"))
+            {
+                File.Delete("manual_combined_quantities_pve.json");
+            }
             SaveConfig();
             MessageBox.Show("PVE profile required items have been reset.", "Reset Complete", MessageBoxButton.OK, MessageBoxImage.Information);
         }
