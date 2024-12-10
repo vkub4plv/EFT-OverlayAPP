@@ -308,12 +308,12 @@
                     <!-- Source of Hideout Station Levels -->
                     <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,10">
                         <TextBlock Text="Source of Hideout Station Levels:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                        <RadioButton x:Name="ManualHideoutSourceRadioButton" Content="Manual (In-App)" GroupName="HideoutSource" IsChecked="{Binding IsManualHideoutSource, Mode=TwoWay}" />
-                        <RadioButton x:Name="TarkovTrackerHideoutSourceRadioButton" Content="Tarkov Tracker" GroupName="HideoutSource" IsChecked="{Binding IsManualHideoutSource, Mode=TwoWay, Converter={StaticResource InverseBooleanConverter}}"  Margin="20,0,0,0" IsEnabled="{Binding IsTarkovTrackerApiEnabled}"/>
+                        <RadioButton x:Name="ManualHideoutSourceRadioButton" Content="Manual (In-App)" GroupName="HideoutSource" IsChecked="{Binding IsManualHideoutSource, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Checked="ManualHideoutSourceRadioButton_Selected"/>
+                        <RadioButton x:Name="TarkovTrackerHideoutSourceRadioButton" Content="Tarkov Tracker" GroupName="HideoutSource" IsChecked="{Binding IsManualHideoutSource, Mode=TwoWay, Converter={StaticResource InverseBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"  Margin="20,0,0,0" IsEnabled="{Binding IsTarkovTrackerApiEnabled}" Checked="TarkovTrackerHideoutSourceRadioButton_Selected"/>
                     </StackPanel>
 
                     <!-- Hideout Modules List -->
-                    <ListView x:Name="HideoutModulesListView" Grid.Row="1" Margin="0,0,0,10" IsEnabled="{Binding IsManualHideoutSource}">
+                    <ListView x:Name="HideoutModulesListView" Grid.Row="1" Margin="0,0,0,10">
                         <ListView.View>
                             <GridView>
                                 <GridViewColumn Header="Module" Width="200">
@@ -329,7 +329,10 @@
                                 <GridViewColumn Header="Level" Width="100">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
-                                            <ComboBox SelectedValue="{Binding SelectedLevel, UpdateSourceTrigger=PropertyChanged}" Width="80">
+                                            <ComboBox
+                                                SelectedValue="{Binding SelectedLevel, UpdateSourceTrigger=PropertyChanged}"
+                                                Width="80"
+                                                IsEnabled="{Binding DataContext.IsManualHideoutSource, RelativeSource={RelativeSource AncestorType={x:Type local:ConfigWindow}}}">
                                                 <ComboBox.ItemsSource>
                                                     <Binding Path="AvailableLevels" />
                                                 </ComboBox.ItemsSource>
@@ -435,18 +438,20 @@
                             <RadioButton x:Name="ManualCraftSourceRadioButton" 
                                              Content="Manual" 
                                              GroupName="CraftSource" 
-                                             IsChecked="{Binding IsManualCraftSource, Mode=TwoWay}" />
+                                             IsChecked="{Binding IsManualCraftSource, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                             Checked="ManualCraftSourceRadioButton_Selected"/>
                             <RadioButton x:Name="TarkovTrackerCraftSourceRadioButton" 
                                              Content="Tarkov Tracker" 
                                              GroupName="CraftSource" 
                                              Margin="20,0,0,0" 
-                                             IsChecked="{Binding IsManualCraftSource, Mode=TwoWay, Converter={StaticResource InverseBooleanConverter}}"
-                                             IsEnabled="{Binding IsTarkovTrackerApiEnabled}"/>
+                                             IsChecked="{Binding IsManualCraftSource, Mode=TwoWay, Converter={StaticResource InverseBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"
+                                             IsEnabled="{Binding IsTarkovTrackerApiEnabled}"
+                                             Checked="TarkovTrackerCraftSourceRadioButton_Selected"/>
                         </StackPanel>
                     </StackPanel>
 
                     <!-- List of Unlockable Crafts -->
-                    <ListView x:Name="UnlockableCraftsListView" Grid.Row="3" Margin="0,10,0,0" IsEnabled="{Binding IsManualCraftSource}">
+                    <ListView x:Name="UnlockableCraftsListView" Grid.Row="3" Margin="0,10,0,0">
                         <ListView.View>
                             <GridView>
                                 <!-- Craft Icon -->
@@ -477,7 +482,7 @@
                                 <GridViewColumn Header="Unlocked" Width="100">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
-                                            <CheckBox IsChecked="{Binding IsUnlocked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                            <CheckBox IsChecked="{Binding IsUnlocked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding DataContext.IsManualCraftSource, RelativeSource={RelativeSource AncestorType={x:Type local:ConfigWindow}}}"/>
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>

@@ -1236,6 +1236,36 @@ namespace EFT_OverlayAPP
             }
         }
 
+        // Add the following property for TT Hideout Module Settings
+        private ObservableCollection<HideoutModuleSetting> _hideoutModuleSettingsTT;
+        public ObservableCollection<HideoutModuleSetting> HideoutModuleSettingsTT
+        {
+            get => _hideoutModuleSettingsTT;
+            set
+            {
+                if (_hideoutModuleSettingsTT != value)
+                {
+                    _hideoutModuleSettingsTT = value;
+                    OnPropertyChanged(nameof(HideoutModuleSettingsTT));
+                }
+            }
+        }
+
+        // Add the following property for TT PVE Hideout Module Settings
+        private ObservableCollection<HideoutModuleSetting> _hideoutModuleSettingsPVETT;
+        public ObservableCollection<HideoutModuleSetting> HideoutModuleSettingsPVETT
+        {
+            get => _hideoutModuleSettingsPVETT;
+            set
+            {
+                if (_hideoutModuleSettingsPVETT != value)
+                {
+                    _hideoutModuleSettingsPVETT = value;
+                    OnPropertyChanged(nameof(HideoutModuleSettingsPVETT));
+                }
+            }
+        }
+
         // Collection for Craft Module Settings
         private ObservableCollection<CraftModuleSetting> _craftModuleSettings;
         public ObservableCollection<CraftModuleSetting> CraftModuleSettings
@@ -1266,6 +1296,36 @@ namespace EFT_OverlayAPP
             }
         }
 
+        // Collection for TT Craft Module Settings
+        private ObservableCollection<CraftModuleSetting> _craftModuleSettingsTT;
+        public ObservableCollection<CraftModuleSetting> CraftModuleSettingsTT
+        {
+            get => _craftModuleSettingsTT;
+            set
+            {
+                if (_craftModuleSettingsTT != value)
+                {
+                    _craftModuleSettingsTT = value;
+                    OnPropertyChanged(nameof(CraftModuleSettingsTT));
+                }
+            }
+        }
+
+        // Collection for TT PVE Craft Module Settings
+        private ObservableCollection<CraftModuleSetting> _craftModuleSettingsPVETT;
+        public ObservableCollection<CraftModuleSetting> CraftModuleSettingsPVETT
+        {
+            get => _craftModuleSettingsPVETT;
+            set
+            {
+                if (_craftModuleSettingsPVETT != value)
+                {
+                    _craftModuleSettingsPVETT = value;
+                    OnPropertyChanged(nameof(CraftModuleSettingsPVETT));
+                }
+            }
+        }
+
         // Add the following property for Keybinds
         private ObservableCollection<KeybindEntry> _keybinds;
         public ObservableCollection<KeybindEntry> Keybinds
@@ -1288,6 +1348,10 @@ namespace EFT_OverlayAPP
             _hideoutModuleSettings = new ObservableCollection<HideoutModuleSetting>();
             _craftModuleSettingsPVE = new ObservableCollection<CraftModuleSetting>();
             _hideoutModuleSettingsPVE = new ObservableCollection<HideoutModuleSetting>();
+            _hideoutModuleSettingsTT = new ObservableCollection<HideoutModuleSetting>();
+            _hideoutModuleSettingsPVETT = new ObservableCollection<HideoutModuleSetting>();
+            _craftModuleSettingsTT = new ObservableCollection<CraftModuleSetting>();
+            _craftModuleSettingsPVETT = new ObservableCollection<CraftModuleSetting>();
             _keybinds = new ObservableCollection<KeybindEntry>();
         }
 
@@ -1299,6 +1363,7 @@ namespace EFT_OverlayAPP
 
     public class HideoutModuleSetting : INotifyPropertyChanged
     {
+        public string Id { get; set; }
         public string ModuleName { get; set; }
         public string StationImageLink { get; set; }
         // Collection of available levels including 0 (Unbuilt)

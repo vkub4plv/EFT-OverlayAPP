@@ -60,6 +60,17 @@ namespace EFT_OverlayAPP
             AppConfig.HideoutModuleSettingsPVE.CollectionChanged += HideoutModuleSettings_CollectionChanged;
             // Subscribe to CollectionChanged for CraftModuleSettingsPVE
             AppConfig.CraftModuleSettingsPVE.CollectionChanged += CraftModuleSettings_CollectionChanged;
+
+            // Subscribe to CollectionChanged for HideoutModuleSettingsTT
+            AppConfig.HideoutModuleSettingsTT.CollectionChanged += HideoutModuleSettings_CollectionChanged;
+            // Subscribe to CollectionChanged for HideoutModuleSettingsPVETT
+            AppConfig.HideoutModuleSettingsPVETT.CollectionChanged += HideoutModuleSettings_CollectionChanged;
+
+            // Subscribe to CollectionChanged for CraftModuleSettingsTT
+            AppConfig.CraftModuleSettingsTT.CollectionChanged += CraftModuleSettings_CollectionChanged;
+            // Subscribe to CollectionChanged for CraftModuleSettingsPVETT
+            AppConfig.CraftModuleSettingsPVETT.CollectionChanged += CraftModuleSettings_CollectionChanged;
+
             // Subscribe to CollectionChanged for Keybinds
             AppConfig.Keybinds.CollectionChanged += Keybinds_CollectionChanged;
             // Subscribe to events
@@ -168,6 +179,10 @@ namespace EFT_OverlayAPP
                 CraftModuleSettings = new ObservableCollection<CraftModuleSetting>(),
                 HideoutModuleSettingsPVE = new ObservableCollection<HideoutModuleSetting>(),
                 CraftModuleSettingsPVE = new ObservableCollection<CraftModuleSetting>(),
+                HideoutModuleSettingsTT = new ObservableCollection<HideoutModuleSetting>(),
+                HideoutModuleSettingsPVETT = new ObservableCollection<HideoutModuleSetting>(),
+                CraftModuleSettingsTT = new ObservableCollection<CraftModuleSetting>(),
+                CraftModuleSettingsPVETT = new ObservableCollection<CraftModuleSetting>(),
                 IsManualHideoutSource = true,
                 IsManualCraftSource = true,
                 CraftingStartingTab = "All Items",
@@ -375,6 +390,8 @@ namespace EFT_OverlayAPP
 
             // Optionally, validate the token again
             await tarkovTrackerService.ValidateTokenAsync();
+
+            debounceDispatcher.Debounce(() => SaveConfig());
         }
 
         private async void PveApiKeySaveButton_Click(object sender, RoutedEventArgs e)
@@ -384,6 +401,8 @@ namespace EFT_OverlayAPP
 
             // Optionally, validate the token again
             await tarkovTrackerService.ValidateTokenAsync();
+
+            debounceDispatcher.Debounce(() => SaveConfig());
         }
 
         private void InitializeMonitorList()
@@ -475,13 +494,49 @@ namespace EFT_OverlayAPP
             switch (effectiveProfileMode)
             {
                 case ProfileMode.Regular:
-                    await InitializeHideoutModulesAsync();
-                    await LoadCraftModuleSettingsAsync();
+                    if (AppConfig.IsManualHideoutSource)
+                    {
+                        await InitializeHideoutModulesAsync();
+                        logger.Info("Loaded Hideout Modules List with manual data.");
+                    }    
+                    else
+                    {
+                        await InitializeHideoutModulesAsyncTT();
+                        logger.Info("Loaded Hideout Modules List with TT data.");
+                    }
+                    if (AppConfig.IsManualCraftSource)
+                    {
+                        await LoadCraftModuleSettingsAsync();
+                        logger.Info("Loaded Crafting List with manual data.");
+                    }
+                    else
+                    {
+                        await LoadCraftModuleSettingsAsyncTT();
+                        logger.Info("Loaded Crafting List with TT data.");
+                    }
                     logger.Info("Loaded lists with Regular profile.");
                     break;
                 case ProfileMode.Pve:
-                    await InitializeHideoutModulesAsyncPVE();
-                    await LoadCraftModuleSettingsAsyncPVE();
+                    if (AppConfig.IsManualHideoutSource)
+                    {
+                        await InitializeHideoutModulesAsyncPVE();
+                        logger.Info("Loaded Hideout Modules List with manual data.");
+                    }
+                    else
+                    {
+                        await InitializeHideoutModulesAsyncPVETT();
+                        logger.Info("Loaded Hideout Modules List with TT data.");
+                    }
+                    if (AppConfig.IsManualCraftSource)
+                    {
+                        await LoadCraftModuleSettingsAsyncPVE();
+                        logger.Info("Loaded Crafting List with manual data.");
+                    }
+                    else
+                    {
+                        await LoadCraftModuleSettingsAsyncPVETT();
+                        logger.Info("Loaded Crafting List with TT data.");
+                    }
                     logger.Info("Loaded lists with PVE profile.");
                     break;
             }
@@ -602,6 +657,64 @@ namespace EFT_OverlayAPP
             }
         }
 
+        private async Task LoadCraftModuleSettingsAsyncTT()
+        {
+            try
+            {
+                var craftModules = await DataCache.FetchCraftModuleSettingsAsync();
+
+                // Populate AppConfig.CraftModuleSettingsTT
+                foreach (var craftModule in craftModules)
+                {
+                    // Check if the craft already exists in the settings to prevent duplicates
+                    if (!AppConfig.CraftModuleSettingsTT.Any(cm => cm.CraftId == craftModule.CraftId))
+                    {
+                        AppConfig.CraftModuleSettingsTT.Add(craftModule);
+                    }
+                }
+
+                // Refresh the ListView binding
+                UnlockableCraftsListView.ItemsSource = null;
+                UnlockableCraftsListView.ItemsSource = AppConfig.CraftModuleSettingsTT;
+
+                logger.Info("Craft module settings loaded successfully.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to load craft module settings: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                logger.Error(ex, "Failed to load craft module settings.");
+            }
+        }
+
+        private async Task LoadCraftModuleSettingsAsyncPVETT()
+        {
+            try
+            {
+                var craftModules = await DataCache.FetchCraftModuleSettingsAsync();
+
+                // Populate AppConfig.CraftModuleSettingsPVETT
+                foreach (var craftModule in craftModules)
+                {
+                    // Check if the craft already exists in the settings to prevent duplicates
+                    if (!AppConfig.CraftModuleSettingsPVETT.Any(cm => cm.CraftId == craftModule.CraftId))
+                    {
+                        AppConfig.CraftModuleSettingsPVETT.Add(craftModule);
+                    }
+                }
+
+                // Refresh the ListView binding
+                UnlockableCraftsListView.ItemsSource = null;
+                UnlockableCraftsListView.ItemsSource = AppConfig.CraftModuleSettingsPVETT;
+
+                logger.Info("Craft module settings loaded successfully.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to load craft module settings: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                logger.Error(ex, "Failed to load craft module settings.");
+            }
+        }
+
         // Event Handler for PropertyChanged events in HideoutModuleSettings
         private void HideoutModuleSetting_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
@@ -656,6 +769,7 @@ namespace EFT_OverlayAPP
 
                     var moduleSetting = new HideoutModuleSetting
                     {
+                        Id = station.Id,
                         ModuleName = station.Name,
                         StationImageLink = station.ImageLink,
                         SelectedLevel = selectedLevel
@@ -733,6 +847,7 @@ namespace EFT_OverlayAPP
 
                     var moduleSetting = new HideoutModuleSetting
                     {
+                        Id = station.Id,
                         ModuleName = station.Name,
                         StationImageLink = station.ImageLink,
                         SelectedLevel = selectedLevel
@@ -766,8 +881,184 @@ namespace EFT_OverlayAPP
             }
         }
 
+        private async Task InitializeHideoutModulesAsyncTT()
+        {
+            try
+            {
+                await DataCache.LoadRequiredItemsData();
+
+                if (DataCache.HideoutStations == null || !DataCache.HideoutStations.Any())
+                {
+                    MessageBox.Show("No hideout stations data available to initialize.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    logger.Error("Hideout stations data is empty during initialization.");
+                    return;
+                }
+
+                // Preserve existing settings
+                var existingSettingsDict = AppConfig.HideoutModuleSettingsTT.ToDictionary(h => h.ModuleName, h => h.SelectedLevel);
+
+                // Clear existing settings to prevent duplicates
+                AppConfig.HideoutModuleSettingsTT.Clear();
+
+                foreach (var station in DataCache.HideoutStations)
+                {
+                    var levels = station.Levels.Select(l => l.Level).OrderBy(l => l).ToList();
+
+                    // Insert 0 for unbuilt
+                    var availableLevels = new List<int> { 0 };
+                    availableLevels.AddRange(levels);
+
+                    // Determine selected level
+                    int selectedLevel = 0; // default to unbuilt
+
+                    if (existingSettingsDict.TryGetValue(station.Name, out int level))
+                    {
+                        if (level == 0 || levels.Contains(level))
+                        {
+                            selectedLevel = level;
+                        }
+                        else
+                        {
+                            selectedLevel = levels.Min();
+                        }
+                    }
+
+                    var moduleSetting = new HideoutModuleSetting
+                    {
+                        Id = station.Id,
+                        ModuleName = station.Name,
+                        StationImageLink = station.ImageLink,
+                        SelectedLevel = selectedLevel
+                    };
+
+                    // Populate AvailableLevels
+                    foreach (var lvl in availableLevels)
+                    {
+                        moduleSetting.AvailableLevels.Add(lvl);
+                    }
+
+                    // UnSubscribe from PropertyChanged event to prevent memory leaks
+                    moduleSetting.PropertyChanged -= HideoutModuleSetting_PropertyChanged;
+
+                    // Subscribe to PropertyChanged event for automatic saving
+                    moduleSetting.PropertyChanged += HideoutModuleSetting_PropertyChanged;
+
+                    AppConfig.HideoutModuleSettingsTT.Add(moduleSetting);
+                }
+
+                // Refresh the ListView binding
+                HideoutModulesListView.ItemsSource = null;
+                HideoutModulesListView.ItemsSource = AppConfig.HideoutModuleSettingsTT;
+
+                logger.Info("Hideout modules initialized successfully.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to initialize hideout modules: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                logger.Error(ex, "Failed to initialize hideout modules.");
+            }
+        }
+
+        private async Task InitializeHideoutModulesAsyncPVETT()
+        {
+            try
+            {
+                await DataCache.LoadRequiredItemsData();
+
+                if (DataCache.HideoutStations == null || !DataCache.HideoutStations.Any())
+                {
+                    MessageBox.Show("No hideout stations data available to initialize.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    logger.Error("Hideout stations data is empty during initialization.");
+                    return;
+                }
+
+                // Preserve existing settings
+                var existingSettingsDict = AppConfig.HideoutModuleSettingsPVETT.ToDictionary(h => h.ModuleName, h => h.SelectedLevel);
+
+                // Clear existing settings to prevent duplicates
+                AppConfig.HideoutModuleSettingsPVETT.Clear();
+
+                foreach (var station in DataCache.HideoutStations)
+                {
+                    var levels = station.Levels.Select(l => l.Level).OrderBy(l => l).ToList();
+
+                    // Insert 0 for unbuilt
+                    var availableLevels = new List<int> { 0 };
+                    availableLevels.AddRange(levels);
+
+                    // Determine selected level
+                    int selectedLevel = 0; // default to unbuilt
+
+                    if (existingSettingsDict.TryGetValue(station.Name, out int level))
+                    {
+                        if (level == 0 || levels.Contains(level))
+                        {
+                            selectedLevel = level;
+                        }
+                        else
+                        {
+                            selectedLevel = levels.Min();
+                        }
+                    }
+
+                    var moduleSetting = new HideoutModuleSetting
+                    {
+                        Id = station.Id,
+                        ModuleName = station.Name,
+                        StationImageLink = station.ImageLink,
+                        SelectedLevel = selectedLevel
+                    };
+
+                    // Populate AvailableLevels
+                    foreach (var lvl in availableLevels)
+                    {
+                        moduleSetting.AvailableLevels.Add(lvl);
+                    }
+
+                    // UnSubscribe from PropertyChanged event to prevent memory leaks
+                    moduleSetting.PropertyChanged -= HideoutModuleSetting_PropertyChanged;
+
+                    // Subscribe to PropertyChanged event for automatic saving
+                    moduleSetting.PropertyChanged += HideoutModuleSetting_PropertyChanged;
+
+                    AppConfig.HideoutModuleSettingsPVETT.Add(moduleSetting);
+                }
+
+                // Refresh the ListView binding
+                HideoutModulesListView.ItemsSource = null;
+                HideoutModulesListView.ItemsSource = AppConfig.HideoutModuleSettingsPVETT;
+
+                logger.Info("Hideout modules initialized successfully.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to initialize hideout modules: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                logger.Error(ex, "Failed to initialize hideout modules.");
+            }
+        }
+
         // Event Handler for Refresh Hideout Modules Button
         private async void RefreshHideoutModulesButton_Click(object sender, RoutedEventArgs e)
+        {
+            MainWindow.UtilizeAndUpdateProfileMode(slider: false);
+        }
+
+        private async void ManualHideoutSourceRadioButton_Selected(object sender, RoutedEventArgs e)
+        {
+            MainWindow.UtilizeAndUpdateProfileMode(slider: false);
+        }
+
+        private async void TarkovTrackerHideoutSourceRadioButton_Selected(object sender, RoutedEventArgs e)
+        {
+            MainWindow.UtilizeAndUpdateProfileMode(slider: false);
+        }
+
+        private async void ManualCraftSourceRadioButton_Selected(object sender, RoutedEventArgs e)
+        {
+            MainWindow.UtilizeAndUpdateProfileMode(slider: false);
+        }
+
+        private async void TarkovTrackerCraftSourceRadioButton_Selected(object sender, RoutedEventArgs e)
         {
             MainWindow.UtilizeAndUpdateProfileMode(slider: false);
         }
@@ -900,12 +1191,28 @@ namespace EFT_OverlayAPP
                         tarkovTrackerService.TokenInvalid -= TarkovTrackerService_TokenInvalid;
                         tarkovTrackerService.ProgressRetrieved -= TarkovTrackerService_ProgressRetrieved;
 
+                        AppConfig.HideoutModuleSettingsTT.CollectionChanged -= HideoutModuleSettings_CollectionChanged;
+                        AppConfig.HideoutModuleSettingsPVETT.CollectionChanged -= HideoutModuleSettings_CollectionChanged;
+
+                        AppConfig.CraftModuleSettingsTT.CollectionChanged -= CraftModuleSettings_CollectionChanged;
+                        AppConfig.CraftModuleSettingsPVETT.CollectionChanged -= CraftModuleSettings_CollectionChanged;
+
                         foreach (var moduleSetting in AppConfig.HideoutModuleSettings)
                         {
                             moduleSetting.PropertyChanged -= HideoutModuleSetting_PropertyChanged;
                         }
 
                         foreach (var moduleSetting in AppConfig.HideoutModuleSettingsPVE)
+                        {
+                            moduleSetting.PropertyChanged -= HideoutModuleSetting_PropertyChanged;
+                        }
+
+                        foreach (var moduleSetting in AppConfig.HideoutModuleSettingsTT)
+                        {
+                            moduleSetting.PropertyChanged -= HideoutModuleSetting_PropertyChanged;
+                        }
+
+                        foreach (var moduleSetting in AppConfig.HideoutModuleSettingsPVETT)
                         {
                             moduleSetting.PropertyChanged -= HideoutModuleSetting_PropertyChanged;
                         }
@@ -949,6 +1256,12 @@ namespace EFT_OverlayAPP
                     tarkovTrackerService.TokenValidated += TarkovTrackerService_TokenValidated;
                     tarkovTrackerService.TokenInvalid += TarkovTrackerService_TokenInvalid;
                     tarkovTrackerService.ProgressRetrieved += TarkovTrackerService_ProgressRetrieved;
+
+                    AppConfig.HideoutModuleSettingsTT.CollectionChanged += HideoutModuleSettings_CollectionChanged;
+                    AppConfig.HideoutModuleSettingsPVETT.CollectionChanged += HideoutModuleSettings_CollectionChanged;
+
+                    AppConfig.CraftModuleSettingsTT.CollectionChanged += CraftModuleSettings_CollectionChanged;
+                    AppConfig.CraftModuleSettingsPVETT.CollectionChanged += CraftModuleSettings_CollectionChanged;
 
                     // Initialize Hideout Modules and Crafting Window List with default settings
                     MainWindow.UtilizeAndUpdateProfileMode(slider: false);
@@ -1180,9 +1493,47 @@ namespace EFT_OverlayAPP
             bool isValid = await tarkovTrackerService.ValidateTokenAsync();
             if (isValid)
             {
+                if (this.IsVisible)
+                {
+                    MessageBox.Show("API token validated successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+
                 // Proceed with fetching data
                 var hideoutLevels = await tarkovTrackerService.GetHideoutModuleLevelsAsync();
                 var finishedQuests = await tarkovTrackerService.GetFinishedQuestsAsync();
+
+                foreach (var hideoutStationTT in hideoutLevels)
+                {
+                    var parts = hideoutStationTT.Id.Split('-');
+                    var basePart = string.Join("-", parts.Take(parts.Length - 1)); // Everything before the last '-'
+                    var suffixPart = parts.Last(); // The last part after the '-'
+                    switch (suffixPart)
+                    {
+                        case "0":
+                            break;
+                        case "1":
+                            break;
+                        case "2":
+                            break;
+                        case "3":
+                            break;
+                        case "4":
+                            break;
+                        case "5":
+                            break;
+                        case "6":
+                            break;
+                        // Shouldn't be more than 6
+                        case "7":
+                            break;
+                        case "8":
+                            break;
+                        case "9":
+                            break;
+                        default:
+                            break;
+                    }
+                }
 
                 // TODO: Process and bind the data to your UI
             }
