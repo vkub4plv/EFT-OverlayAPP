@@ -31,6 +31,9 @@ namespace EFT_OverlayAPP
         private DebounceDispatcher debounceDispatcher = new DebounceDispatcher(1000); // 1 second debounce
         private const string DefaultLogsFolderName = "Logs";
         private TarkovTrackerService tarkovTrackerService;
+        private bool CurentApiKeyValid = false;
+        // Declare a class-level property to store the processed list
+        private static List<ProcessedLevel> HideoutTTAPIDataList { get; set; }
         public ConfigWindow(MainWindow mainWindow)
         {
             InitializeComponent();
@@ -894,11 +897,10 @@ namespace EFT_OverlayAPP
                     return;
                 }
 
-                // Preserve existing settings
-                var existingSettingsDict = AppConfig.HideoutModuleSettingsTT.ToDictionary(h => h.ModuleName, h => h.SelectedLevel);
-
                 // Clear existing settings to prevent duplicates
                 AppConfig.HideoutModuleSettingsTT.Clear();
+
+                await ProcessHideoutTTAPIData();
 
                 foreach (var station in DataCache.HideoutStations)
                 {
@@ -908,20 +910,12 @@ namespace EFT_OverlayAPP
                     var availableLevels = new List<int> { 0 };
                     availableLevels.AddRange(levels);
 
-                    // Determine selected level
-                    int selectedLevel = 0; // default to unbuilt
-
-                    if (existingSettingsDict.TryGetValue(station.Name, out int level))
-                    {
-                        if (level == 0 || levels.Contains(level))
-                        {
-                            selectedLevel = level;
-                        }
-                        else
-                        {
-                            selectedLevel = levels.Min();
-                        }
-                    }
+                    // Get the highest level from entries where the station ID matches and Complete is true
+                    int selectedLevel = HideoutTTAPIDataList
+                        .Where(entry => entry.Id == station.Id && entry.Complete)
+                        .OrderByDescending(entry => entry.Level) // Order by level in descending order
+                        .Select(entry => entry.Level)           // Select the level
+                        .FirstOrDefault();                      // Get the highest level or 0 if no matches}
 
                     var moduleSetting = new HideoutModuleSetting
                     {
@@ -972,11 +966,10 @@ namespace EFT_OverlayAPP
                     return;
                 }
 
-                // Preserve existing settings
-                var existingSettingsDict = AppConfig.HideoutModuleSettingsPVETT.ToDictionary(h => h.ModuleName, h => h.SelectedLevel);
-
                 // Clear existing settings to prevent duplicates
                 AppConfig.HideoutModuleSettingsPVETT.Clear();
+
+                await ProcessHideoutTTAPIData();
 
                 foreach (var station in DataCache.HideoutStations)
                 {
@@ -986,20 +979,12 @@ namespace EFT_OverlayAPP
                     var availableLevels = new List<int> { 0 };
                     availableLevels.AddRange(levels);
 
-                    // Determine selected level
-                    int selectedLevel = 0; // default to unbuilt
-
-                    if (existingSettingsDict.TryGetValue(station.Name, out int level))
-                    {
-                        if (level == 0 || levels.Contains(level))
-                        {
-                            selectedLevel = level;
-                        }
-                        else
-                        {
-                            selectedLevel = levels.Min();
-                        }
-                    }
+                    // Get the highest level from entries where the station ID matches and Complete is true
+                    int selectedLevel = HideoutTTAPIDataList
+                        .Where(entry => entry.Id == station.Id && entry.Complete)
+                        .OrderByDescending(entry => entry.Level) // Order by level in descending order
+                        .Select(entry => entry.Level)           // Select the level
+                        .FirstOrDefault();                      // Get the highest level or 0 if no matches}
 
                     var moduleSetting = new HideoutModuleSetting
                     {
@@ -1498,47 +1483,11 @@ namespace EFT_OverlayAPP
                     MessageBox.Show("API token validated successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
 
-                // Proceed with fetching data
-                var hideoutLevels = await tarkovTrackerService.GetHideoutModuleLevelsAsync();
-                var finishedQuests = await tarkovTrackerService.GetFinishedQuestsAsync();
-
-                foreach (var hideoutStationTT in hideoutLevels)
-                {
-                    var parts = hideoutStationTT.Id.Split('-');
-                    var basePart = string.Join("-", parts.Take(parts.Length - 1)); // Everything before the last '-'
-                    var suffixPart = parts.Last(); // The last part after the '-'
-                    switch (suffixPart)
-                    {
-                        case "0":
-                            break;
-                        case "1":
-                            break;
-                        case "2":
-                            break;
-                        case "3":
-                            break;
-                        case "4":
-                            break;
-                        case "5":
-                            break;
-                        case "6":
-                            break;
-                        // Shouldn't be more than 6
-                        case "7":
-                            break;
-                        case "8":
-                            break;
-                        case "9":
-                            break;
-                        default:
-                            break;
-                    }
-                }
-
-                // TODO: Process and bind the data to your UI
+                CurentApiKeyValid = true;
             }
             else
             {
+                CurentApiKeyValid = false;
                 // Inform the user to configure the API key
                 MessageBox.Show("Invalid or missing Tarkov Tracker API token. Please configure it in the settings.", "API Token Invalid", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
@@ -1560,6 +1509,55 @@ namespace EFT_OverlayAPP
         {
             // Handle successful token validation
             logger.Info("Tarkov Tracker API token validated successfully.");
+        }
+
+        private async Task ProcessHideoutTTAPIData()
+        {
+            if (CurentApiKeyValid)
+            {
+                // Proceed with fetching data
+                var hideoutLevels = await tarkovTrackerService.GetHideoutModuleLevelsAsync();
+
+                HideoutTTAPIDataList = hideoutLevels
+                   .Select(level =>
+                   {
+                       var parts = level.Id.Split('-');
+                       var basePart = string.Join("-", parts.Take(parts.Length - 1)); // Everything before the last '-'
+                       var suffixPart = parts.Last(); // The last part after the '-'
+                       int suffixPartInt = Convert.ToInt32(suffixPart);
+                       return new ProcessedLevel { Id = basePart, Level = suffixPartInt, Complete = level.Complete };
+                   })
+                   .ToList();
+            }
+            else
+            {
+                logger.Error("API Key invalid. Cannot process Tarkov Tracker API data without a valid API key.");
+            }
+        }
+
+        private async Task ProcessCraftingTTAPIData()
+        {
+            if (CurentApiKeyValid)
+            {
+                // Proceed with fetching data
+                var hideoutLevels = await tarkovTrackerService.GetHideoutModuleLevelsAsync();
+                var finishedQuests = await tarkovTrackerService.GetFinishedQuestsAsync();
+
+                HideoutTTAPIDataList = hideoutLevels
+                   .Select(level =>
+                   {
+                       var parts = level.Id.Split('-');
+                       var basePart = string.Join("-", parts.Take(parts.Length - 1)); // Everything before the last '-'
+                       var suffixPart = parts.Last(); // The last part after the '-'
+                       int suffixPartInt = Convert.ToInt32(suffixPart);
+                       return new ProcessedLevel { Id = basePart, Level = suffixPartInt, Complete = level.Complete };
+                   })
+                   .ToList();
+            }
+            else
+            {
+                logger.Error("API Key invalid. Cannot process Tarkov Tracker API data without a valid API key.");
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

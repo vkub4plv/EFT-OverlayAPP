@@ -2388,4 +2388,12 @@ namespace EFT_OverlayAPP
 
         // Additional methods can be added here for other API interactions
     }
+
+    // Define a class to represent the processed structure
+    public class ProcessedLevel
+    {
+        public string Id { get; set; }
+        public int Level { get; set; }
+        public bool Complete { get; set; }
+    }
 }
