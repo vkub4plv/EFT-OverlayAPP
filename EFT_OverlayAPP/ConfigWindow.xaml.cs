@@ -620,6 +620,34 @@ namespace EFT_OverlayAPP
             MessageBox.Show("PVE profile required items have been reset.", "Reset Complete", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
+        private void ResetPvpCraftingDataButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (File.Exists("craftsData.json"))
+            {
+                File.Delete("craftsData.json");
+            }
+            if (File.Exists("craftInstancesData.json"))
+            {
+                File.Delete("craftInstancesData.json");
+            }
+            SaveConfig();
+            MessageBox.Show("PVP crafting data has been reset.", "Reset Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void ResetPveCraftingDataButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (File.Exists("craftsDataPVE.json"))
+            {
+                File.Delete("craftsDataPVE.json");
+            }
+            if (File.Exists("craftInstancesDataPVE.json"))
+            {
+                File.Delete("craftInstancesDataPVE.json");
+            }
+            SaveConfig();
+            MessageBox.Show("PVE crafting data has been reset.", "Reset Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
         private async Task LoadCraftModuleSettingsAsync()
         {
             try

@@ -401,6 +401,8 @@
                         <RowDefinition Height="Auto"/>
                         <!-- Crafting Settings -->
                         <RowDefinition Height="Auto"/>
+                        <!-- Reset Crafting Data -->
+                        <RowDefinition Height="Auto"/>
                         <!-- Crafting Source -->
                         <RowDefinition Height="*"/>
                         <!-- Crafting Recipes -->
@@ -431,7 +433,13 @@
                         </StackPanel>
                     </GroupBox>
 
-                    <StackPanel Orientation="Vertical" Grid.Row="2" Margin="0,10,0,0">
+                    <!-- Reset Crafting Data Items -->
+                    <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="0,0,0,10">
+                        <Button Content="Reset PVP Active crafts, logs and stats" Width="220" Click="ResetPvpCraftingDataButton_Click" Margin="0,0,10,0"/>
+                        <Button Content="Reset PVE Active crafts, logs and stats" Width="220" Click="ResetPveCraftingDataButton_Click"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Vertical" Grid.Row="3" Margin="0,10,0,0">
                         <!-- Source Selection for Unlocked Quest Recipes -->
                         <StackPanel Orientation="Horizontal" Margin="20,5,0,0">
                             <TextBlock Text="Source:" VerticalAlignment="Center" Margin="0,0,10,0"/>
@@ -451,7 +459,7 @@
                     </StackPanel>
 
                     <!-- List of Unlockable Crafts -->
-                    <ListView x:Name="UnlockableCraftsListView" Grid.Row="3" Margin="0,10,0,0">
+                    <ListView x:Name="UnlockableCraftsListView" Grid.Row="4" Margin="0,10,0,0">
                         <ListView.View>
                             <GridView>
                                 <!-- Craft Icon -->
