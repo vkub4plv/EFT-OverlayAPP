@@ -84,16 +84,22 @@
 
                             <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
                                 <TextBlock Text="PVP API Key:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <TextBox x:Name="PvpApiKeyTextBox" Width="300" 
+                                <StackPanel Orientation="Horizontal" IsEnabled="{Binding Text, ElementName=CurrentProfileModeTextBlock, Converter={StaticResource InverseProfileModeToBoolConverter}}">
+                                    <TextBox x:Name="PvpApiKeyTextBox" Width="300" 
                                          IsEnabled="{Binding IsTarkovTrackerApiEnabled}" 
                                          Text="{Binding PvpApiKey, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <Button Content="Save" Click="PvpApiKeySaveButton_Click" Margin="10,0,0,0" IsEnabled="{Binding IsTarkovTrackerApiEnabled}"/>
+                                </StackPanel>
                             </StackPanel>
 
                             <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
                                 <TextBlock Text="PVE API Key:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <TextBox x:Name="PveApiKeyTextBox" Width="300" 
+                                <StackPanel Orientation="Horizontal" IsEnabled="{Binding Text, ElementName=CurrentProfileModeTextBlock, Converter={StaticResource ProfileModeToBoolConverter}}">
+                                    <TextBox x:Name="PveApiKeyTextBox" Width="300" 
                                          IsEnabled="{Binding IsTarkovTrackerApiEnabled}" 
                                          Text="{Binding PveApiKey, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <Button Content="Save" Click="PveApiKeySaveButton_Click" Margin="10,0,0,0" IsEnabled="{Binding IsTarkovTrackerApiEnabled}"/>
+                                </StackPanel>
                             </StackPanel>
                         </StackPanel>
                     </GroupBox>

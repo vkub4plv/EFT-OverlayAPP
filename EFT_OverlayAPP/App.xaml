@@ -19,5 +19,7 @@
         <local:InverseBooleanVisibilityConverter x:Key="InverseBooleanVisibilityConverter"/>
         <local:ProfileModeToVisibilityConverter x:Key="ProfileModeToVisibilityConverter"/>
         <local:InverseProfileModeToVisibilityConverter x:Key="InverseProfileModeToVisibilityConverter"/>
+        <local:ProfileModeToBoolConverter x:Key="ProfileModeToBoolConverter"/>
+        <local:InverseProfileModeToBoolConverter x:Key="InverseProfileModeToBoolConverter"/>
     </Application.Resources>
 </Application>

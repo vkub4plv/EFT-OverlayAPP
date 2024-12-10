@@ -368,6 +368,24 @@ namespace EFT_OverlayAPP
             }
         }
 
+        private async void PvpApiKeySaveButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Update the Tarkov Tracker Service token
+            tarkovTrackerService.UpdateToken();
+
+            // Optionally, validate the token again
+            await tarkovTrackerService.ValidateTokenAsync();
+        }
+
+        private async void PveApiKeySaveButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Update the Tarkov Tracker Service token
+            tarkovTrackerService.UpdateToken();
+
+            // Optionally, validate the token again
+            await tarkovTrackerService.ValidateTokenAsync();
+        }
+
         private void InitializeMonitorList()
         {
             // Placeholder: Populate MonitorSelectionComboBox with detected monitors
@@ -878,6 +896,9 @@ namespace EFT_OverlayAPP
                         AppConfig.HideoutModuleSettingsPVE.CollectionChanged -= HideoutModuleSettings_CollectionChanged;
                         AppConfig.CraftModuleSettingsPVE.CollectionChanged -= CraftModuleSettings_CollectionChanged;
                         AppConfig.Keybinds.CollectionChanged -= Keybinds_CollectionChanged;
+                        tarkovTrackerService.TokenValidated -= TarkovTrackerService_TokenValidated;
+                        tarkovTrackerService.TokenInvalid -= TarkovTrackerService_TokenInvalid;
+                        tarkovTrackerService.ProgressRetrieved -= TarkovTrackerService_ProgressRetrieved;
 
                         foreach (var moduleSetting in AppConfig.HideoutModuleSettings)
                         {
@@ -925,6 +946,9 @@ namespace EFT_OverlayAPP
                     AppConfig.HideoutModuleSettingsPVE.CollectionChanged += HideoutModuleSettings_CollectionChanged;
                     AppConfig.CraftModuleSettingsPVE.CollectionChanged += CraftModuleSettings_CollectionChanged;
                     AppConfig.Keybinds.CollectionChanged += Keybinds_CollectionChanged;
+                    tarkovTrackerService.TokenValidated += TarkovTrackerService_TokenValidated;
+                    tarkovTrackerService.TokenInvalid += TarkovTrackerService_TokenInvalid;
+                    tarkovTrackerService.ProgressRetrieved += TarkovTrackerService_ProgressRetrieved;
 
                     // Initialize Hideout Modules and Crafting Window List with default settings
                     MainWindow.UtilizeAndUpdateProfileMode(slider: false);
@@ -965,21 +989,10 @@ namespace EFT_OverlayAPP
         private async void AppConfig_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             debounceDispatcher.Debounce(() => SaveConfig());
-            if ((e.PropertyName == nameof(AppConfig.PvpApiKey) || e.PropertyName == nameof(AppConfig.PveApiKey) || e.PropertyName == nameof(AppConfig.SelectedProfileMode) || e.PropertyName == nameof(AppConfig.EffectiveProfileMode)) && AppConfig.IsTarkovTrackerApiEnabled)
+            if ((e.PropertyName == nameof(AppConfig.SelectedProfileMode) || e.PropertyName == nameof(AppConfig.EffectiveProfileMode)) && AppConfig.IsTarkovTrackerApiEnabled)
             {
                 // Update the Tarkov Tracker Service token
                 tarkovTrackerService.UpdateToken();
-
-                // Optionally, validate the token again
-                bool isValid = await tarkovTrackerService.ValidateTokenAsync();
-                if (isValid)
-                {
-                    logger.Info("API token validated successfully.");
-                }
-                else
-                {
-                    MessageBox.Show("API token is invalid. Please check your input.", "Validation Failed", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
             }
         }
 
