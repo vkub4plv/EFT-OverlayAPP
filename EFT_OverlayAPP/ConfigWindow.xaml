@@ -60,7 +60,7 @@
                             <StackPanel Orientation="Horizontal" Margin="10">
                                 <TextBlock Text="EFT Logs Path:" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <TextBox x:Name="EftLogsPathTextBox" Width="300" IsEnabled="False" Text="{Binding EftLogsPath, UpdateSourceTrigger=PropertyChanged}"/>
-                                <Button Content="Browse" IsEnabled="{Binding UseCustomEftLogsPath}" Click="BrowseEftLogsPathButton_Click" Margin="10,0,0,0"/>
+                                <Button Content="Browse" IsEnabled="{Binding UseCustomEftLogsPath}" Click="BrowseEftLogsPathButton_Click" Margin="10,0,0,0" Width="50"/>
                             </StackPanel>
 
                             <StackPanel Orientation="Horizontal" Margin="10,0,0,0">
@@ -88,7 +88,7 @@
                                     <TextBox x:Name="PvpApiKeyTextBox" Width="300" 
                                          IsEnabled="{Binding IsTarkovTrackerApiEnabled}" 
                                          Text="{Binding PvpApiKey, UpdateSourceTrigger=PropertyChanged}"/>
-                                    <Button Content="Save" Click="PvpApiKeySaveButton_Click" Margin="10,0,0,0" IsEnabled="{Binding IsTarkovTrackerApiEnabled}"/>
+                                    <Button Content="Save" Click="PvpApiKeySaveButton_Click" Margin="10,0,0,0" IsEnabled="{Binding IsTarkovTrackerApiEnabled}" Width="50"/>
                                 </StackPanel>
                             </StackPanel>
 
@@ -98,7 +98,7 @@
                                     <TextBox x:Name="PveApiKeyTextBox" Width="300" 
                                          IsEnabled="{Binding IsTarkovTrackerApiEnabled}" 
                                          Text="{Binding PveApiKey, UpdateSourceTrigger=PropertyChanged}"/>
-                                    <Button Content="Save" Click="PveApiKeySaveButton_Click" Margin="10,0,0,0" IsEnabled="{Binding IsTarkovTrackerApiEnabled}"/>
+                                    <Button Content="Save" Click="PveApiKeySaveButton_Click" Margin="10,0,0,0" IsEnabled="{Binding IsTarkovTrackerApiEnabled}" Width="50"/>
                                 </StackPanel>
                             </StackPanel>
                         </StackPanel>
