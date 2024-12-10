@@ -62,9 +62,19 @@ namespace EFT_OverlayAPP
                 foreach (var craft in graphQLResponse.Data.Crafts)
                 {
                     CraftableItem craftableItem;
-                    double speedReduction = (ConfigWindow.AppConfig.CurrentCraftingLevel == 51)
-                        ? 0.375
-                        : (ConfigWindow.AppConfig.CurrentCraftingLevel * 0.0075);
+                    double speedReduction;
+                    if (App.IsPVEMode)
+                    {
+                        speedReduction = (ConfigWindow.AppConfig.CurrentCraftingLevelPVE == 51)
+                            ? 0.375
+                            : (ConfigWindow.AppConfig.CurrentCraftingLevelPVE * 0.0075);
+                    }
+                    else
+                    {
+                        speedReduction = (ConfigWindow.AppConfig.CurrentCraftingLevel == 51)
+                            ? 0.375
+                            : (ConfigWindow.AppConfig.CurrentCraftingLevel * 0.0075);
+                    }
 
                     craftableItem = new CraftableItem
                     {

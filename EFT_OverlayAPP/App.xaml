@@ -17,5 +17,7 @@
         <local:IsEliteLevelConverter x:Key="IsEliteLevelConverter"/>
         <local:ProfileModeToStringConverter x:Key="ProfileModeToStringConverter"/>
         <local:InverseBooleanVisibilityConverter x:Key="InverseBooleanVisibilityConverter"/>
+        <local:ProfileModeToVisibilityConverter x:Key="ProfileModeToVisibilityConverter"/>
+        <local:InverseProfileModeToVisibilityConverter x:Key="InverseProfileModeToVisibilityConverter"/>
     </Application.Resources>
 </Application>

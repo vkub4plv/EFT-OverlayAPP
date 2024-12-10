@@ -77,7 +77,7 @@ namespace EFT_OverlayAPP
 
             configWindow.PropertyChanged += ConfigWindow_PropertyChanged;
 
-            UtilizeAndUpdateProfileMode();
+            UtilizeAndUpdateProfileMode(slider: false);
 
             // Start data loading
             Task.Run(() => DataCache.LoadDataAsync(configWindow));
@@ -698,7 +698,7 @@ namespace EFT_OverlayAPP
                 logger.Info($"GameState changed: IsInRaid={IsInRaid}, IsMatching={IsMatching}, CurrentMap='{CurrentMap}', SessionMode='{SessionMode}'");
 
                 // Determine the effective profile mode and use it to update config window
-                UtilizeAndUpdateProfileMode();
+                UtilizeAndUpdateProfileMode(slider: false);
 
                 // Show or hide the WebViewWindow based on CurrentMap
                 if (string.IsNullOrEmpty(CurrentMap))
@@ -737,10 +737,10 @@ namespace EFT_OverlayAPP
 
         private void ConfigWindow_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            UtilizeAndUpdateProfileMode();
+            UtilizeAndUpdateProfileMode(slider: false);
         }
 
-        public void UtilizeAndUpdateProfileMode()
+        public void UtilizeAndUpdateProfileMode(bool slider)
         {
             // Determine the effective profile mode and use it to update config window
             EffectiveProfileMode = configWindow.AppConfig.SelectedProfileMode;
@@ -774,13 +774,13 @@ namespace EFT_OverlayAPP
             }
 
             // Reload data in RequiredItemsWindow
-            if (LastProfileMode != EffectiveProfileMode && requiredItemsWindow != null && requiredItemsWindow.IsVisible)
+            if ((LastProfileMode != EffectiveProfileMode || slider) && requiredItemsWindow != null && requiredItemsWindow.IsVisible)
             {
                 requiredItemsWindow.ReloadData();
             }
 
             // Reload data in CraftingWindow
-            if (LastProfileMode != EffectiveProfileMode && craftingWindow != null)
+            if ((LastProfileMode != EffectiveProfileMode || slider) && craftingWindow != null)
             {
                 craftingWindow.ReloadData();
             }

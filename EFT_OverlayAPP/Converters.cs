@@ -320,4 +320,40 @@ namespace EFT_OverlayAPP
             return ProfileMode.Automatic;
         }
     }
+
+    public class ProfileModeToVisibilityConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            string profileMode = value as string;
+            if (string.Equals(profileMode, "PVE", StringComparison.OrdinalIgnoreCase))
+            {
+                return Visibility.Visible;
+            }
+            return Visibility.Collapsed;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class InverseProfileModeToVisibilityConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            string profileMode = value as string;
+            if (!string.Equals(profileMode, "PVE", StringComparison.OrdinalIgnoreCase))
+            {
+                return Visibility.Visible;
+            }
+            return Visibility.Collapsed;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }

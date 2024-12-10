@@ -61,7 +61,7 @@ namespace EFT_OverlayAPP
 
         private void ConfigWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            MainWindow.UtilizeAndUpdateProfileMode();
+            MainWindow.UtilizeAndUpdateProfileMode(slider: false);
         }
 
         private void LoadConfig()
@@ -134,6 +134,7 @@ namespace EFT_OverlayAPP
                 ToggleCraftingTimersVisibility = true,
                 ToggleOtherWindowButtons = true,
                 CurrentCraftingLevel = 0,
+                CurrentCraftingLevelPVE = 0,
                 DisableAutoHideRaidTimer = false,
                 UseCustomEftLogsPath = false,
                 EftLogsPath = GetDefaultEftLogsPath(),
@@ -169,6 +170,13 @@ namespace EFT_OverlayAPP
             if (craftingLevel < 0 || craftingLevel > 51)
             {
                 MessageBox.Show("Crafting level must be between 0 and 51.", "Invalid Input", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            // Validate crafting level PVE
+            int craftingLevelPVE = AppConfig.CurrentCraftingLevelPVE;
+            if (craftingLevelPVE < 0 || craftingLevelPVE > 51)
+            {
+                MessageBox.Show("Crafting level for PVE must be between 0 and 51.", "Invalid Input", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -468,6 +476,17 @@ namespace EFT_OverlayAPP
             {
                 int level = (int)e.NewValue;
                 CraftingLevelDisplay.Text = $"Current Level: {level}";
+                MainWindow.UtilizeAndUpdateProfileMode(slider: true);
+            }
+        }
+
+        private void CraftingLevelSliderPVE_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (CraftingLevelDisplayPVE != null)
+            {
+                int level = (int)e.NewValue;
+                CraftingLevelDisplayPVE.Text = $"Current Level: {level}";
+                MainWindow.UtilizeAndUpdateProfileMode(slider: true);
             }
         }
 
@@ -717,7 +736,7 @@ namespace EFT_OverlayAPP
         // Event Handler for Refresh Hideout Modules Button
         private async void RefreshHideoutModulesButton_Click(object sender, RoutedEventArgs e)
         {
-            MainWindow.UtilizeAndUpdateProfileMode();
+            MainWindow.UtilizeAndUpdateProfileMode(slider: false);
         }
 
         // Event Handlers for Unlock Overlay Options
@@ -881,6 +900,8 @@ namespace EFT_OverlayAPP
                     SetProfileModeComboBoxSelection();
                     CraftingLevelDisplay.Text = $"Current Level: {AppConfig.CurrentCraftingLevel}";
                     CraftingLevelSlider.Value = AppConfig.CurrentCraftingLevel;
+                    CraftingLevelDisplayPVE.Text = $"Current Level: {AppConfig.CurrentCraftingLevelPVE}";
+                    CraftingLevelSliderPVE.Value = AppConfig.CurrentCraftingLevelPVE;
 
                     // Subscribe to PropertyChanged for the new AppConfig
                     AppConfig.PropertyChanged += AppConfig_PropertyChanged;
@@ -891,7 +912,7 @@ namespace EFT_OverlayAPP
                     AppConfig.Keybinds.CollectionChanged += Keybinds_CollectionChanged;
 
                     // Initialize Hideout Modules and Crafting Window List with default settings
-                    MainWindow.UtilizeAndUpdateProfileMode();
+                    MainWindow.UtilizeAndUpdateProfileMode(slider: false);
 
                     // Save the default config to create a new config.json
                     SaveConfig();

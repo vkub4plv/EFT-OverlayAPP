@@ -1010,6 +1010,20 @@ namespace EFT_OverlayAPP
             }
         }
 
+        private int currentCraftingLevelPVE;
+        public int CurrentCraftingLevelPVE
+        {
+            get => currentCraftingLevelPVE;
+            set
+            {
+                if (currentCraftingLevelPVE != value)
+                {
+                    currentCraftingLevelPVE = value;
+                    OnPropertyChanged(nameof(CurrentCraftingLevelPVE));
+                }
+            }
+        }
+
         private bool disableAutoHideRaidTimer;
         public bool DisableAutoHideRaidTimer
         {
