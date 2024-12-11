@@ -988,13 +988,31 @@ namespace EFT_OverlayAPP
             string searchText = LogsSearchTextBox.Text?.ToLower() ?? string.Empty;
             string selectedCategory = LogsCategoryFilterComboBox.SelectedItem as string ?? "All Categories";
 
+            // Get the selected status filters
+            bool showStarted = LogsFilterStartedCheckBox.IsChecked ?? true;
+            bool showStopped = LogsFilterStoppedCheckBox.IsChecked ?? true;
+            bool showCompleted = LogsFilterCompletedCheckBox.IsChecked ?? true;
+            bool showFinished = LogsFilterFinishedCheckBox.IsChecked ?? true;
+
+            // Filter by search text
             bool matchesSearch = string.IsNullOrEmpty(searchText) ||
                                  craftInstance.CraftableItem.RewardItems.Any(r => r.Name.ToLower().Contains(searchText));
-
+            // Filter by category
             bool matchesCategory = selectedCategory == "All Categories" ||
                                    craftInstance.CraftableItem.Station == selectedCategory;
 
-            return matchesSearch && matchesCategory;
+            // Filter by status
+            bool matchesStatus = (showStarted && craftInstance.Status == CraftInstanceStatus.Started) ||
+                                 (showStopped && craftInstance.Status == CraftInstanceStatus.Stopped) ||
+                                 (showCompleted && craftInstance.Status == CraftInstanceStatus.Completed) ||
+                                 (showFinished && craftInstance.Status == CraftInstanceStatus.Finished);
+
+            return matchesSearch && matchesCategory && matchesStatus;
+        }
+
+        private void LogsFilterStatusChanged(object sender, RoutedEventArgs e)
+        {
+            LogsView?.Refresh();
         }
 
         private void LogsSearchTextBox_TextChanged(object sender, TextChangedEventArgs e)

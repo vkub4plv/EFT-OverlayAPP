@@ -3,8 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:EFT_OverlayAPP"
         Title="Crafting Items"
-        Height="600"
-        Width="800"
+        Height="800"
+        Width="1000"
         Topmost="True">
 
     <!-- Define Resources -->
@@ -240,14 +240,21 @@
                             <!-- Search Bar -->
                             <TextBox x:Name="LogsSearchTextBox" Width="200" Margin="5" TextChanged="LogsSearchTextBox_TextChanged" />
                             <!-- Category Filter -->
-                            <ComboBox x:Name="LogsCategoryFilterComboBox" Width="200" Margin="5" SelectionChanged="LogsCategoryFilterComboBox_SelectionChanged" />
+                            <ComboBox x:Name="LogsCategoryFilterComboBox" Width="150" Margin="5" SelectionChanged="LogsCategoryFilterComboBox_SelectionChanged" />
                             <!-- Sorting ComboBox -->
-                            <ComboBox x:Name="LogsSortingComboBox" Width="200" Margin="5" SelectionChanged="LogsSortingComboBox_SelectionChanged">
+                            <ComboBox x:Name="LogsSortingComboBox" Width="150" Margin="5" SelectionChanged="LogsSortingComboBox_SelectionChanged">
                                 <ComboBoxItem Content="Most Recent" IsSelected="True"/>
                                 <ComboBoxItem Content="Oldest" />
                                 <ComboBoxItem Content="Name (A-Z)" />
                                 <ComboBoxItem Content="Name (Z-A)" />
                             </ComboBox>
+                            <!-- New Multi-Choice Status Filter -->
+                            <StackPanel Orientation="Horizontal" Margin="5" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                <CheckBox Content="Started" IsChecked="True" x:Name="LogsFilterStartedCheckBox" Checked="LogsFilterStatusChanged" Unchecked="LogsFilterStatusChanged" Margin="0,0,0,5"/>
+                                <CheckBox Content="Stopped" IsChecked="True" x:Name="LogsFilterStoppedCheckBox" Checked="LogsFilterStatusChanged" Unchecked="LogsFilterStatusChanged" Margin="5,0,0,5"/>
+                                <CheckBox Content="Completed" IsChecked="True" x:Name="LogsFilterCompletedCheckBox" Checked="LogsFilterStatusChanged" Unchecked="LogsFilterStatusChanged" Margin="5,0,0,5"/>
+                                <CheckBox Content="Finished" IsChecked="True" x:Name="LogsFilterFinishedCheckBox" Checked="LogsFilterStatusChanged" Unchecked="LogsFilterStatusChanged" Margin="5,0,0,0"/>
+                            </StackPanel>
                         </StackPanel>
                         <!-- ListView -->
                         <ListView x:Name="LogsListView" Grid.Row="1" ItemsSource="{Binding LogsView}">
