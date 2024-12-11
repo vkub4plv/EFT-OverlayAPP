@@ -790,14 +790,14 @@ namespace EFT_OverlayAPP
                 foreach (var craftModule in craftModules)
                 {
                     // Check if the craft already exists in the settings to prevent duplicates
-                    var existingModule = AppConfig.CraftModuleSettingsTT.FirstOrDefault(cm => cm.CraftId == craftModule.CraftId);
+                    var existingModule = AppConfig.CraftModuleSettingsPVETT.FirstOrDefault(cm => cm.CraftId == craftModule.CraftId);
                     if (existingModule == null)
                     {
                         craftModule.IsUnlocked = CraftingTTAPIDataList
                                                     .Where(entry => entry.Id == craftModule.QuestId)
                                                     .Select(entry => entry.Complete)
                                                     .FirstOrDefault();
-                        AppConfig.CraftModuleSettingsTT.Add(craftModule);
+                        AppConfig.CraftModuleSettingsPVETT.Add(craftModule);
                     }
                     else
                     {
@@ -1158,12 +1158,12 @@ namespace EFT_OverlayAPP
 
         private async void ManualCraftSourceRadioButton_Selected(object sender, RoutedEventArgs e)
         {
-            MainWindow.UtilizeAndUpdateProfileMode();
+            MainWindow.UtilizeAndUpdateProfileMode(crafting: true);
         }
 
         private async void TarkovTrackerCraftSourceRadioButton_Selected(object sender, RoutedEventArgs e)
         {
-            MainWindow.UtilizeAndUpdateProfileMode();
+            MainWindow.UtilizeAndUpdateProfileMode(crafting: true);
         }
 
         // Event Handlers for Unlock Overlay Options
