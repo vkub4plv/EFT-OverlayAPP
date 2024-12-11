@@ -656,7 +656,7 @@ namespace EFT_OverlayAPP
             OnGameStateChanged();
         }
 
-        private void UpdateOverlayUrl()
+        public void UpdateOverlayUrl()
         {
             if (!configWindow.AppConfig.AutoSetActiveMinimap)
             {
@@ -668,6 +668,15 @@ namespace EFT_OverlayAPP
                 return;
             }
 
+            // If not in matchmaking or in a raid, show the default URL
+            if (!gameState.IsMatching && !gameState.IsInRaid && configWindow.AppConfig.AutoSetActiveMinimap)
+            {
+                gameState.OverlayUrl = GetDefaultMapUrl();
+                lastOverlayMapName = null; // Reset to ensure changes are recognized later
+                return;
+            }
+
+            // If there is a current map, set the map URL
             if (!string.IsNullOrEmpty(gameState.CurrentMap))
             {
                 if (gameState.CurrentMap != lastOverlayMapName)
@@ -709,7 +718,7 @@ namespace EFT_OverlayAPP
             };
         }
 
-        private string GetDefaultMapUrl()
+        public string GetDefaultMapUrl()
         {
             return configWindow.AppConfig.SelectedMapWebsite switch
             {

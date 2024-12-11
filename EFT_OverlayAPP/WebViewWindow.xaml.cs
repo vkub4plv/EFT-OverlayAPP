@@ -10,17 +10,19 @@ namespace EFT_OverlayAPP
     {
         private GameState gameState;
         private ConfigWindow configWindow;
+        private GameStateManager gameStateManager;
         private double originalTop; // To store the original Top position
         private double originalLeft; // To store the original Left position
         private double originalWidth; // Original Width
         private double originalHeight; // Original Height
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
-        public WebViewWindow(Window owner, GameState gameState, ConfigWindow configWindow)
+        public WebViewWindow(Window owner, ConfigWindow configWindow, GameStateManager gameStateManager)
         {
             InitializeComponent();
-            this.gameState = gameState;
+            this.gameState = gameStateManager.GameState;
             this.configWindow = configWindow;
+            this.gameStateManager = gameStateManager;
             this.Loaded += WebViewWindow_Loaded;
 
             // Set the owner
@@ -42,6 +44,9 @@ namespace EFT_OverlayAPP
             // Set DataContext to GameState for data binding if needed
             this.DataContext = gameState;
 
+            // Subscribe to property changes
+            this.configWindow.AppConfig.PropertyChanged += ConfigWindow_PropertyChanged;
+
             // Subscribe to PropertyChanged event to handle changes in OverlayUrl
             this.gameState.PropertyChanged += GameState_PropertyChanged;
         }
@@ -58,7 +63,7 @@ namespace EFT_OverlayAPP
             else
             {
                 // Set to default URL if OverlayUrl is null or empty
-                BrowserControl.Source = new Uri("https://mapgenie.io/tarkov");
+                BrowserControl.Source = new Uri(gameStateManager.GetDefaultMapUrl());
             }
 
             // Ensure the WebView2 control fills the window
@@ -82,14 +87,16 @@ namespace EFT_OverlayAPP
                     }
                     else
                     {
-                        BrowserControl.Source = new Uri("https://mapgenie.io/tarkov");
+                        BrowserControl.Source = new Uri(gameStateManager.GetDefaultMapUrl());
                     }
                 });
             }
-            else if (e.PropertyName == nameof(GameState.IsInRaid))
+            else if (e.PropertyName == nameof(GameState.IsInRaid) || e.PropertyName == nameof(GameState.IsMatching))
             {
                 Dispatcher.Invoke(() =>
                 {
+                    gameStateManager.UpdateOverlayUrl();
+
                     if (gameState.IsInRaid)
                     {
                         MoveWindowDown();
@@ -101,6 +108,15 @@ namespace EFT_OverlayAPP
                 });
             }
         }
+
+        private void ConfigWindow_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(configWindow.AppConfig.SelectedMapWebsite))
+            {
+                gameStateManager.UpdateOverlayUrl();
+            }
+        }
+
 
         private void MoveWindowDown()
         {
@@ -188,6 +204,13 @@ namespace EFT_OverlayAPP
             base.OnRenderSizeChanged(sizeInfo);
             BrowserControl.Width = this.ActualWidth;
             BrowserControl.Height = this.ActualHeight;
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            base.OnClosed(e);
+            this.configWindow.AppConfig.PropertyChanged -= ConfigWindow_PropertyChanged;
+            this.gameState.PropertyChanged -= GameState_PropertyChanged;
         }
     }
 }

@@ -28,7 +28,7 @@ namespace EFT_OverlayAPP
         public ObservableCollection<KeybindEntry> Keybinds { get; set; }
         public AppConfig AppConfig { get; set; }
         private MainWindow MainWindow { get; set; }
-        private DebounceDispatcher debounceDispatcher = new DebounceDispatcher(1000); // 1 second debounce
+        private DebounceDispatcher debounceDispatcher = new DebounceDispatcher(500); // 0.5 second debounce
         private const string DefaultLogsFolderName = "Logs";
         private TarkovTrackerService tarkovTrackerService;
         private bool CurentApiKeyValid = false;
@@ -269,7 +269,7 @@ namespace EFT_OverlayAPP
                     // Enable "Use Custom Path" and set the selected path
                     AppConfig.UseCustomEftLogsPath = true;
                     AppConfig.EftLogsPath = selectedPath;
-                    SaveConfig();
+                    debounceDispatcher.Debounce(() => SaveConfig());
                     return selectedPath;
                 }
 
@@ -379,7 +379,7 @@ namespace EFT_OverlayAPP
             {
                 AppConfig.UseCustomEftLogsPath = true;
                 AppConfig.EftLogsPath = selectedPath;
-                SaveConfig();
+                debounceDispatcher.Debounce(() => SaveConfig());
             }
         }
 
@@ -472,6 +472,11 @@ namespace EFT_OverlayAPP
 
                 // Optionally, trigger changes based on profile mode
             }
+        }
+
+        private void MapWebsiteComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            debounceDispatcher.Debounce(() => SaveConfig());
         }
 
         public void ChangeCurrentProfileModeTextBlock_Text(ProfileMode effectiveProfileMode)
@@ -593,7 +598,7 @@ namespace EFT_OverlayAPP
             {
                 File.Delete("manual_combined_quantities.json");
             }
-            SaveConfig();
+            debounceDispatcher.Debounce(() => SaveConfig());
             MessageBox.Show("PVP profile required items have been reset.", "Reset Complete", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
@@ -611,7 +616,7 @@ namespace EFT_OverlayAPP
             {
                 File.Delete("manual_combined_quantities_pve.json");
             }
-            SaveConfig();
+            debounceDispatcher.Debounce(() => SaveConfig());
             MessageBox.Show("PVE profile required items have been reset.", "Reset Complete", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
@@ -625,7 +630,7 @@ namespace EFT_OverlayAPP
             {
                 File.Delete("craftInstancesData.json");
             }
-            SaveConfig();
+            debounceDispatcher.Debounce(() => SaveConfig());
             MessageBox.Show("PVP crafting data has been reset.", "Reset Complete", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
@@ -639,7 +644,7 @@ namespace EFT_OverlayAPP
             {
                 File.Delete("craftInstancesDataPVE.json");
             }
-            SaveConfig();
+            debounceDispatcher.Debounce(() => SaveConfig());
             MessageBox.Show("PVE crafting data has been reset.", "Reset Complete", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
@@ -1443,10 +1448,7 @@ namespace EFT_OverlayAPP
                 }
 
                 // If no duplicates, proceed normally
-                debounceDispatcher.Debounce(() =>
-                {
-                    SaveConfig();
-                });
+                debounceDispatcher.Debounce(() => SaveConfig());
             }
         }
 
@@ -1503,7 +1505,7 @@ namespace EFT_OverlayAPP
 
         private void SaveChangesButton_Click(object sender, RoutedEventArgs e)
         {
-            SaveConfig();
+            debounceDispatcher.Debounce(() => SaveConfig());
             MainWindow?.RegisterConfiguredHotKeys();
             MessageBox.Show("Changes saved and hotkeys updated.", "Saved", MessageBoxButton.OK, MessageBoxImage.Information);
         }
