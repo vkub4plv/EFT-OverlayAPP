@@ -567,16 +567,18 @@ namespace EFT_OverlayAPP
         private readonly LogParser logParser;
         private readonly GameState gameState;
         private string lastOverlayMapName = null; // Add this field
+        private ConfigWindow configWindow;
 
         public GameState GameState => gameState;
 
         public event EventHandler GameStateChanged;
 
-        public GameStateManager(string logsDirectory)
+        public GameStateManager(string logsDirectory, ConfigWindow configWindow)
         {
             gameWatcher = new GameWatcher(logsDirectory);
             logParser = new LogParser();
             gameState = new GameState();
+            this.configWindow = configWindow;
 
             gameWatcher.LogChanged += GameWatcher_LogChanged;
             gameWatcher.ExceptionOccurred += GameWatcher_ExceptionOccurred;
@@ -656,73 +658,107 @@ namespace EFT_OverlayAPP
 
         private void UpdateOverlayUrl()
         {
+            if (!configWindow.AppConfig.AutoSetActiveMinimap)
+            {
+                // If AutoSetActiveMinimap is false, only set the URL once to the default
+                if (string.IsNullOrEmpty(gameState.OverlayUrl))
+                {
+                    gameState.OverlayUrl = GetDefaultMapUrl();
+                }
+                return;
+            }
+
             if (!string.IsNullOrEmpty(gameState.CurrentMap))
             {
                 if (gameState.CurrentMap != lastOverlayMapName)
                 {
                     // Map has changed, update the overlay URL
-                    string mapSegment = MapNameToMapGenieSegment(gameState.CurrentMap);
+                    string mapSegment = MapNameToSegment(gameState.CurrentMap, configWindow.AppConfig.SelectedMapWebsite);
                     if (!string.IsNullOrEmpty(mapSegment))
                     {
-                        gameState.OverlayUrl = $"https://mapgenie.io/tarkov/maps/{mapSegment}";
+                        gameState.OverlayUrl = $"{GetBaseMapUrl(configWindow.AppConfig.SelectedMapWebsite)}{mapSegment}";
                     }
                     else
                     {
                         // Map not recognized, set to default URL
-                        gameState.OverlayUrl = "https://mapgenie.io/tarkov";
+                        gameState.OverlayUrl = GetDefaultMapUrl();
                     }
 
-                    // Update lastOverlayMapName
-                    lastOverlayMapName = gameState.CurrentMap;
+                    lastOverlayMapName = gameState.CurrentMap; // Update lastOverlayMapName
                 }
                 else
                 {
-                    // Map hasn't changed, do not update OverlayUrl
                     logger.Debug("Map hasn't changed, not updating OverlayUrl");
                 }
             }
             else
             {
                 // No current map, set overlay to default URL
-                if (lastOverlayMapName != null)
-                {
-                    gameState.OverlayUrl = "https://mapgenie.io/tarkov";
-                    lastOverlayMapName = null;
-                }
+                gameState.OverlayUrl = GetDefaultMapUrl();
+                lastOverlayMapName = null;
             }
         }
 
-        private string MapNameToMapGenieSegment(string mapName)
+        private string GetBaseMapUrl(string selectedWebsite)
         {
-            switch (mapName.ToLower())
+            return selectedWebsite switch
             {
-                case "factory":
-                case "factory (night)":
-                    return "factory";
-                case "customs":
-                    return "customs";
-                case "woods":
-                    return "woods";
-                case "interchange":
-                    return "interchange";
-                case "reserve":
-                    return "reserve";
-                case "shoreline":
-                    return "shoreline";
-                case "the lab":
-                case "lab":
-                    return "lab";
-                case "lighthouse":
-                    return "lighthouse";
-                case "streets of tarkov":
-                case "streets":
-                    return "streets";
-                case "ground zero":
-                case "ground zero 21+":
-                    return "ground-zero";
-                default:
-                    return null;
-            }
+                "Map Genie" => "https://mapgenie.io/tarkov/maps/",
+                "Tarkov.dev" => "https://tarkov.dev/map/",
+                _ => "https://mapgenie.io/tarkov/maps/" // Default to Map Genie
+            };
+        }
+
+        private string GetDefaultMapUrl()
+        {
+            return configWindow.AppConfig.SelectedMapWebsite switch
+            {
+                "Map Genie" => "https://mapgenie.io/tarkov",
+                "Tarkov.dev" => "https://tarkov.dev/maps/",
+                _ => "https://mapgenie.io/tarkov" // Default to Map Genie
+            };
+        }
+
+        private string MapNameToSegment(string mapName, string selectedWebsite)
+        {
+            mapName = mapName.ToLower();
+
+            return selectedWebsite switch
+            {
+                "Map Genie" => mapName switch
+                {
+                    "factory" => "factory",
+                    "factory (night)" => "factory",
+                    "customs" => "customs",
+                    "woods" => "woods",
+                    "shoreline" => "shoreline",
+                    "interchange" => "interchange",
+                    "reserve" => "reserve",
+                    "the lab" => "lab",
+                    "lighthouse" => "lighthouse",
+                    "streets of tarkov" => "streets",
+                    "ground zero" => "ground-zero",
+                    "ground zero 21+" => "ground-zero",
+                    _ => null
+                },
+                "Tarkov.dev" => mapName switch
+                {
+                    "factory" => "factory",
+                    "factory (night)" => "night-factory",
+                    "customs" => "customs",
+                    "woods" => "woods",
+                    "shoreline" => "shoreline",
+                    "interchange" => "interchange",
+                    "reserve" => "reserve",
+                    "the lab" => "the-lab",
+                    "lighthouse" => "lighthouse",
+                    "streets of tarkov" => "streets-of-tarkov",
+                    "ground zero" => "ground-zero",
+                    "ground zero 21+" => "ground-zero-21",
+                    _ => null
+                },
+                _ => null
+            };
         }
 
         protected virtual void OnGameStateChanged()

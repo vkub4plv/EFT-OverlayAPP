@@ -132,7 +132,7 @@ namespace EFT_OverlayAPP
         {
             try
             {
-                gameStateManager = new GameStateManager(configWindow.AppConfig.EftLogsPath);
+                gameStateManager = new GameStateManager(configWindow.AppConfig.EftLogsPath, configWindow);
                 gameStateManager.GameStateChanged += GameStateManager_GameStateChanged;
             }
             catch (Exception ex)
