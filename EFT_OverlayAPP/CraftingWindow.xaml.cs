@@ -55,6 +55,7 @@ namespace EFT_OverlayAPP
         }
 
         private bool isInitialized = false;
+        private bool isFirstLoad = true;
 
         // Constructor updated to accept MainWindow reference
         public CraftingWindow(MainWindow mainWindow, ConfigWindow configWindow)
@@ -109,7 +110,36 @@ namespace EFT_OverlayAPP
         {
             Dispatcher.Invoke(() =>
             {
+                // Clear the ActiveCrafts collection
+                ActiveCrafts.Clear();
+                activeCraftsPerStation.Clear();
+
+                // Re-initialize ActiveCrafts from DataCache
+                foreach (var item in DataCache.CraftableItems)
+                {
+                    item.PropertyChanged += CraftableItem_PropertyChanged;
+
+                    if (item.CraftStatus == CraftStatus.InProgress || item.CraftStatus == CraftStatus.Ready)
+                    {
+                        activeCraftsPerStation[item.Station] = item;
+                        ActiveCrafts.Add(item);
+                        MainWindow?.UpdateCraftDisplay(item, remove: false);
+
+                        // Start the timer for this craft
+                        StartCraftTimer(item);
+                    }
+                }
+
+                // Refresh the view to ensure it updates
+                ActiveCraftsView?.Refresh();
+
                 InitializeData();
+
+                if (isFirstLoad)
+                {
+                    isFirstLoad = false;
+                    ReloadData();
+                }
                 IsLoading = false;
 
                 isInitialized = true; // Set initialization flag
