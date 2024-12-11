@@ -669,7 +669,7 @@ namespace EFT_OverlayAPP
             }
 
             // If not in matchmaking or in a raid, show the default URL
-            if (!gameState.IsMatching && !gameState.IsInRaid && configWindow.AppConfig.AutoSetActiveMinimap)
+            if (!gameState.IsMatching && !gameState.IsInRaid)
             {
                 gameState.OverlayUrl = GetDefaultMapUrl();
                 lastOverlayMapName = null; // Reset to ensure changes are recognized later
