@@ -336,7 +336,17 @@ namespace EFT_OverlayAPP
             bool matchesCategory = selectedCategory == "All Categories" ||
                                    craftableItem.Station == selectedCategory;
 
-            return matchesSearch && matchesCategory;
+            bool matchesUnlock;
+            if (ConfigWindow.AppConfig.HideLockedQuestRecipes)
+            {
+                matchesUnlock = !craftableItem.IsLocked;
+            }
+            else
+            {
+                matchesUnlock = true;
+            }
+
+            return matchesSearch && matchesCategory && matchesUnlock;
         }
 
         private bool FavoritesFilter(object item)

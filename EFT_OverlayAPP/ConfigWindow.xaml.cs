@@ -76,6 +76,9 @@ namespace EFT_OverlayAPP
             // Subscribe to CollectionChanged for CraftModuleSettingsPVETT
             AppConfig.CraftModuleSettingsPVETT.CollectionChanged += CraftModuleSettings_CollectionChanged;
 
+            // Subscribe to CollectionChanged for EffectiveCraftModuleSettings
+            AppConfig.EffectiveCraftModuleSettings.CollectionChanged += CraftModuleSettings_CollectionChanged;
+
             // Subscribe to CollectionChanged for Keybinds
             AppConfig.Keybinds.CollectionChanged += Keybinds_CollectionChanged;
             // Subscribe to events
@@ -93,7 +96,7 @@ namespace EFT_OverlayAPP
         private void ConfigWindow_Loaded(object sender, RoutedEventArgs e)
         {
             isLoaded = true;
-            MainWindow.UtilizeAndUpdateProfileMode(slider: false);
+            MainWindow.UtilizeAndUpdateProfileMode();
         }
 
         private void LoadConfig()
@@ -189,6 +192,7 @@ namespace EFT_OverlayAPP
                 HideoutModuleSettingsPVETT = new ObservableCollection<HideoutModuleSetting>(),
                 CraftModuleSettingsTT = new ObservableCollection<CraftModuleSetting>(),
                 CraftModuleSettingsPVETT = new ObservableCollection<CraftModuleSetting>(),
+                EffectiveCraftModuleSettings = new ObservableCollection<CraftModuleSetting>(),
                 IsManualHideoutSource = true,
                 IsManualCraftSource = true,
                 CraftingStartingTab = "All Items",
@@ -670,6 +674,8 @@ namespace EFT_OverlayAPP
                     }
                 }
 
+                AppConfig.EffectiveCraftModuleSettings = AppConfig.CraftModuleSettings;
+
                 // Refresh the ListView binding
                 UnlockableCraftsListView.ItemsSource = null;
                 UnlockableCraftsListView.ItemsSource = AppConfig.CraftModuleSettings;
@@ -702,6 +708,8 @@ namespace EFT_OverlayAPP
                         AppConfig.CraftModuleSettingsPVE.Add(craftModule);
                     }
                 }
+
+                AppConfig.EffectiveCraftModuleSettings = AppConfig.CraftModuleSettingsPVE;
 
                 // Refresh the ListView binding
                 UnlockableCraftsListView.ItemsSource = null;
@@ -751,6 +759,8 @@ namespace EFT_OverlayAPP
                     }
                 }
 
+                AppConfig.EffectiveCraftModuleSettings = AppConfig.CraftModuleSettingsTT;
+
                 // Refresh the ListView binding
                 UnlockableCraftsListView.ItemsSource = null;
                 UnlockableCraftsListView.ItemsSource = AppConfig.CraftModuleSettingsTT;
@@ -798,6 +808,8 @@ namespace EFT_OverlayAPP
                                                     .FirstOrDefault();
                     }
                 }
+
+                AppConfig.EffectiveCraftModuleSettings = AppConfig.CraftModuleSettingsPVETT;
 
                 // Refresh the ListView binding
                 UnlockableCraftsListView.ItemsSource = null;
@@ -1131,27 +1143,27 @@ namespace EFT_OverlayAPP
         // Event Handler for Refresh Hideout Modules Button
         private async void RefreshHideoutModulesButton_Click(object sender, RoutedEventArgs e)
         {
-            MainWindow.UtilizeAndUpdateProfileMode(slider: false);
+            MainWindow.UtilizeAndUpdateProfileMode();
         }
 
         private async void ManualHideoutSourceRadioButton_Selected(object sender, RoutedEventArgs e)
         {
-            MainWindow.UtilizeAndUpdateProfileMode(slider: false);
+            MainWindow.UtilizeAndUpdateProfileMode();
         }
 
         private async void TarkovTrackerHideoutSourceRadioButton_Selected(object sender, RoutedEventArgs e)
         {
-            MainWindow.UtilizeAndUpdateProfileMode(slider: false);
+            MainWindow.UtilizeAndUpdateProfileMode();
         }
 
         private async void ManualCraftSourceRadioButton_Selected(object sender, RoutedEventArgs e)
         {
-            MainWindow.UtilizeAndUpdateProfileMode(slider: false);
+            MainWindow.UtilizeAndUpdateProfileMode();
         }
 
         private async void TarkovTrackerCraftSourceRadioButton_Selected(object sender, RoutedEventArgs e)
         {
-            MainWindow.UtilizeAndUpdateProfileMode(slider: false);
+            MainWindow.UtilizeAndUpdateProfileMode();
         }
 
         // Event Handlers for Unlock Overlay Options
@@ -1211,6 +1223,12 @@ namespace EFT_OverlayAPP
         {
             CustomResolutionComboBox.IsEnabled = false;
             // Reset to detected resolution if necessary
+        }
+
+        private void HideLockedQuestRecipesCheckBox_StateChanged (object sender, RoutedEventArgs e)
+        {
+            MainWindow.UtilizeAndUpdateProfileMode(crafting: true);
+            debounceDispatcher.Debounce(() => SaveConfig());
         }
 
         private void ResetKeybindsButton_Click(object sender, RoutedEventArgs e)
@@ -1289,6 +1307,8 @@ namespace EFT_OverlayAPP
                         AppConfig.CraftModuleSettingsTT.CollectionChanged -= CraftModuleSettings_CollectionChanged;
                         AppConfig.CraftModuleSettingsPVETT.CollectionChanged -= CraftModuleSettings_CollectionChanged;
 
+                        AppConfig.EffectiveCraftModuleSettings.CollectionChanged -= CraftModuleSettings_CollectionChanged;
+
                         foreach (var moduleSetting in AppConfig.HideoutModuleSettings)
                         {
                             moduleSetting.PropertyChanged -= HideoutModuleSetting_PropertyChanged;
@@ -1355,8 +1375,10 @@ namespace EFT_OverlayAPP
                     AppConfig.CraftModuleSettingsTT.CollectionChanged += CraftModuleSettings_CollectionChanged;
                     AppConfig.CraftModuleSettingsPVETT.CollectionChanged += CraftModuleSettings_CollectionChanged;
 
+                    AppConfig.EffectiveCraftModuleSettings.CollectionChanged += CraftModuleSettings_CollectionChanged;
+
                     // Initialize Hideout Modules and Crafting Window List with default settings
-                    MainWindow.UtilizeAndUpdateProfileMode(slider: false);
+                    MainWindow.UtilizeAndUpdateProfileMode();
 
                     // Save the default config to create a new config.json
                     SaveConfig();

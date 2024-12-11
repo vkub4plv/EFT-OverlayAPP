@@ -422,7 +422,9 @@
                             <CheckBox x:Name="HideLockedQuestRecipesCheckBox" 
                                       Content="Hide locked quest-related recipes" 
                                       IsChecked="{Binding HideLockedQuestRecipes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                                      Margin="0,0,0,5"/>
+                                      Margin="0,0,0,5"
+                                      Checked="HideLockedQuestRecipesCheckBox_StateChanged"
+                                      Unchecked="HideLockedQuestRecipesCheckBox_StateChanged"/>
                         </StackPanel>
                     </GroupBox>
 

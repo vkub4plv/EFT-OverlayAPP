@@ -132,6 +132,7 @@ namespace EFT_OverlayAPP
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         public string Id { get; set; } // Unique identifier
         public string Station { get; set; } // Crafting station (category)
+        public bool IsLocked { get; set; } = false; // Whether the item is locked behind a quest
 
         [JsonProperty]
         public TimeSpan CraftTime { get; set; }
@@ -1326,6 +1327,21 @@ namespace EFT_OverlayAPP
             }
         }
 
+        // Collection for Effective Craft Module Settings
+        private ObservableCollection<CraftModuleSetting> _effectiveCraftModuleSettings;
+        public ObservableCollection<CraftModuleSetting> EffectiveCraftModuleSettings
+        {
+            get => _effectiveCraftModuleSettings;
+            set
+            {
+                if (_effectiveCraftModuleSettings != value)
+                {
+                    _effectiveCraftModuleSettings = value;
+                    OnPropertyChanged(nameof(EffectiveCraftModuleSettings));
+                }
+            }
+        }
+
         // Add the following property for Keybinds
         private ObservableCollection<KeybindEntry> _keybinds;
         public ObservableCollection<KeybindEntry> Keybinds
@@ -1352,6 +1368,7 @@ namespace EFT_OverlayAPP
             _hideoutModuleSettingsPVETT = new ObservableCollection<HideoutModuleSetting>();
             _craftModuleSettingsTT = new ObservableCollection<CraftModuleSetting>();
             _craftModuleSettingsPVETT = new ObservableCollection<CraftModuleSetting>();
+            _effectiveCraftModuleSettings = new ObservableCollection<CraftModuleSetting>();
             _keybinds = new ObservableCollection<KeybindEntry>();
         }
 

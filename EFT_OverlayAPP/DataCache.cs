@@ -62,6 +62,16 @@ namespace EFT_OverlayAPP
                 foreach (var craft in graphQLResponse.Data.Crafts)
                 {
                     CraftableItem craftableItem;
+                    bool shouldBeLocked = false;
+
+                    var matchingEntry = ConfigWindow.AppConfig.EffectiveCraftModuleSettings
+                        .FirstOrDefault(entry => entry.CraftId == craft.Id);
+
+                    if (matchingEntry != null && !matchingEntry.IsUnlocked)
+                    {
+                        shouldBeLocked = true;
+                    }
+
                     double speedReduction;
                     if (App.IsPVEMode)
                     {
@@ -80,6 +90,7 @@ namespace EFT_OverlayAPP
                     {
                         Id = craft.Id,
                         Station = NormalizeStationName(craft.Station?.Name),
+                        IsLocked = shouldBeLocked,
                         CraftTime = TimeSpan.FromSeconds(craft.Duration * (1 - speedReduction) ?? 0),
                         RewardItems = craft.RewardItems.Select(rewardItem => new RewardItemDetail
                         {

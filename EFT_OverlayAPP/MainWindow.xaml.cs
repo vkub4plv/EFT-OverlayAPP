@@ -108,7 +108,7 @@ namespace EFT_OverlayAPP
 
             configWindow.PropertyChanged += ConfigWindow_PropertyChanged;
 
-            UtilizeAndUpdateProfileMode(slider: false);
+            UtilizeAndUpdateProfileMode();
 
             // Start data loading
             Task.Run(() => DataCache.LoadDataAsync(configWindow));
@@ -747,7 +747,7 @@ namespace EFT_OverlayAPP
                 logger.Info($"GameState changed: IsInRaid={IsInRaid}, IsMatching={IsMatching}, CurrentMap='{CurrentMap}', SessionMode='{SessionMode}'");
 
                 // Determine the effective profile mode and use it to update config window
-                UtilizeAndUpdateProfileMode(slider: false);
+                UtilizeAndUpdateProfileMode();
 
                 // Show or hide the WebViewWindow based on CurrentMap
                 if (string.IsNullOrEmpty(CurrentMap))
@@ -806,10 +806,10 @@ namespace EFT_OverlayAPP
 
         private void ConfigWindow_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            UtilizeAndUpdateProfileMode(slider: false);
+            UtilizeAndUpdateProfileMode();
         }
 
-        public void UtilizeAndUpdateProfileMode(bool slider)
+        public void UtilizeAndUpdateProfileMode(bool slider = false, bool crafting = false)
         {
             // Determine the effective profile mode and use it to update config window
             EffectiveProfileMode = configWindow.AppConfig.SelectedProfileMode;
@@ -854,7 +854,12 @@ namespace EFT_OverlayAPP
                 craftingWindow.ReloadData();
             }
 
-            LastProfileMode = EffectiveProfileMode;
+            if (crafting && craftingWindow != null)
+            {
+                craftingWindow.ReloadData();
+            }
+
+                LastProfileMode = EffectiveProfileMode;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
