@@ -16,6 +16,10 @@ namespace EFT_OverlayAPP
 
             logger.Info("Application starting up.");
 
+            TarkovApiService.GetCraftableItemsDataAsync();
+            TarkovApiService.GetCraftModuleSettingsDataAsync();
+            TarkovApiService.GetRequiredItemsDataAsync();
+
             // Show the main window
             MainWindow mainWindow = new MainWindow();
             MainWindow = mainWindow; // Set the main window

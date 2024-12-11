@@ -15,7 +15,6 @@
         ShowInTaskbar="False"
         ResizeMode="NoResize"
         Loaded="Window_Loaded"
-        DataContext="{Binding GameState, RelativeSource={RelativeSource AncestorType=Window}}"
         >
     <Grid>
         <StackPanel Orientation="Horizontal">
@@ -30,8 +29,15 @@
                     Foreground="White"
                     BorderBrush="Gray"
                     BorderThickness="1"
-                    Opacity="0.8"
-                    Visibility="{Binding IsInRaid, Converter={StaticResource InverseBooleanVisibilityConverter}, ConverterParameter={}}"/>
+                    Opacity="0.8">
+                <Button.Visibility>
+                    <MultiBinding Converter="{StaticResource AdvancedOtherWindowButtonsVisibilityConverter}">
+                        <Binding Path = "IsInRaid" />
+                        <Binding Path = "HideOtherWindowButtonsWhenInRaid" />
+                        <Binding Path = "ManualOtherWindowButtonsVisibilityOverride" />
+                </MultiBinding>
+                </Button.Visibility>
+            </Button>
             <!-- Open Required Items Window Button -->
             <Button x:Name="OpenRequiredItemsWindowButton"
                     Content="Required Items"
@@ -43,8 +49,15 @@
                     Foreground="White"
                     BorderBrush="Gray"
                     BorderThickness="1"
-                    Opacity="0.8"
-                    Visibility="{Binding IsInRaid, Converter={StaticResource InverseBooleanVisibilityConverter}, ConverterParameter={}}"/>
+                    Opacity="0.8">
+                <Button.Visibility>
+                    <MultiBinding Converter="{StaticResource AdvancedOtherWindowButtonsVisibilityConverter}">
+                        <Binding Path="IsInRaid" />
+                        <Binding Path="HideOtherWindowButtonsWhenInRaid" />
+                        <Binding Path="ManualOtherWindowButtonsVisibilityOverride" />
+                    </MultiBinding>
+                </Button.Visibility>
+            </Button>
             <!-- Configuration Button -->
             <Button x:Name="OpenConfigWindowButton"
                     Content="Config"
@@ -55,8 +68,15 @@
                     Foreground="White"
                     BorderBrush="Gray"
                     BorderThickness="1"
-                    Opacity="0.8"
-                    Visibility="{Binding IsInRaid, Converter={StaticResource InverseBooleanVisibilityConverter}, ConverterParameter={}}"/>
+                    Opacity="0.8">
+                <Button.Visibility>
+                    <MultiBinding Converter="{StaticResource AdvancedOtherWindowButtonsVisibilityConverter}">
+                        <Binding Path="IsInRaid" />
+                        <Binding Path="HideOtherWindowButtonsWhenInRaid" />
+                        <Binding Path="ManualOtherWindowButtonsVisibilityOverride" />
+                    </MultiBinding>
+                </Button.Visibility>
+            </Button>
         </StackPanel>
     </Grid>
 </Window>

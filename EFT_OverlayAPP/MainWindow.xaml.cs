@@ -38,6 +38,8 @@ namespace EFT_OverlayAPP
         private DispatcherTimer craftsTimer;
         private TimeSpan remainingTime;
 
+        private bool IsRaidTimerRunning = false;
+
         private bool isRaidTimerVisible;
         public bool IsRaidTimerVisible
         {
@@ -48,6 +50,34 @@ namespace EFT_OverlayAPP
                 {
                     isRaidTimerVisible = value;
                     OnPropertyChanged(nameof(IsRaidTimerVisible));
+                }
+            }
+        }
+
+        private bool manualOtherWindowButtonsVisibilityOverride = false;
+        public bool ManualOtherWindowButtonsVisibilityOverride
+        {
+            get => manualOtherWindowButtonsVisibilityOverride;
+            set
+            {
+                if (manualOtherWindowButtonsVisibilityOverride != value)
+                {
+                    manualOtherWindowButtonsVisibilityOverride = value;
+                    OnPropertyChanged(nameof(ManualOtherWindowButtonsVisibilityOverride));
+                }
+            }
+        }
+
+        private bool manualCraftingUIVisibilityOverride = false;
+        public bool ManualCraftingUIVisibilityOverride
+        {
+            get => manualCraftingUIVisibilityOverride;
+            set
+            {
+                if (manualCraftingUIVisibilityOverride != value)
+                {
+                    manualCraftingUIVisibilityOverride = value;
+                    OnPropertyChanged(nameof(ManualCraftingUIVisibilityOverride));
                 }
             }
         }
@@ -63,6 +93,7 @@ namespace EFT_OverlayAPP
         private const int HOTKEY_ID_RAID_TIMER_VISIBILITY = 9006;
         private const int HOTKEY_ID_CRAFTING_TIMERS_VISIBILITY = 9007;
         private const int HOTKEY_ID_OTHERBUTTONS_WINDOW = 9008;
+        private const int HOTKEY_ID_TOGGLE_RAID_TIMER = 9009;
 
         private HwndSource source;
 
@@ -121,7 +152,7 @@ namespace EFT_OverlayAPP
             webViewWindow = new WebViewWindow(this, gameStateManager.GameState);
 
             // Show the OthersWindow
-            othersWindow = new OthersWindow(this, gameStateManager.GameState);
+            othersWindow = new OthersWindow(this, gameStateManager.GameState, configWindow);
             othersWindow.Show();
 
             // Register the global hotkeys
@@ -132,6 +163,15 @@ namespace EFT_OverlayAPP
             craftingWindow = new CraftingWindow(this, configWindow);
             craftingWindow.Activate();
             craftingWindow.RefreshAllViews();
+
+            HideCraftingUIWhenInRaid = configWindow.AppConfig.HideCraftingUIWhenInRaid;
+            configWindow.AppConfig.PropertyChanged += (sender, args) =>
+            {
+                if (args.PropertyName == nameof(configWindow.AppConfig.HideCraftingUIWhenInRaid))
+                {
+                    HideCraftingUIWhenInRaid = configWindow.AppConfig.HideCraftingUIWhenInRaid;
+                }
+            };
         }
 
         private void MainWindow_Closed(object sender, EventArgs e)
@@ -230,6 +270,7 @@ namespace EFT_OverlayAPP
             UnregisterHotKey(hwnd, HOTKEY_ID_RAID_TIMER_VISIBILITY);
             UnregisterHotKey(hwnd, HOTKEY_ID_CRAFTING_TIMERS_VISIBILITY);
             UnregisterHotKey(hwnd, HOTKEY_ID_OTHERBUTTONS_WINDOW);
+            UnregisterHotKey(hwnd, HOTKEY_ID_TOGGLE_RAID_TIMER);
     }
 
         // Method to open the CraftingWindow
@@ -314,6 +355,7 @@ namespace EFT_OverlayAPP
 
             // Start the timer
             timer.Start();
+            IsRaidTimerRunning = true;
         }
 
         private void InitializeCraftsTimer()
@@ -336,6 +378,13 @@ namespace EFT_OverlayAPP
             {
                 remainingTime = TimeSpan.Zero;
             }
+
+            // Check if the remaining time is 10 minutes or less
+            if ((remainingTime <= TimeSpan.FromMinutes(10)) && configWindow.AppConfig.HideRaidTimerOn10MinutesLeft)
+            {
+                IsRaidTimerVisible = false; // Hide the timer
+            }
+
             UpdateTimerText();
         }
 
@@ -358,7 +407,7 @@ namespace EFT_OverlayAPP
             }
             else
             {
-                TimerTextBlock.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(182, 193, 199)); // Your preferred color
+                TimerTextBlock.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(182, 193, 199)); // Tarkov's default color
             }
         }
 
@@ -703,14 +752,14 @@ namespace EFT_OverlayAPP
                 // Show or hide the WebViewWindow based on CurrentMap
                 if (string.IsNullOrEmpty(CurrentMap))
                 {
-                    // CurrentMap is null or empty, but is in raid, show the WebViewWindow
-                    if (webViewWindow != null && !webViewWindow.IsVisible && IsInRaid)
+                    // CurrentMap is null or empty, but is in raid and config option is enabled, show the WebViewWindow
+                    if (webViewWindow != null && !webViewWindow.IsVisible && IsInRaid && configWindow.AppConfig.ShowMinimapWhenInRaid)
                     {
                         logger.Info("CurrentMap is null or empty, but is in raid, showing WebViewWindow");
                         webViewWindow.Show();
                     }
-                    // CurrentMap is null or empty and isn't in raid, hide the WebViewWindow
-                    if (webViewWindow != null && webViewWindow.IsVisible && !IsInRaid)
+                    // CurrentMap is null or empty and isn't in raid and config option is enabled, hide the WebViewWindow
+                    if (webViewWindow != null && webViewWindow.IsVisible && !IsInRaid && configWindow.AppConfig.HideMinimapWhenOutOfRaid)
                     {
                         logger.Info("CurrentMap is null or empty, hiding WebViewWindow");
                         webViewWindow.Hide();
@@ -718,21 +767,41 @@ namespace EFT_OverlayAPP
                 }
                 else
                 {
-                    logger.Info("CurrentMap is set, showing WebViewWindow");
-                    // CurrentMap is set, show the WebViewWindow
-                    if (webViewWindow != null && !webViewWindow.IsVisible)
+                    // CurrentMap is set, is currently Matching, show the WebViewWindow if config option is enabled
+                    if (webViewWindow != null && !webViewWindow.IsVisible && IsMatching && configWindow.AppConfig.ShowMinimapWhenMatching)
                     {
+                        logger.Info("CurrentMap is set, showing WebViewWindow");
+                        webViewWindow.Show();
+                    }
+                    // CurrentMap is set, is currently In Raid, show the WebViewWindow if config option is enabled
+                    if (webViewWindow != null && !webViewWindow.IsVisible && IsInRaid && configWindow.AppConfig.ShowMinimapWhenInRaid)
+                    {
+                        logger.Info("CurrentMap is set, showing WebViewWindow");
                         webViewWindow.Show();
                     }
                 }
 
-                // Hide the raid timer when not in raid
-                if (!IsInRaid)
+                // Hide the raid timer when not in raid and the config option is enabled
+                if (!IsInRaid && configWindow.AppConfig.HideRaidTimerOnRaidEnd)
                 {
-                    IsRaidTimerVisible = false;
+                    IsRaidTimerVisible = false; 
                 }
 
             });
+        }
+
+        private bool hideCraftingUIWhenInRaid;
+        public bool HideCraftingUIWhenInRaid
+        {
+            get => hideCraftingUIWhenInRaid;
+            set
+            {
+                if (hideCraftingUIWhenInRaid != value)
+                {
+                    hideCraftingUIWhenInRaid = value;
+                    OnPropertyChanged(nameof(HideCraftingUIWhenInRaid));
+                }
+            }
         }
 
         private void ConfigWindow_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -885,6 +954,7 @@ namespace EFT_OverlayAPP
             {"Toggle Raid Timer Visibility", HOTKEY_ID_RAID_TIMER_VISIBILITY},
             {"Toggle Crafting Timers Visibility", HOTKEY_ID_CRAFTING_TIMERS_VISIBILITY},
             {"Toggle OtherWindow Buttons", HOTKEY_ID_OTHERBUTTONS_WINDOW},
+            {"Toggle Raid Timer", HOTKEY_ID_TOGGLE_RAID_TIMER}
         };
 
         private int GetHotkeyIdForFunctionality(string functionality)
@@ -920,7 +990,26 @@ namespace EFT_OverlayAPP
                             OpenConfigWindow();
                             handled = true;
                             break;
-                            // Add more cases for other functionalities
+                        case "Toggle Minimap Visibility":
+                            ToggleMinimapVisibility();
+                            handled = true;
+                            break;
+                        case "Toggle Raid Timer Visibility":
+                            ToggleRaidTimerVisibility();
+                            handled = true;
+                            break;
+                        case "Toggle Crafting Timers Visibility":
+                            ToggleCraftingTimersVisibility();
+                            handled = true;
+                            break;
+                        case "Toggle OtherWindow Buttons":
+                            ToggleOtherWindowButtons();
+                            handled = true;
+                            break;
+                        case "Toggle Raid Timer":
+                            ToggleRaidTimer();
+                            handled = true;
+                            break;
                     }
                 }
             }
@@ -937,6 +1026,60 @@ namespace EFT_OverlayAPP
         {
             IsEditingKeybind = false;
             RegisterConfiguredHotKeys();
+        }
+
+        private void ToggleMinimapVisibility()
+        {
+            if (webViewWindow != null)
+            {
+                if (webViewWindow.IsVisible)
+                {
+                    webViewWindow.Hide();
+                }
+                else
+                {
+                    webViewWindow.Show();
+                }
+            }
+        }
+
+        private void ToggleRaidTimerVisibility()
+        {
+            IsRaidTimerVisible = !IsRaidTimerVisible;
+            OnPropertyChanged(nameof(IsRaidTimerVisible));
+        }
+
+        private void ToggleRaidTimer()
+        {
+            if (remainingTime > TimeSpan.Zero)
+            {
+                if (IsRaidTimerRunning)
+                {
+                    timer.Stop();
+                    IsRaidTimerRunning = false;
+                }
+                else
+                {
+                    timer.Start();
+                    IsRaidTimerRunning = true;
+                }
+            }
+            else
+            {
+                MessageBox.Show("Raid timer is not running.");
+            }
+        }
+
+        private void ToggleCraftingTimersVisibility()
+        {
+            ManualCraftingUIVisibilityOverride = !ManualCraftingUIVisibilityOverride;
+            OnPropertyChanged(nameof(ManualCraftingUIVisibilityOverride));
+        }
+
+        private void ToggleOtherWindowButtons()
+        {
+            ManualOtherWindowButtonsVisibilityOverride = !ManualOtherWindowButtonsVisibilityOverride;
+            OnPropertyChanged(nameof(ManualOtherWindowButtonsVisibilityOverride));
         }
     }
 }

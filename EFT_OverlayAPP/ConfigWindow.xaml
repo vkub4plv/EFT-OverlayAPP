@@ -219,21 +219,27 @@
                     <!-- Visibility Options -->
                     <GroupBox Header="Visibility Options" Grid.Row="3" Margin="0,0,0,10">
                         <StackPanel Orientation="Vertical" Margin="10">
-                            <CheckBox x:Name="HideOtherWindowButtonsCheckBox" 
-                                      Content="Hide Other Window Buttons When In-Raid" 
-                                      IsChecked="{Binding ToggleOtherWindowButtons, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <CheckBox x:Name="HideOtherWindowButtonsWhenInRaidCheckBox" 
+                                      Content="Hide Other Window Buttons when In-Raid" 
+                                      IsChecked="{Binding HideOtherWindowButtonsWhenInRaid, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                             <CheckBox x:Name="HideCraftingUIWhenInRaidCheckBox" 
-                                      Content="Hide Crafting UI When In-Raid" 
-                                      IsChecked="{Binding ToggleCraftingTimersVisibility, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                            <CheckBox x:Name="TimerOn10MinutesLeftCheckBox" 
-                                      Content="Hide Timer When 10 Minutes Left" 
-                                      IsChecked="{Binding HideTimerOn10MinutesLeft, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                            <CheckBox x:Name="TimerOnRaidEndCheckBox" 
-                                      Content="Hide Timer on Raid End" 
-                                      IsChecked="{Binding HideTimerOnRaidEnd, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                            <CheckBox x:Name="MinimapWhenOutOfRaidCheckBox" 
-                                      Content="Hide Minimap When Out of Raid" 
-                                      IsChecked="{Binding ToggleMinimapVisibility, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                      Content="Hide Crafting UI when In-Raid" 
+                                      IsChecked="{Binding HideCraftingUIWhenInRaid, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <CheckBox x:Name="HideRaidTimerOn10MinutesLeftCheckBox" 
+                                      Content="Hide Raid Timer on 10 Minutes Left" 
+                                      IsChecked="{Binding HideRaidTimerOn10MinutesLeft, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <CheckBox x:Name="HideRaidTimerOnRaidEndCheckBox" 
+                                      Content="Hide Raid Timer on Raid End" 
+                                      IsChecked="{Binding HideRaidTimerOnRaidEnd, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <CheckBox x:Name="HideMinimapWhenOutOfRaidCheckBox" 
+                                      Content="Hide Minimap when Out of Raid" 
+                                      IsChecked="{Binding HideMinimapWhenOutOfRaid, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <CheckBox x:Name="ShowMinimapWhenMatchingCheckBox" 
+                                      Content="Show Minimap when Matching" 
+                                      IsChecked="{Binding ShowMinimapWhenMatching, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <CheckBox x:Name="ShowMinimapWhenInRaidCheckBox" 
+                                      Content="Show Minimap when In-Raid" 
+                                      IsChecked="{Binding ShowMinimapWhenInRaid, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                         </StackPanel>
                     </GroupBox>
                 </Grid>

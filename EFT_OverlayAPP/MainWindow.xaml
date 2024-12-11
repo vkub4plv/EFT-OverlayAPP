@@ -179,8 +179,14 @@
                       HorizontalAlignment="Center"
                       VerticalAlignment="Bottom"
                       Margin="0,0,730,10"
-                      ItemsSource="{Binding ActiveCraftTimers}"
-                      Visibility="{Binding IsInRaid, Converter={StaticResource InverseBooleanVisibilityConverter}}">
+                      ItemsSource="{Binding ActiveCraftTimers}">
+            <ItemsControl.Visibility>
+                <MultiBinding Converter="{StaticResource AdvancedCraftingUIVisibilityConverter}">
+                    <Binding Path="IsInRaid" />
+                    <Binding Path="HideCraftingUIWhenInRaid" />
+                    <Binding Path="ManualCraftingUIVisibilityOverride" />
+                </MultiBinding>
+            </ItemsControl.Visibility>
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <StackPanel Orientation="Horizontal"/>

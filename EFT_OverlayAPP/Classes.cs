@@ -919,58 +919,72 @@ namespace EFT_OverlayAPP
         }
 
         // Toggle Visibilities
-        private bool toggleMinimapVisibility;
-        public bool ToggleMinimapVisibility
+        private bool hideMinimapWhenOutOfRaid;
+        public bool HideMinimapWhenOutOfRaid
         {
-            get => toggleMinimapVisibility;
+            get => hideMinimapWhenOutOfRaid;
             set
             {
-                if (toggleMinimapVisibility != value)
+                if (hideMinimapWhenOutOfRaid != value)
                 {
-                    toggleMinimapVisibility = value;
-                    OnPropertyChanged(nameof(ToggleMinimapVisibility));
+                    hideMinimapWhenOutOfRaid = value;
+                    OnPropertyChanged(nameof(HideMinimapWhenOutOfRaid));
                 }
             }
         }
 
-        private bool toggleRaidTimerVisibility;
-        public bool ToggleRaidTimerVisibility
+        private bool showMinimapWhenMatching;
+        public bool ShowMinimapWhenMatching
         {
-            get => toggleRaidTimerVisibility;
+            get => showMinimapWhenMatching;
             set
             {
-                if (toggleRaidTimerVisibility != value)
+                if (showMinimapWhenMatching != value)
                 {
-                    toggleRaidTimerVisibility = value;
-                    OnPropertyChanged(nameof(ToggleRaidTimerVisibility));
+                    showMinimapWhenMatching = value;
+                    OnPropertyChanged(nameof(ShowMinimapWhenMatching));
                 }
             }
         }
 
-        private bool toggleCraftingTimersVisibility;
-        public bool ToggleCraftingTimersVisibility
+        private bool showMinimapWhenInRaid;
+        public bool ShowMinimapWhenInRaid
         {
-            get => toggleCraftingTimersVisibility;
+            get => showMinimapWhenInRaid;
             set
             {
-                if (toggleCraftingTimersVisibility != value)
+                if (showMinimapWhenInRaid != value)
                 {
-                    toggleCraftingTimersVisibility = value;
-                    OnPropertyChanged(nameof(ToggleCraftingTimersVisibility));
+                    showMinimapWhenInRaid = value;
+                    OnPropertyChanged(nameof(ShowMinimapWhenInRaid));
                 }
             }
         }
 
-        private bool toggleOtherWindowButtons;
-        public bool ToggleOtherWindowButtons
+        private bool hideCraftingUIWhenInRaid;
+        public bool HideCraftingUIWhenInRaid
         {
-            get => toggleOtherWindowButtons;
+            get => hideCraftingUIWhenInRaid;
             set
             {
-                if (toggleOtherWindowButtons != value)
+                if (hideCraftingUIWhenInRaid != value)
                 {
-                    toggleOtherWindowButtons = value;
-                    OnPropertyChanged(nameof(ToggleOtherWindowButtons));
+                    hideCraftingUIWhenInRaid = value;
+                    OnPropertyChanged(nameof(HideCraftingUIWhenInRaid));
+                }
+            }
+        }
+
+        private bool hideOtherWindowButtonsWhenInRaid;
+        public bool HideOtherWindowButtonsWhenInRaid
+        {
+            get => hideOtherWindowButtonsWhenInRaid;
+            set
+            {
+                if (hideOtherWindowButtonsWhenInRaid != value)
+                {
+                    hideOtherWindowButtonsWhenInRaid = value;
+                    OnPropertyChanged(nameof(HideOtherWindowButtonsWhenInRaid));
                 }
             }
         }
@@ -1029,20 +1043,6 @@ namespace EFT_OverlayAPP
                 {
                     currentCraftingLevelPVE = value;
                     OnPropertyChanged(nameof(CurrentCraftingLevelPVE));
-                }
-            }
-        }
-
-        private bool disableAutoHideRaidTimer;
-        public bool DisableAutoHideRaidTimer
-        {
-            get => disableAutoHideRaidTimer;
-            set
-            {
-                if (disableAutoHideRaidTimer != value)
-                {
-                    disableAutoHideRaidTimer = value;
-                    OnPropertyChanged(nameof(DisableAutoHideRaidTimer));
                 }
             }
         }
@@ -1107,30 +1107,30 @@ namespace EFT_OverlayAPP
             }
         }
 
-        private bool hideTimerOn10MinutesLeft;
-        public bool HideTimerOn10MinutesLeft
+        private bool hideRaidTimerOn10MinutesLeft;
+        public bool HideRaidTimerOn10MinutesLeft
         {
-            get => hideTimerOn10MinutesLeft;
+            get => hideRaidTimerOn10MinutesLeft;
             set
             {
-                if (hideTimerOn10MinutesLeft != value)
+                if (hideRaidTimerOn10MinutesLeft != value)
                 {
-                    hideTimerOn10MinutesLeft = value;
-                    OnPropertyChanged(nameof(HideTimerOn10MinutesLeft));
+                    hideRaidTimerOn10MinutesLeft = value;
+                    OnPropertyChanged(nameof(HideRaidTimerOn10MinutesLeft));
                 }
             }
         }
 
-        private bool hideTimerOnRaidEnd;
-        public bool HideTimerOnRaidEnd
+        private bool hideRaidTimerOnRaidEnd;
+        public bool HideRaidTimerOnRaidEnd
         {
-            get => hideTimerOnRaidEnd;
+            get => hideRaidTimerOnRaidEnd;
             set
             {
-                if (hideTimerOnRaidEnd != value)
+                if (hideRaidTimerOnRaidEnd != value)
                 {
-                    hideTimerOnRaidEnd = value;
-                    OnPropertyChanged(nameof(HideTimerOnRaidEnd));
+                    hideRaidTimerOnRaidEnd = value;
+                    OnPropertyChanged(nameof(HideRaidTimerOnRaidEnd));
                 }
             }
         }
@@ -1555,33 +1555,51 @@ namespace EFT_OverlayAPP
         private static bool isRequiredItemsDataLoaded = false;
         private static GraphQLRequiredItemsResponse requiredItemsResponseData;
 
+        private static Task<GraphQLCraftsResponse> craftableItemsTask;
+        private static Task<GraphQLCraftsResponse> craftModuleSettingsTask;
+        private static Task<GraphQLRequiredItemsResponse> requiredItemsTask;
+
         public static async Task<GraphQLCraftsResponse> GetCraftableItemsDataAsync()
         {
+            if (craftableItemsTask != null) // If a fetch is already in progress, return the ongoing Task.
+            {
+                return await craftableItemsTask;
+            }
+
             if (isCraftableItemsDataLoaded)
             {
                 return craftableItemsData;
             }
 
+            craftableItemsTask = FetchCraftableItemsDataAsync();
+            var result = await craftableItemsTask;
+
+            craftableItemsTask = null; // Reset the Task when completed.
+            return result;
+        }
+
+        private static async Task<GraphQLCraftsResponse> FetchCraftableItemsDataAsync()
+        {
             var queryObject = new
             {
                 query = @"{
-                            crafts {
+                    crafts {
+                        id
+                        station {
+                            name
+                        }
+                        duration
+                        rewardItems {
+                            item {
                                 id
-                                station {
-                                    name
-                                }
-                                duration
-                                rewardItems {
-                                    item {
-                                        id
-                                        name
-                                        shortName
-                                        iconLink
-                                    }
-                                    quantity
-                                }
+                                name
+                                shortName
+                                iconLink
                             }
-                        }"
+                            quantity
+                        }
+                    }
+                }"
             };
 
             try
@@ -1615,60 +1633,74 @@ namespace EFT_OverlayAPP
 
         public static async Task<GraphQLCraftsResponse> GetCraftModuleSettingsDataAsync()
         {
+            if (craftModuleSettingsTask != null) // If a fetch is already in progress, return the ongoing Task.
+            {
+                return await craftModuleSettingsTask;
+            }
+
             if (isCraftModuleSettingsDataLoaded)
             {
                 return craftModuleSettingsData;
             }
 
+            craftModuleSettingsTask = FetchCraftModuleSettingsDataAsync();
+            var result = await craftModuleSettingsTask;
+
+            craftModuleSettingsTask = null; // Reset the Task when completed.
+            return result;
+        }
+
+        private static async Task<GraphQLCraftsResponse> FetchCraftModuleSettingsDataAsync()
+        {
             var queryObject = new
             {
                 query = @"{
-                            tasks {
+                    tasks {
+                        id
+                        name
+                        startRewards {
+                            craftUnlock {
                                 id
-                                name
-                                startRewards {
-                                    craftUnlock {
-                                        id
-                                        station {
-                                            name
-                                        }
-                                        duration
-                                        rewardItems {
-                                            item {
-                                                id
-                                                name
-                                                shortName
-                                                iconLink
-                                            }
-                                            quantity
-                                        }
-                                    }
-                                }
-                                finishRewards {
-                                    craftUnlock {
-                                        id
-                                        station {
-                                            name
-                                        }
-                                        duration
-                                        rewardItems {
-                                            item {
-                                                id
-                                                name
-                                                shortName
-                                                iconLink
-                                            }
-                                            quantity
-                                        }
-                                    }
-                                }
-                                trader {
-                                    id
+                                station {
                                     name
-                                    imageLink
                                 }
-                           }
-                        }"
+                                duration
+                                rewardItems {
+                                    item {
+                                        id
+                                        name
+                                        shortName
+                                        iconLink
+                                    }
+                                    quantity
+                                }
+                            }
+                        }
+                        finishRewards {
+                            craftUnlock {
+                                id
+                                station {
+                                    name
+                                }
+                                duration
+                                rewardItems {
+                                    item {
+                                        id
+                                        name
+                                        shortName
+                                        iconLink
+                                    }
+                                    quantity
+                                }
+                            }
+                        }
+                        trader {
+                            id
+                            name
+                            imageLink
+                        }
+                   }
+                }"
             };
 
             try
@@ -1702,54 +1734,68 @@ namespace EFT_OverlayAPP
 
         public static async Task<GraphQLRequiredItemsResponse> GetRequiredItemsDataAsync()
         {
+            if (requiredItemsTask != null) // If a fetch is already in progress, return the ongoing Task.
+            {
+                return await requiredItemsTask;
+            }
+
             if (isRequiredItemsDataLoaded)
             {
                 return requiredItemsResponseData;
             }
 
+            requiredItemsTask = FetchRequiredItemsDataAsync();
+            var result = await requiredItemsTask;
+
+            requiredItemsTask = null; // Reset the Task when completed.
+            return result;
+        }
+
+        private static async Task<GraphQLRequiredItemsResponse> FetchRequiredItemsDataAsync()
+        {
             string query = @"
-            {
-              tasks {
-                id
-                name
-                trader {
-                  id
-                  name
-                  imageLink
-                }
-                objectives {
-                  id
-                  type
-                  description
-                  ... on TaskObjectiveItem {
-                    items {
-                      id
-                      name
-                      iconLink
-                    }
-                    count
-                    foundInRaid
-                  }
-                }
-              }
-              hideoutStations {
-                id
-                name
-                normalizedName
-                imageLink
-                levels {
-                  level
-                  itemRequirements {
-                    item {
-                      id
-                      name
-                      iconLink 
-                    }
-                    count
-                  }
-                }
-              }
-            }";
+                        {
+                          tasks {
+                            id
+                            name
+                            trader {
+                              id
+                              name
+                              imageLink
+                            }
+                            objectives {
+                              id
+                              type
+                              description
+                              ... on TaskObjectiveItem {
+                                items {
+                                  id
+                                  name
+                                  iconLink
+                                }
+                                count
+                                foundInRaid
+                              }
+                            }
+                          }
+                          hideoutStations {
+                            id
+                            name
+                            normalizedName
+                            imageLink
+                            levels {
+                              level
+                              itemRequirements {
+                                item {
+                                  id
+                                  name
+                                  iconLink 
+                                }
+                                count
+                              }
+                            }
+                          }
+                        }";
 
             var queryObject = new { query = query };
 
@@ -2397,5 +2443,61 @@ namespace EFT_OverlayAPP
         public string Id { get; set; }
         public int Level { get; set; }
         public bool Complete { get; set; }
+    }
+
+    public class OthersWindowDataBinding : INotifyPropertyChanged
+    {
+        public GameState GameState { get; set; }
+        public AppConfig Config { get; set; }
+        public MainWindow Main { get; set; }
+
+        private bool isInRaid;
+        public bool IsInRaid
+        {
+            get => isInRaid;
+            set
+            {
+                if (isInRaid != value)
+                {
+                    isInRaid = value;
+                    OnPropertyChanged(nameof(IsInRaid));
+                }
+            }
+        }
+
+        private bool hideOtherWindowButtonsWhenInRaid;
+        public bool HideOtherWindowButtonsWhenInRaid
+        {
+            get => hideOtherWindowButtonsWhenInRaid;
+            set
+            {
+                if (hideOtherWindowButtonsWhenInRaid != value)
+                {
+                    hideOtherWindowButtonsWhenInRaid = value;
+                    OnPropertyChanged(nameof(HideOtherWindowButtonsWhenInRaid));
+                }
+            }
+        }
+
+        private bool manualOtherWindowButtonsVisibilityOverride = false;
+        public bool ManualOtherWindowButtonsVisibilityOverride
+        {
+            get => manualOtherWindowButtonsVisibilityOverride;
+            set
+            {
+                if (manualOtherWindowButtonsVisibilityOverride != value)
+                {
+                    manualOtherWindowButtonsVisibilityOverride = value;
+                    OnPropertyChanged(nameof(ManualOtherWindowButtonsVisibilityOverride));
+                }
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }

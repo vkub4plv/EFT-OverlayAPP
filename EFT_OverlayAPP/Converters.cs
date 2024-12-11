@@ -392,4 +392,55 @@ namespace EFT_OverlayAPP
             throw new NotImplementedException();
         }
     }
+
+    public class AdvancedOtherWindowButtonsVisibilityConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (values.Length < 3 || values[0] == DependencyProperty.UnsetValue || values[1] == DependencyProperty.UnsetValue)
+                return Visibility.Visible;
+
+            bool manualOverride = (bool)values[2];
+
+            if (manualOverride)
+            {
+                return Visibility.Collapsed;
+            }
+
+            bool isInRaid = (bool)values[0];
+            bool hideOtherWindowButtonsWhenInRaid = (bool)values[1];
+
+            return (isInRaid && hideOtherWindowButtonsWhenInRaid) ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class AdvancedCraftingUIVisibilityConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (values.Length < 3 || values[0] == DependencyProperty.UnsetValue || values[1] == DependencyProperty.UnsetValue)
+                return Visibility.Visible;
+
+            bool manualCraftingUIVisibilityOverride = (bool)values[2];
+
+            if (manualCraftingUIVisibilityOverride)
+            {
+                return Visibility.Collapsed;
+            }
+
+            bool isInRaid = (bool)values[0];
+            bool hideCraftingUIWhenInRaid = (bool)values[1];
+            return (isInRaid && hideCraftingUIWhenInRaid) ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }

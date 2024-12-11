@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,14 +19,49 @@ namespace EFT_OverlayAPP
     {
         private MainWindow mainWindow;
         private GameState gameState;
+        private ConfigWindow configWindow;
 
-        public OthersWindow(MainWindow mainWindow, GameState gameState)
+        public OthersWindow(MainWindow mainWindow, GameState gameState, ConfigWindow configWindow)
         {
             InitializeComponent();
             this.mainWindow = mainWindow;
             this.gameState = gameState;
-            this.DataContext = gameState; // Set DataContext
+            this.configWindow = configWindow;
+            var dataBinding = new OthersWindowDataBinding
+            {
+                GameState = gameState,
+                Config = configWindow.AppConfig,
+                Main = mainWindow,
+                IsInRaid = gameState.IsInRaid,
+                HideOtherWindowButtonsWhenInRaid = configWindow.AppConfig.HideOtherWindowButtonsWhenInRaid,
+                ManualOtherWindowButtonsVisibilityOverride = mainWindow.ManualOtherWindowButtonsVisibilityOverride
+            };
+            this.DataContext = dataBinding; // Set DataContext
             this.Owner = mainWindow;
+
+            gameState.PropertyChanged += (sender, args) =>
+            {
+                if (args.PropertyName == nameof(gameState.IsInRaid))
+                {
+                    dataBinding.IsInRaid = gameState.IsInRaid;
+                }
+            };
+
+            mainWindow.PropertyChanged += (sender, args) =>
+            {
+                if (args.PropertyName == nameof(mainWindow.ManualOtherWindowButtonsVisibilityOverride))
+                {
+                    dataBinding.ManualOtherWindowButtonsVisibilityOverride = mainWindow.ManualOtherWindowButtonsVisibilityOverride;
+                }
+            };
+
+            configWindow.AppConfig.PropertyChanged += (sender, args) =>
+            {
+                if (args.PropertyName == nameof(configWindow.AppConfig.HideOtherWindowButtonsWhenInRaid))
+                {
+                    dataBinding.HideOtherWindowButtonsWhenInRaid = configWindow.AppConfig.HideOtherWindowButtonsWhenInRaid;
+                }
+            };
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
