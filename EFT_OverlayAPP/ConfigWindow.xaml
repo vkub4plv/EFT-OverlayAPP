@@ -171,6 +171,8 @@
                         <!-- Resolution -->
                         <RowDefinition Height="Auto"/>
                         <!-- Unlock Overlay -->
+                        <RowDefinition Height="Auto"/>
+                        <!-- Minimap Settings -->
                         <RowDefinition Height="*"/>
                         <!-- Visibility Options -->
                     </Grid.RowDefinitions>
@@ -216,8 +218,30 @@
                         </StackPanel>
                     </GroupBox>
 
+                    <!-- Minimap Settings -->
+                    <GroupBox Header="Minimap Settings" Grid.Row="3" Margin="0,0,0,10">
+                        <StackPanel Orientation="Vertical" Margin="10">
+                            <!-- Map Website Choice -->
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                <TextBlock Text="Select Map Website:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <ComboBox x:Name="MapWebsiteComboBox" Width="200" SelectedIndex="0">
+                                    <ComboBoxItem Content="Map Genie"/>
+                                    <ComboBoxItem Content="tarkov.dev"/>
+                                    <!-- Add more map websites as needed -->
+                                </ComboBox>
+                            </StackPanel>
+
+                            <!-- Auto Set Active Minimap -->
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                <CheckBox x:Name="AutoSetActiveMinimapCheckBox" 
+                                          Content="Automatically set active minimap to current map on raid start" 
+                                          IsChecked="{Binding AutoSetActiveMinimap, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
+
                     <!-- Visibility Options -->
-                    <GroupBox Header="Visibility Options" Grid.Row="3" Margin="0,0,0,10">
+                    <GroupBox Header="Visibility Options" Grid.Row="4" Margin="0,0,0,10">
                         <StackPanel Orientation="Vertical" Margin="10">
                             <CheckBox x:Name="HideOtherWindowButtonsWhenInRaidCheckBox" 
                                       Content="Hide Other Window Buttons when In-Raid" 
@@ -364,41 +388,7 @@
                 </Grid>
             </TabItem>
 
-            <!-- 5. Minimap Tab -->
-            <TabItem Header="Minimap">
-                <Grid Margin="10">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <!-- Map Website Choice -->
-                        <RowDefinition Height="Auto"/>
-                        <!-- Auto Set Active Minimap -->
-                        <RowDefinition Height="*"/>
-                        <!-- Spacer or Additional Content -->
-                    </Grid.RowDefinitions>
-
-                    <!-- Map Website Choice -->
-                    <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,10">
-                        <TextBlock Text="Select Map Website:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                        <ComboBox x:Name="MapWebsiteComboBox" Width="200" SelectedIndex="0">
-                            <ComboBoxItem Content="Map Genie"/>
-                            <ComboBoxItem Content="tarkov.dev"/>
-                            <!-- Add more map websites as needed -->
-                        </ComboBox>
-                    </StackPanel>
-
-                    <!-- Auto Set Active Minimap -->
-                    <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,10">
-                        <CheckBox x:Name="AutoSetActiveMinimapCheckBox" 
-                                  Content="Automatically set active minimap to current map on raid start" 
-                                  IsChecked="{Binding AutoSetActiveMinimap, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                    </StackPanel>
-
-                    <!-- Spacer or Additional Content -->
-                    <Grid Grid.Row="2"/>
-                </Grid>
-            </TabItem>
-
-            <!-- 6. Crafting Tab -->
+            <!-- 5. Crafting Tab -->
             <TabItem Header="Crafting">
                 <Grid Margin="10">
                     <Grid.RowDefinitions>
@@ -506,7 +496,7 @@
                 </Grid>
             </TabItem>
 
-            <!-- 7. Required Items Tab -->
+            <!-- 6. Required Items Tab -->
             <TabItem Header="Required Items">
                 <Grid Margin="10">
                     <Grid.RowDefinitions>
