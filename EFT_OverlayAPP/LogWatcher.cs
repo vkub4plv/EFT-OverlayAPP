@@ -476,7 +476,8 @@ namespace EFT_OverlayAPP
                 "laboratory" => "The Lab",
                 "lighthouse" => "Lighthouse",
                 "tarkovstreets" => "Streets of Tarkov",
-                "suburbs" => "Ground Zero",
+                "sandbox" => "Ground Zero",
+                "sandbox_high" => "Ground Zero 21+",
                 _ => identifier
             };
         }
@@ -696,6 +697,7 @@ namespace EFT_OverlayAPP
             switch (mapName.ToLower())
             {
                 case "factory":
+                case "factory (night)":
                     return "factory";
                 case "customs":
                     return "customs";
@@ -716,6 +718,7 @@ namespace EFT_OverlayAPP
                 case "streets":
                     return "streets";
                 case "ground zero":
+                case "ground zero 21+":
                     return "ground-zero";
                 default:
                     return null;

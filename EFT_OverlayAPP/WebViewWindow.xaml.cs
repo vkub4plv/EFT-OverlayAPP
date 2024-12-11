@@ -9,16 +9,18 @@ namespace EFT_OverlayAPP
     public partial class WebViewWindow : Window
     {
         private GameState gameState;
+        private ConfigWindow configWindow;
         private double originalTop; // To store the original Top position
         private double originalLeft; // To store the original Left position
         private double originalWidth; // Original Width
         private double originalHeight; // Original Height
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
-        public WebViewWindow(Window owner, GameState gameState)
+        public WebViewWindow(Window owner, GameState gameState, ConfigWindow configWindow)
         {
             InitializeComponent();
             this.gameState = gameState;
+            this.configWindow = configWindow;
             this.Loaded += WebViewWindow_Loaded;
 
             // Set the owner

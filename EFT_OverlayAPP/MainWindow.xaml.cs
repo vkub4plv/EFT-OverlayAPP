@@ -149,7 +149,7 @@ namespace EFT_OverlayAPP
             SetWindowLongPtr(hwnd, GWL_EXSTYLE, (IntPtr)(exStyle | WS_EX_LAYERED | WS_EX_TRANSPARENT));
 
             // Create and show the WebView window
-            webViewWindow = new WebViewWindow(this, gameStateManager.GameState);
+            webViewWindow = new WebViewWindow(this, gameStateManager.GameState, configWindow);
 
             // Show the OthersWindow
             othersWindow = new OthersWindow(this, gameStateManager.GameState, configWindow);

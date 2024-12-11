@@ -228,11 +228,6 @@ namespace EFT_OverlayAPP
             // Selected Map Website
             AppConfig.SelectedMapWebsite = (MapWebsiteComboBox.SelectedItem as ComboBoxItem)?.Content.ToString();
 
-            // Save the SelectedTab in Crafting and Required Items if needed
-            // Assuming it's already bound via Data Binding
-
-            // Any other settings are already bound via Data Binding
-
             try
             {
                 string json = JsonConvert.SerializeObject(AppConfig, Formatting.Indented);

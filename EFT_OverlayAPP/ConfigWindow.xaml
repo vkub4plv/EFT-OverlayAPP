@@ -226,7 +226,7 @@
                                 <TextBlock Text="Select Map Website:" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <ComboBox x:Name="MapWebsiteComboBox" Width="200" SelectedIndex="0">
                                     <ComboBoxItem Content="Map Genie"/>
-                                    <ComboBoxItem Content="tarkov.dev"/>
+                                    <ComboBoxItem Content="Tarkov.dev"/>
                                     <!-- Add more map websites as needed -->
                                 </ComboBox>
                             </StackPanel>
