@@ -127,6 +127,7 @@ namespace EFT_OverlayAPP
                                 CraftIconLink = craftUnlock.RewardItems.FirstOrDefault()?.Item.IconLink ?? "",
                                 TraderIconLink = task.Trader?.ImageLink ?? "",
                                 QuestName = task.Name,
+                                QuestId = task.Id,
                                 IsUnlocked = false
                             };
                             craftModuleSettings.Add(craftModule);
@@ -145,6 +146,7 @@ namespace EFT_OverlayAPP
                                 CraftIconLink = craftUnlock.RewardItems.FirstOrDefault()?.Item.IconLink ?? "",
                                 TraderIconLink = task.Trader?.ImageLink ?? "",
                                 QuestName = task.Name,
+                                QuestId = task.Id,
                                 IsUnlocked = false
                             };
                             craftModuleSettings.Add(craftModule);

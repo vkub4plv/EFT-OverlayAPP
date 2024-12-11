@@ -1480,6 +1480,7 @@ namespace EFT_OverlayAPP
         public string CraftIconLink { get; set; } // URL to the craft's icon
         public string TraderIconLink { get; set; } // URL to the trader's icon
         public string QuestName { get; set; } // Name of the quest that unlocks the craft
+        public string QuestId { get; set; } // Unique identifier for the quest that unlocks the craft
 
         public bool IsUnlocked
         {

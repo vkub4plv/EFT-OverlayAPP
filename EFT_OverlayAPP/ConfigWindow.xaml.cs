@@ -35,6 +35,7 @@ namespace EFT_OverlayAPP
         private bool isLoaded { get; set; } = false;
         // Declare a class-level property to store the processed list
         private static List<ProcessedLevel> HideoutTTAPIDataList { get; set; }
+        private static List<TaskProgress> CraftingTTAPIDataList { get; set; }
         public ConfigWindow(MainWindow mainWindow)
         {
             InitializeComponent();
@@ -220,7 +221,8 @@ namespace EFT_OverlayAPP
             {
                 if (string.IsNullOrWhiteSpace(AppConfig.PvpApiKey) && string.IsNullOrWhiteSpace(AppConfig.PveApiKey))
                 {
-                    MessageBox.Show("Either PVP or PVE API keys must be provided when Tarkov Tracker API is enabled.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show("Either PVP or PVE API keys must be provided when Tarkov Tracker API is enabled.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    AppConfig.IsTarkovTrackerApiEnabled = false;
                     return;
                 }
             }
@@ -650,6 +652,10 @@ namespace EFT_OverlayAPP
 
         private async Task LoadCraftModuleSettingsAsync()
         {
+            if (!isLoaded)
+            {
+                return;
+            }
             try
             {
                 var craftModules = await DataCache.FetchCraftModuleSettingsAsync();
@@ -679,6 +685,10 @@ namespace EFT_OverlayAPP
 
         private async Task LoadCraftModuleSettingsAsyncPVE()
         {
+            if (!isLoaded)
+            {
+                return;
+            }
             try
             {
                 var craftModules = await DataCache.FetchCraftModuleSettingsAsync();
@@ -708,17 +718,36 @@ namespace EFT_OverlayAPP
 
         private async Task LoadCraftModuleSettingsAsyncTT()
         {
+            if (!isLoaded)
+            {
+                return;
+            }
             try
             {
                 var craftModules = await DataCache.FetchCraftModuleSettingsAsync();
+
+                await ProcessCraftingTTAPIData();
 
                 // Populate AppConfig.CraftModuleSettingsTT
                 foreach (var craftModule in craftModules)
                 {
                     // Check if the craft already exists in the settings to prevent duplicates
-                    if (!AppConfig.CraftModuleSettingsTT.Any(cm => cm.CraftId == craftModule.CraftId))
+                    var existingModule = AppConfig.CraftModuleSettingsTT.FirstOrDefault(cm => cm.CraftId == craftModule.CraftId);
+                    if (existingModule == null)
                     {
+                        craftModule.IsUnlocked = CraftingTTAPIDataList
+                                                    .Where(entry => entry.Id == craftModule.QuestId)
+                                                    .Select(entry => entry.Complete)
+                                                    .FirstOrDefault();
                         AppConfig.CraftModuleSettingsTT.Add(craftModule);
+                    }
+                    else
+                    {
+                        // Update the existing module's IsUnlocked property based on CraftingTTAPIDataList
+                        existingModule.IsUnlocked = CraftingTTAPIDataList
+                                                    .Where(entry => entry.Id == craftModule.QuestId)
+                                                    .Select(entry => entry.Complete)
+                                                    .FirstOrDefault();
                     }
                 }
 
@@ -737,17 +766,36 @@ namespace EFT_OverlayAPP
 
         private async Task LoadCraftModuleSettingsAsyncPVETT()
         {
+            if (!isLoaded)
+            {
+                return;
+            }
             try
             {
                 var craftModules = await DataCache.FetchCraftModuleSettingsAsync();
+
+                await ProcessCraftingTTAPIData();
 
                 // Populate AppConfig.CraftModuleSettingsPVETT
                 foreach (var craftModule in craftModules)
                 {
                     // Check if the craft already exists in the settings to prevent duplicates
-                    if (!AppConfig.CraftModuleSettingsPVETT.Any(cm => cm.CraftId == craftModule.CraftId))
+                    var existingModule = AppConfig.CraftModuleSettingsTT.FirstOrDefault(cm => cm.CraftId == craftModule.CraftId);
+                    if (existingModule == null)
                     {
-                        AppConfig.CraftModuleSettingsPVETT.Add(craftModule);
+                        craftModule.IsUnlocked = CraftingTTAPIDataList
+                                                    .Where(entry => entry.Id == craftModule.QuestId)
+                                                    .Select(entry => entry.Complete)
+                                                    .FirstOrDefault();
+                        AppConfig.CraftModuleSettingsTT.Add(craftModule);
+                    }
+                    else
+                    {
+                        // Update the existing module's IsUnlocked property based on CraftingTTAPIDataList
+                        existingModule.IsUnlocked = CraftingTTAPIDataList
+                                                    .Where(entry => entry.Id == craftModule.QuestId)
+                                                    .Select(entry => entry.Complete)
+                                                    .FirstOrDefault();
                     }
                 }
 
@@ -776,6 +824,10 @@ namespace EFT_OverlayAPP
 
         private async Task InitializeHideoutModulesAsync()
         {
+            if (!isLoaded)
+            {
+                return;
+            }
             try
             {
                 await DataCache.LoadRequiredItemsData();
@@ -853,6 +905,10 @@ namespace EFT_OverlayAPP
 
         private async Task InitializeHideoutModulesAsyncPVE()
         {
+            if (!isLoaded)
+            {
+                return;
+            }
             try
             {
                 await DataCache.LoadRequiredItemsData();
@@ -1588,19 +1644,7 @@ namespace EFT_OverlayAPP
             if (CurentApiKeyValid)
             {
                 // Proceed with fetching data
-                var hideoutLevels = await tarkovTrackerService.GetHideoutModuleLevelsAsync();
-                var finishedQuests = await tarkovTrackerService.GetFinishedQuestsAsync();
-
-                HideoutTTAPIDataList = hideoutLevels
-                   .Select(level =>
-                   {
-                       var parts = level.Id.Split('-');
-                       var basePart = string.Join("-", parts.Take(parts.Length - 1)); // Everything before the last '-'
-                       var suffixPart = parts.Last(); // The last part after the '-'
-                       int suffixPartInt = Convert.ToInt32(suffixPart);
-                       return new ProcessedLevel { Id = basePart, Level = suffixPartInt, Complete = level.Complete };
-                   })
-                   .ToList();
+                CraftingTTAPIDataList = await tarkovTrackerService.GetFinishedQuestsAsync();
             }
             else
             {

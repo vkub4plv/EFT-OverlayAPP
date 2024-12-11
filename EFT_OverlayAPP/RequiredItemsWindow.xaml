@@ -8,7 +8,8 @@
         Title="Required Items"
         Height="800"
         Width="1000"
-        Topmost="True">
+        Topmost="True"
+        WindowStartupLocation="CenterScreen">
     <!-- Main Content Grid -->
     <Grid>
         <Grid x:Name="MainContent" Visibility="{Binding IsRequiredDataLoading, Converter={StaticResource InverseBooleanVisibilityConverter}}">

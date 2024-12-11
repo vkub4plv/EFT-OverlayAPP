@@ -5,7 +5,8 @@
         Title="Crafting Items"
         Height="800"
         Width="1000"
-        Topmost="True">
+        Topmost="True"
+        WindowStartupLocation="CenterScreen">
 
     <!-- Define Resources -->
     <Window.Resources>
