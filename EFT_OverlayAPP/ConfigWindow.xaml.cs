@@ -690,6 +690,22 @@ namespace EFT_OverlayAPP
                 UnlockableCraftsListView.ItemsSource = null;
                 UnlockableCraftsListView.ItemsSource = AppConfig.CraftModuleSettings;
 
+                // Create a lookup dictionary from craft ID to its unlocked status for efficient lookup
+                var craftUnlockLookup = AppConfig.EffectiveCraftModuleSettings
+                    .ToDictionary(setting => setting.CraftId, setting => setting.IsUnlocked);
+
+                // Update lock state of each craftable item based on the lookup
+                foreach (var craftableItem in DataCache.CraftableItems)
+                {
+                    if (craftUnlockLookup.TryGetValue(craftableItem.Id, out bool isUnlocked))
+                    {
+                        craftableItem.IsLocked = !isUnlocked;
+                    }
+                }
+
+                // Refresh once after all updates
+                MainWindow?.craftingWindow.ItemsView.Refresh();
+
                 logger.Info("Craft module settings loaded successfully.");
             }
             catch (Exception ex)
@@ -736,6 +752,22 @@ namespace EFT_OverlayAPP
                 // Refresh the ListView binding
                 UnlockableCraftsListView.ItemsSource = null;
                 UnlockableCraftsListView.ItemsSource = AppConfig.CraftModuleSettingsPVE;
+
+                // Create a lookup dictionary from craft ID to its unlocked status for efficient lookup
+                var craftUnlockLookup = AppConfig.EffectiveCraftModuleSettings
+                    .ToDictionary(setting => setting.CraftId, setting => setting.IsUnlocked);
+
+                // Update lock state of each craftable item based on the lookup
+                foreach (var craftableItem in DataCache.CraftableItems)
+                {
+                    if (craftUnlockLookup.TryGetValue(craftableItem.Id, out bool isUnlocked))
+                    {
+                        craftableItem.IsLocked = !isUnlocked;
+                    }
+                }
+
+                // Refresh once after all updates
+                MainWindow?.craftingWindow.ItemsView.Refresh();
 
                 logger.Info("Craft module settings loaded successfully.");
             }
@@ -789,6 +821,22 @@ namespace EFT_OverlayAPP
                 UnlockableCraftsListView.ItemsSource = null;
                 UnlockableCraftsListView.ItemsSource = AppConfig.CraftModuleSettingsTT;
 
+                // Create a lookup dictionary from craft ID to its unlocked status for efficient lookup
+                var craftUnlockLookup = AppConfig.EffectiveCraftModuleSettings
+                    .ToDictionary(setting => setting.CraftId, setting => setting.IsUnlocked);
+
+                // Update lock state of each craftable item based on the lookup
+                foreach (var craftableItem in DataCache.CraftableItems)
+                {
+                    if (craftUnlockLookup.TryGetValue(craftableItem.Id, out bool isUnlocked))
+                    {
+                        craftableItem.IsLocked = !isUnlocked;
+                    }
+                }
+
+                // Refresh once after all updates
+                MainWindow?.craftingWindow.ItemsView.Refresh();
+
                 logger.Info("Craft module settings loaded successfully.");
             }
             catch (Exception ex)
@@ -840,6 +888,22 @@ namespace EFT_OverlayAPP
                 // Refresh the ListView binding
                 UnlockableCraftsListView.ItemsSource = null;
                 UnlockableCraftsListView.ItemsSource = AppConfig.CraftModuleSettingsPVETT;
+
+                // Create a lookup dictionary from craft ID to its unlocked status for efficient lookup
+                var craftUnlockLookup = AppConfig.EffectiveCraftModuleSettings
+                    .ToDictionary(setting => setting.CraftId, setting => setting.IsUnlocked);
+
+                // Update lock state of each craftable item based on the lookup
+                foreach (var craftableItem in DataCache.CraftableItems)
+                {
+                    if (craftUnlockLookup.TryGetValue(craftableItem.Id, out bool isUnlocked))
+                    {
+                        craftableItem.IsLocked = !isUnlocked;
+                    }
+                }
+
+                // Refresh once after all updates
+                MainWindow?.craftingWindow.ItemsView.Refresh();
 
                 logger.Info("Craft module settings loaded successfully.");
             }
