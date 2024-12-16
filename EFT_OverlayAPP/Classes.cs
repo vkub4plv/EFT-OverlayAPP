@@ -1200,30 +1200,30 @@ namespace EFT_OverlayAPP
             }
         }
 
-        private bool hidePlantItemsMarkers;
-        public bool HidePlantItemsMarkers
+        private bool hidePlantItems;
+        public bool HidePlantItems
         {
-            get => hidePlantItemsMarkers;
+            get => hidePlantItems;
             set
             {
-                if (hidePlantItemsMarkers != value)
+                if (hidePlantItems != value)
                 {
-                    hidePlantItemsMarkers = value;
-                    OnPropertyChanged(nameof(HidePlantItemsMarkers));
+                    hidePlantItems = value;
+                    OnPropertyChanged(nameof(HidePlantItems));
                 }
             }
         }
 
-        private bool subtractPlantItemsMarkers;
-        public bool SubtractPlantItemsMarkers
+        private bool subtractPlantItems;
+        public bool SubtractPlantItems
         {
-            get => subtractPlantItemsMarkers;
+            get => subtractPlantItems;
             set
             {
-                if (subtractPlantItemsMarkers != value)
+                if (subtractPlantItems != value)
                 {
-                    subtractPlantItemsMarkers = value;
-                    OnPropertyChanged(nameof(SubtractPlantItemsMarkers));
+                    subtractPlantItems = value;
+                    OnPropertyChanged(nameof(SubtractPlantItems));
                 }
             }
         }

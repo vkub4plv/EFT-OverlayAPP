@@ -275,6 +275,8 @@ namespace EFT_OverlayAPP
                 }
             }
 
+            // Filter by plant items (WI-FI Camera and MS2000 Marker) if config option is selected
+
             return true;
         }
 
