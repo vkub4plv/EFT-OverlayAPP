@@ -578,7 +578,7 @@ namespace EFT_OverlayAPP
                     craftTimers.Remove(item);
 
                     item.CraftStatus = CraftStatus.Ready;
-                    item.CraftCompletedTime = item.CraftStartTime.Value.Add(item.CraftTime); 
+                    item.CraftCompletedTime = item.CraftStartTime.Value.Add(item.CraftTime);
                     item.OnPropertyChanged(nameof(CraftableItem.CraftCompletedTime));
 
                     // Update the CraftInstance
@@ -1443,6 +1443,21 @@ namespace EFT_OverlayAPP
             PopulateActiveCraftsCategoryFilter();
             PopulateLogsCategoryFilter();
             PopulateStatsCategoryFilter();
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            base.OnClosed(e);
+
+            UnsubscribeEvents();
+            foreach (var item in CraftableItems)
+            {
+                item.PropertyChanged -= Item_PropertyChanged;
+            }
+            foreach (var item in DataCache.CraftableItems)
+            {
+                item.PropertyChanged -= CraftableItem_PropertyChanged;
+            }
         }
     }
 }

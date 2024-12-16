@@ -458,6 +458,7 @@ namespace EFT_OverlayAPP
                     // Map the combined entry to the required items
                     foreach (var entry in g)
                     {
+                        entry.PropertyChanged -= RequiredItemEntry_PropertyChanged;
                         entry.PropertyChanged += RequiredItemEntry_PropertyChanged;
                         string key = $"{entry.Item.Id}_{entry.IsFoundInRaid}";
                         if (!combinedItemDictionary.ContainsKey(key))
@@ -921,5 +922,19 @@ namespace EFT_OverlayAPP
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged(string name) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+
+        protected override void OnClosed(EventArgs e)
+        {
+            base.OnClosed(e);
+
+            if (RequiredItems != null)
+            {
+                foreach (var item in RequiredItems)
+                {
+                    item.PropertyChanged -= RequiredItemEntry_PropertyChanged;
+                }
+            }
+        }
     }
 }

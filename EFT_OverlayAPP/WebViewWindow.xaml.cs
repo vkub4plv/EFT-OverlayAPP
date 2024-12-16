@@ -209,8 +209,11 @@ namespace EFT_OverlayAPP
         protected override void OnClosed(EventArgs e)
         {
             base.OnClosed(e);
-            this.configWindow.AppConfig.PropertyChanged -= ConfigWindow_PropertyChanged;
-            this.gameState.PropertyChanged -= GameState_PropertyChanged;
+            if (configWindow?.AppConfig != null)
+                configWindow.AppConfig.PropertyChanged -= ConfigWindow_PropertyChanged;
+
+            if (gameState != null)
+                gameState.PropertyChanged -= GameState_PropertyChanged;
         }
     }
 }

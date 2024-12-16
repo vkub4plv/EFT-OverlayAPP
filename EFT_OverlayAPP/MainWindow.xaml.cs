@@ -206,6 +206,23 @@ namespace EFT_OverlayAPP
 
             CloseCraftingWindow();
 
+            if (configWindow != null)
+                configWindow.PropertyChanged -= ConfigWindow_PropertyChanged;
+
+            if (gameStateManager != null)
+                gameStateManager.GameStateChanged -= GameStateManager_GameStateChanged;
+            // Unsubscribe from DataCache events
+            DataCache.DataLoaded -= OnDataLoaded;
+            if (timer != null)
+            {
+                timer.Tick -= Timer_Tick;
+            }
+
+            if (craftsTimer != null)
+            {
+                craftsTimer.Tick -= CraftsTimer_Tick;
+            }
+
             // Unregister the hotkeys
             source.RemoveHook(HwndHook);
             UnregisterHotKeys();

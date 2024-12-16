@@ -1677,5 +1677,54 @@ namespace EFT_OverlayAPP
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged(string propertyName) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+        protected override void OnClosed(EventArgs e)
+        {
+            base.OnClosed(e);
+
+            AppConfig.PropertyChanged -= AppConfig_PropertyChanged;
+
+            foreach (var entry in AppConfig.Keybinds)
+            {
+                entry.PropertyChanged -= KeybindEntry_PropertyChanged;
+            }
+
+            foreach (var moduleSetting in AppConfig.HideoutModuleSettings)
+            {
+                moduleSetting.PropertyChanged -= HideoutModuleSetting_PropertyChanged;
+            }
+
+            foreach (var moduleSetting in AppConfig.HideoutModuleSettingsPVE)
+            {
+                moduleSetting.PropertyChanged -= HideoutModuleSetting_PropertyChanged;
+            }
+
+            foreach (var moduleSetting in AppConfig.HideoutModuleSettingsTT)
+            {
+                moduleSetting.PropertyChanged -= HideoutModuleSetting_PropertyChanged;
+            }
+
+            foreach (var moduleSetting in AppConfig.HideoutModuleSettingsPVETT)
+            {
+                moduleSetting.PropertyChanged -= HideoutModuleSetting_PropertyChanged;
+            }
+
+            AppConfig.HideoutModuleSettings.CollectionChanged -= HideoutModuleSettings_CollectionChanged;
+            AppConfig.CraftModuleSettings.CollectionChanged -= CraftModuleSettings_CollectionChanged;
+            AppConfig.HideoutModuleSettingsPVE.CollectionChanged -= HideoutModuleSettings_CollectionChanged;
+            AppConfig.CraftModuleSettingsPVE.CollectionChanged -= CraftModuleSettings_CollectionChanged;
+            AppConfig.Keybinds.CollectionChanged -= Keybinds_CollectionChanged;
+            tarkovTrackerService.TokenValidated -= TarkovTrackerService_TokenValidated;
+            tarkovTrackerService.TokenInvalid -= TarkovTrackerService_TokenInvalid;
+            tarkovTrackerService.ProgressRetrieved -= TarkovTrackerService_ProgressRetrieved;
+
+            AppConfig.HideoutModuleSettingsTT.CollectionChanged -= HideoutModuleSettings_CollectionChanged;
+            AppConfig.HideoutModuleSettingsPVETT.CollectionChanged -= HideoutModuleSettings_CollectionChanged;
+
+            AppConfig.CraftModuleSettingsTT.CollectionChanged -= CraftModuleSettings_CollectionChanged;
+            AppConfig.CraftModuleSettingsPVETT.CollectionChanged -= CraftModuleSettings_CollectionChanged;
+
+            AppConfig.EffectiveCraftModuleSettings.CollectionChanged -= CraftModuleSettings_CollectionChanged;
+        }
     }
 }

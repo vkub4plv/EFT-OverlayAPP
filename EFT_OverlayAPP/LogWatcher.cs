@@ -148,6 +148,11 @@ namespace EFT_OverlayAPP
             {
                 cancellationTokenSource.Cancel();
                 fileWatcher.EnableRaisingEvents = false;
+                fileWatcher.Changed -= OnLogFileChanged;
+                fileWatcher.Created -= OnLogFileCreated;
+                fileWatcher.Deleted -= OnLogFileDeleted;
+                fileWatcher.Renamed -= OnLogFileRenamed;
+                fileWatcher.Error -= OnFileWatcherError;
                 fileWatcher.Dispose();
                 fileWatcher = null;
                 isMonitoring = false;
