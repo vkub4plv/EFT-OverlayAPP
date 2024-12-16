@@ -882,12 +882,14 @@ namespace EFT_OverlayAPP
                         _isManualCraftSource = true;
                         _isManualHideoutSource = true;
                         hideItemsForCompletedQuests = false;
-                        subtractFromManualCombinedItems = false;
+                        subtractFromManualCombinedItemsForCompletedQuests = false;
+                        subtractFromManualCombinedItemsForBuiltStations = false;
                         autoCompleteSubTasksForFoundItems = false;
                         OnPropertyChanged(nameof(IsManualCraftSource));
                         OnPropertyChanged(nameof(IsManualHideoutSource));
                         OnPropertyChanged(nameof(HideItemsForCompletedQuests));
-                        OnPropertyChanged(nameof(SubtractFromManualCombinedItems));
+                        OnPropertyChanged(nameof(SubtractFromManualCombinedItemsForCompletedQuests));
+                        OnPropertyChanged(nameof(SubtractFromManualCombinedItemsForBuiltStations));
                         OnPropertyChanged(nameof(AutoCompleteSubTasksForFoundItems));
                     }
                     isTarkovTrackerApiEnabled = value;
@@ -1212,6 +1214,20 @@ namespace EFT_OverlayAPP
             }
         }
 
+        private bool subtractPlantItemsMarkers;
+        public bool SubtractPlantItemsMarkers
+        {
+            get => subtractPlantItemsMarkers;
+            set
+            {
+                if (subtractPlantItemsMarkers != value)
+                {
+                    subtractPlantItemsMarkers = value;
+                    OnPropertyChanged(nameof(SubtractPlantItemsMarkers));
+                }
+            }
+        }
+
         private bool hideQuestsHideoutModulesNames;
         public bool HideQuestsHideoutModulesNames
         {
@@ -1226,16 +1242,30 @@ namespace EFT_OverlayAPP
             }
         }
 
-        private bool subtractFromManualCombinedItems;
-        public bool SubtractFromManualCombinedItems
+        private bool subtractFromManualCombinedItemsForCompletedQuests;
+        public bool SubtractFromManualCombinedItemsForCompletedQuests
         {
-            get => subtractFromManualCombinedItems;
+            get => subtractFromManualCombinedItemsForCompletedQuests;
             set
             {
-                if (subtractFromManualCombinedItems != value)
+                if (subtractFromManualCombinedItemsForCompletedQuests != value)
                 {
-                    subtractFromManualCombinedItems = value;
-                    OnPropertyChanged(nameof(SubtractFromManualCombinedItems));
+                    subtractFromManualCombinedItemsForCompletedQuests = value;
+                    OnPropertyChanged(nameof(SubtractFromManualCombinedItemsForCompletedQuests));
+                }
+            }
+        }
+
+        private bool subtractFromManualCombinedItemsForBuiltStations;
+        public bool SubtractFromManualCombinedItemsForBuiltStations
+        {
+            get => subtractFromManualCombinedItemsForBuiltStations;
+            set
+            {
+                if (subtractFromManualCombinedItemsForBuiltStations != value)
+                {
+                    subtractFromManualCombinedItemsForBuiltStations = value;
+                    OnPropertyChanged(nameof(SubtractFromManualCombinedItemsForBuiltStations));
                 }
             }
         }
