@@ -276,6 +276,13 @@ namespace EFT_OverlayAPP
             }
 
             // Filter by plant items (WI-FI Camera and MS2000 Marker) if config option is selected
+            if (ConfigWindow.AppConfig.HidePlantItems)
+            {
+                if (entry.Item.Name == "WI-FI Camera" || entry.Item.Name == "MS2000 Marker")
+                {
+                    return false;
+                }
+            }
 
             return true;
         }
@@ -947,7 +954,7 @@ namespace EFT_OverlayAPP
 
         private async void AppConfig_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(AppConfig.HideItemsForBuiltStations))
+            if (e.PropertyName == nameof(AppConfig.HideItemsForBuiltStations) || e.PropertyName == nameof(AppConfig.HidePlantItems))
             {
                 if (this.IsVisible)
                 {

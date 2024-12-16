@@ -410,7 +410,7 @@ namespace EFT_OverlayAPP
                 {
                     foreach (var objectiveInfo in taskInfo.Objectives)
                     {
-                        // We only care about 'giveItem' or 'plantItem'
+                        // We only care about 'giveItem' or 'plantItem' objectives
                         if (objectiveInfo.Type == "giveItem" || objectiveInfo.Type == "plantItem")
                         {
                             var objective = new QuestObjective
@@ -435,6 +435,28 @@ namespace EFT_OverlayAPP
                                     });
                                 }
                             }
+
+                            quest.Objectives.Add(objective);
+                        }
+
+                        if (objectiveInfo.Type == "mark")
+                        {
+                            var objective = new QuestObjective
+                            {
+                                Id = objectiveInfo.Id,
+                                Type = objectiveInfo.Type,
+                                Description = objectiveInfo.Description,
+                                Count = 1,
+                                FoundInRaid = false,
+                                Items = new List<Item>()
+                            };
+
+                            objective.Items.Add(new Item
+                            {
+                                Id = "5991b51486f77447b112d44f",
+                                Name = "MS2000 Marker",
+                                IconLink = "https://assets.tarkov.dev/5991b51486f77447b112d44f-icon.webp"
+                            });
 
                             quest.Objectives.Add(objective);
                         }
