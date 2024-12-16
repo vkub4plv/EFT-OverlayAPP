@@ -513,11 +513,13 @@
                         <RowDefinition Height="Auto"/>
                         <!-- Hide Items for Built Stations -->
                         <RowDefinition Height="Auto"/>
-                        <!-- Hide Items for Completed Quests (if using TarkovTracker) -->
-                        <RowDefinition Height="Auto"/>
                         <!-- Hide Plant Items - Markers -->
                         <RowDefinition Height="Auto"/>
                         <!-- Hide Quests/Hideout Modules Names in Combined Needed Items -->
+                        <RowDefinition Height="Auto"/>
+                        <!-- Hide Items for Completed Quests (if using TarkovTracker) -->
+                        <RowDefinition Height="Auto"/>
+                        <!-- Hide Items for Completed Quests (if using TarkovTracker) -->
                         <RowDefinition Height="Auto"/>
                         <!-- Subtract from Manual Combined Items Needed -->
                         <RowDefinition Height="Auto"/>
@@ -542,43 +544,51 @@
                               Margin="0,0,0,10" 
                               IsChecked="{Binding HideItemsForBuiltStations, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
-                    <!-- Hide Items for Completed Quests (if using Tarkov Tracker) -->
-                    <CheckBox x:Name="HideItemsForCompletedQuestsCheckBox" 
-                              Content="Hide items for already completed quests (Requires Tarkov Tracker)" 
-                              Grid.Row="2" 
-                              Margin="0,0,0,10" 
-                              IsChecked="{Binding HideItemsForCompletedQuests, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                              IsEnabled="{Binding IsTarkovTrackerApiEnabled}"/>
-
                     <!-- Hide Plant Items - Markers -->
                     <CheckBox x:Name="HidePlantItemsMarkersCheckBox" 
                               Content="Hide plant items - markers" 
-                              Grid.Row="3" 
+                              Grid.Row="2" 
                               Margin="0,0,0,10" 
                               IsChecked="{Binding HidePlantItemsMarkers, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
                     <!-- Hide Quests/Hideout Modules Names in Combined Needed Items -->
                     <CheckBox x:Name="HideQuestsHideoutModulesNamesCheckBox" 
                               Content="Hide quests/hideout modules names in combined needed items" 
-                              Grid.Row="4" 
+                              Grid.Row="3" 
                               Margin="0,0,0,10" 
                               IsChecked="{Binding HideQuestsHideoutModulesNames, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+                    <!-- Hide Items for Completed Quests (if using Tarkov Tracker) -->
+                    <CheckBox x:Name="HideItemsForCompletedQuestsCheckBox" 
+                              Content="Hide items for already completed quests (Requires Tarkov Tracker)" 
+                              Grid.Row="4" 
+                              Margin="0,0,0,10" 
+                              IsChecked="{Binding HideItemsForCompletedQuests, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              IsEnabled="{Binding IsTarkovTrackerApiEnabled}"/>
+
+                    <!-- Hide Items for Completed Quests (if using Tarkov Tracker) -->
+                    <CheckBox x:Name="AutoCompleteSubTasksForFoundItemsCheckBox" 
+                              Content="Automatically complete sub-tasks after finding items needed for them (Requires Tarkov Tracker)" 
+                              Grid.Row="5" 
+                              Margin="0,0,0,10" 
+                              IsChecked="{Binding AutoCompleteSubTasksForFoundItems, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              IsEnabled="{Binding IsTarkovTrackerApiEnabled}"/>
 
                     <!-- Subtract from Manual Combined Items Needed -->
                     <CheckBox x:Name="SubtractFromManualCombinedItemsCheckBox" 
                               Content="Subtract from manual combined items needed" 
-                              Grid.Row="5" 
+                              Grid.Row="6" 
                               Margin="0,0,0,10" 
                               IsChecked="{Binding SubtractFromManualCombinedItems, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
                     <!-- Reset Profile Required Items -->
-                    <StackPanel Orientation="Horizontal" Grid.Row="6" Margin="0,0,0,10">
+                    <StackPanel Orientation="Horizontal" Grid.Row="7" Margin="0,0,0,10">
                         <Button Content="Reset PVP Profile Required Items" Width="220" Click="ResetPvpProfileRequiredItemsButton_Click" Margin="0,0,10,0"/>
                         <Button Content="Reset PVE Profile Required Items" Width="220" Click="ResetPveProfileRequiredItemsButton_Click"/>
                     </StackPanel>
 
                     <!-- Spacer or Additional Content -->
-                    <Grid Grid.Row="7"/>
+                    <Grid Grid.Row="8"/>
                 </Grid>
             </TabItem>
 

@@ -1178,6 +1178,20 @@ namespace EFT_OverlayAPP
             }
         }
 
+        private bool autoCompleteSubTasksForFoundItems;
+        public bool AutoCompleteSubTasksForFoundItems
+        {
+            get => autoCompleteSubTasksForFoundItems;
+            set
+            {
+                if (autoCompleteSubTasksForFoundItems != value)
+                {
+                    autoCompleteSubTasksForFoundItems = value;
+                    OnPropertyChanged(nameof(AutoCompleteSubTasksForFoundItems));
+                }
+            }
+        }
+
         private bool hidePlantItemsMarkers;
         public bool HidePlantItemsMarkers
         {

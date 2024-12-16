@@ -178,6 +178,7 @@ namespace EFT_OverlayAPP
                 HideRaidTimerOnRaidEnd = true,
                 HideItemsForBuiltStations = false,
                 HideItemsForCompletedQuests = false,
+                AutoCompleteSubTasksForFoundItems = false,
                 HidePlantItemsMarkers = false,
                 HideQuestsHideoutModulesNames = false,
                 SubtractFromManualCombinedItems = false,
@@ -592,8 +593,6 @@ namespace EFT_OverlayAPP
         {
             // Implement logic to reset PVP profile required items
             // This could involve resetting specific properties in AppConfig
-            AppConfig.HideItemsForCompletedQuests = false;
-            AppConfig.HideQuestsHideoutModulesNames = false;
             if (File.Exists("quantities.json"))
             {
                 File.Delete("quantities.json");
@@ -610,8 +609,6 @@ namespace EFT_OverlayAPP
         {
             // Implement logic to reset PVE profile required items
             // This could involve resetting specific properties in AppConfig
-            AppConfig.HideItemsForCompletedQuests = false;
-            AppConfig.HideQuestsHideoutModulesNames = false;
             if (File.Exists("quantities_pve.json"))
             {
                 File.Delete("quantities_pve.json");
