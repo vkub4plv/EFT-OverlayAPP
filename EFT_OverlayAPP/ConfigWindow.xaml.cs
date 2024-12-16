@@ -76,9 +76,6 @@ namespace EFT_OverlayAPP
             // Subscribe to CollectionChanged for CraftModuleSettingsPVETT
             AppConfig.CraftModuleSettingsPVETT.CollectionChanged += CraftModuleSettings_CollectionChanged;
 
-            // Subscribe to CollectionChanged for EffectiveCraftModuleSettings
-            AppConfig.EffectiveCraftModuleSettings.CollectionChanged += CraftModuleSettings_CollectionChanged;
-
             // Subscribe to CollectionChanged for Keybinds
             AppConfig.Keybinds.CollectionChanged += Keybinds_CollectionChanged;
             // Subscribe to events
@@ -89,7 +86,7 @@ namespace EFT_OverlayAPP
             // Validate the token on startup
             if (AppConfig.IsTarkovTrackerApiEnabled)
             {
-                ValidateApiTokenAsync();
+                Task.Run(() => ValidateApiTokenAsync());
             }
         }
 
@@ -193,6 +190,7 @@ namespace EFT_OverlayAPP
                 CraftModuleSettingsTT = new ObservableCollection<CraftModuleSetting>(),
                 CraftModuleSettingsPVETT = new ObservableCollection<CraftModuleSetting>(),
                 EffectiveCraftModuleSettings = new ObservableCollection<CraftModuleSetting>(),
+                EffectiveHideoutModuleSettings = new ObservableCollection<HideoutModuleSetting>(),
                 IsManualHideoutSource = true,
                 IsManualCraftSource = true,
                 CraftingStartingTab = "All Items",
@@ -395,7 +393,7 @@ namespace EFT_OverlayAPP
             tarkovTrackerService.UpdateToken();
 
             // Optionally, validate the token again
-            await tarkovTrackerService.ValidateTokenAsync();
+            await ValidateApiTokenAsync(showMessage: true);
 
             debounceDispatcher.Debounce(() => SaveConfig());
         }
@@ -406,7 +404,7 @@ namespace EFT_OverlayAPP
             tarkovTrackerService.UpdateToken();
 
             // Optionally, validate the token again
-            await tarkovTrackerService.ValidateTokenAsync();
+            await ValidateApiTokenAsync(showMessage: true);
 
             debounceDispatcher.Debounce(() => SaveConfig());
         }
@@ -730,6 +728,11 @@ namespace EFT_OverlayAPP
             {
                 return;
             }
+            if (!CurentApiKeyValid)
+            {
+                logger.Error("Cannot load TT craft modules because API key is invalid.");
+                return;
+            }
             try
             {
                 var craftModules = await DataCache.FetchCraftModuleSettingsAsync();
@@ -778,6 +781,11 @@ namespace EFT_OverlayAPP
         {
             if (!isLoaded)
             {
+                return;
+            }
+            if (!CurentApiKeyValid)
+            {
+                logger.Error("Cannot load PVE TT craft modules because API key is invalid.");
                 return;
             }
             try
@@ -903,6 +911,8 @@ namespace EFT_OverlayAPP
                     AppConfig.HideoutModuleSettings.Add(moduleSetting);
                 }
 
+                AppConfig.EffectiveHideoutModuleSettings = AppConfig.HideoutModuleSettings;
+
                 // Refresh the ListView binding
                 HideoutModulesListView.ItemsSource = null;
                 HideoutModulesListView.ItemsSource = AppConfig.HideoutModuleSettings;
@@ -984,6 +994,8 @@ namespace EFT_OverlayAPP
                     AppConfig.HideoutModuleSettingsPVE.Add(moduleSetting);
                 }
 
+                AppConfig.EffectiveHideoutModuleSettings = AppConfig.HideoutModuleSettingsPVE;
+
                 // Refresh the ListView binding
                 HideoutModulesListView.ItemsSource = null;
                 HideoutModulesListView.ItemsSource = AppConfig.HideoutModuleSettingsPVE;
@@ -1000,6 +1012,11 @@ namespace EFT_OverlayAPP
         {
             if (!isLoaded)
             {
+                return;
+            }
+            if (!CurentApiKeyValid)
+            {
+                logger.Error("Cannot load TT hideout modules because API key is invalid.");
                 return;
             }
             try
@@ -1056,6 +1073,8 @@ namespace EFT_OverlayAPP
                     AppConfig.HideoutModuleSettingsTT.Add(moduleSetting);
                 }
 
+                AppConfig.EffectiveHideoutModuleSettings = AppConfig.HideoutModuleSettingsTT;
+
                 // Refresh the ListView binding
                 HideoutModulesListView.ItemsSource = null;
                 HideoutModulesListView.ItemsSource = AppConfig.HideoutModuleSettingsTT;
@@ -1072,6 +1091,11 @@ namespace EFT_OverlayAPP
         {
             if (!isLoaded)
             {
+                return;
+            }
+            if (!CurentApiKeyValid)
+            {
+                logger.Error("Cannot load PVE TT hideout modules because API key is invalid.");
                 return;
             }
             try
@@ -1127,6 +1151,8 @@ namespace EFT_OverlayAPP
 
                     AppConfig.HideoutModuleSettingsPVETT.Add(moduleSetting);
                 }
+
+                AppConfig.EffectiveHideoutModuleSettings = AppConfig.HideoutModuleSettingsPVETT;
 
                 // Refresh the ListView binding
                 HideoutModulesListView.ItemsSource = null;
@@ -1307,8 +1333,6 @@ namespace EFT_OverlayAPP
                         AppConfig.CraftModuleSettingsTT.CollectionChanged -= CraftModuleSettings_CollectionChanged;
                         AppConfig.CraftModuleSettingsPVETT.CollectionChanged -= CraftModuleSettings_CollectionChanged;
 
-                        AppConfig.EffectiveCraftModuleSettings.CollectionChanged -= CraftModuleSettings_CollectionChanged;
-
                         foreach (var moduleSetting in AppConfig.HideoutModuleSettings)
                         {
                             moduleSetting.PropertyChanged -= HideoutModuleSetting_PropertyChanged;
@@ -1374,8 +1398,6 @@ namespace EFT_OverlayAPP
 
                     AppConfig.CraftModuleSettingsTT.CollectionChanged += CraftModuleSettings_CollectionChanged;
                     AppConfig.CraftModuleSettingsPVETT.CollectionChanged += CraftModuleSettings_CollectionChanged;
-
-                    AppConfig.EffectiveCraftModuleSettings.CollectionChanged += CraftModuleSettings_CollectionChanged;
 
                     // Initialize Hideout Modules and Crafting Window List with default settings
                     MainWindow.UtilizeAndUpdateProfileMode();
@@ -1599,12 +1621,12 @@ namespace EFT_OverlayAPP
             MainWindow?.ReenableHotkeys();
         }
 
-        private async void ValidateApiTokenAsync()
+        private async Task ValidateApiTokenAsync(bool showMessage = false)
         {
             bool isValid = await tarkovTrackerService.ValidateTokenAsync();
             if (isValid)
             {
-                if (this.IsVisible)
+                if (showMessage)
                 {
                     MessageBox.Show("API token validated successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
@@ -1723,8 +1745,6 @@ namespace EFT_OverlayAPP
 
             AppConfig.CraftModuleSettingsTT.CollectionChanged -= CraftModuleSettings_CollectionChanged;
             AppConfig.CraftModuleSettingsPVETT.CollectionChanged -= CraftModuleSettings_CollectionChanged;
-
-            AppConfig.EffectiveCraftModuleSettings.CollectionChanged -= CraftModuleSettings_CollectionChanged;
         }
     }
 }
