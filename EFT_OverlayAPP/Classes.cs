@@ -1228,16 +1228,30 @@ namespace EFT_OverlayAPP
             }
         }
 
-        private bool hideQuestsHideoutModulesNames;
-        public bool HideQuestsHideoutModulesNames
+        private bool hideModuleNamesInCombinedNeededItems;
+        public bool HideModuleNamesInCombinedNeededItems
         {
-            get => hideQuestsHideoutModulesNames;
+            get => hideModuleNamesInCombinedNeededItems;
             set
             {
-                if (hideQuestsHideoutModulesNames != value)
+                if (hideModuleNamesInCombinedNeededItems != value)
                 {
-                    hideQuestsHideoutModulesNames = value;
-                    OnPropertyChanged(nameof(HideQuestsHideoutModulesNames));
+                    hideModuleNamesInCombinedNeededItems = value;
+                    OnPropertyChanged(nameof(HideModuleNamesInCombinedNeededItems));
+                }
+            }
+        }
+
+        private bool hideModuleNamesInManualCombinedNeededItems;
+        public bool HideModuleNamesInManualCombinedNeededItems
+        {
+            get => hideModuleNamesInManualCombinedNeededItems;
+            set
+            {
+                if (hideModuleNamesInManualCombinedNeededItems != value)
+                {
+                    hideModuleNamesInManualCombinedNeededItems = value;
+                    OnPropertyChanged(nameof(HideModuleNamesInManualCombinedNeededItems));
                 }
             }
         }

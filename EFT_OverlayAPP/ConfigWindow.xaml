@@ -531,10 +531,16 @@
                     <GroupBox Header="Required Items Visibility Filters" Grid.Row="1" Margin="0,0,0,10">
                         <StackPanel Orientation="Vertical" Margin="10">
                             <!-- Hide Quests/Hideout Modules Names in Combined Needed Items -->
-                            <CheckBox x:Name="HideQuestsHideoutModulesNamesCheckBox" 
+                            <CheckBox x:Name="HideModuleNamesInCombinedNeededItemsCheckBox" 
                                       Content="Hide quests/hideout modules names in combined needed items" 
                                       Margin="0,0,0,10" 
-                                      IsChecked="{Binding HideQuestsHideoutModulesNames, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                      IsChecked="{Binding HideModuleNamesInCombinedNeededItems, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+                            <!-- Hide Quests/Hideout Modules Names in Manual Combined Needed Items -->
+                            <CheckBox x:Name="HideModuleNamesInManualCombinedNeededItemsCheckBox" 
+                                      Content="Hide quests/hideout modules names in manual combined needed items" 
+                                      Margin="0,0,0,10" 
+                                      IsChecked="{Binding HideModuleNamesInManualCombinedNeededItems, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
                             <!-- Hide Plant Items -->
                             <CheckBox x:Name="HidePlantItemsCheckBox" 

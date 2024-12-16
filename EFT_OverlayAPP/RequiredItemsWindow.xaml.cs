@@ -56,7 +56,6 @@ namespace EFT_OverlayAPP
             SelectStartingTab(ConfigWindow.AppConfig.RequiredItemsStartingTab);
 
             ConfigWindow.AppConfig.PropertyChanged += AppConfig_PropertyChanged;
-            MainWindow = mainWindow;
         }
 
         private async void InitializeData()

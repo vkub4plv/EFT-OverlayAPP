@@ -158,22 +158,27 @@
                                                         <TextBlock Text="Quantity: "/>
                                                         <TextBlock Text="{Binding QuantityOwnedNeeded}"/>
                                                     </StackPanel>
-                                                    <!-- Required For: Icon Name Pairs -->
-                                                    <ItemsControl ItemsSource="{Binding RequiredForDetails}" Margin="0,5,0,0">
-                                                        <ItemsControl.ItemsPanel>
-                                                            <ItemsPanelTemplate>
-                                                                <WrapPanel/>
-                                                            </ItemsPanelTemplate>
-                                                        </ItemsControl.ItemsPanel>
-                                                        <ItemsControl.ItemTemplate>
-                                                            <DataTemplate>
-                                                                <StackPanel Orientation="Horizontal" Margin="0,0,10,0">
-                                                                    <Image Source="{Binding DisplayIcon}" Width="20" Height="20" Margin="0,0,5,0"/>
-                                                                    <TextBlock Text="{Binding Name}"/>
-                                                                </StackPanel>
-                                                            </DataTemplate>
-                                                        </ItemsControl.ItemTemplate>
-                                                    </ItemsControl>
+                                                    <StackPanel Visibility="{Binding DataContext.ConfigWindow.AppConfig.HideModuleNamesInCombinedNeededItems, 
+                                                                                RelativeSource={RelativeSource AncestorType=Window}, 
+                                                                                Converter={StaticResource InverseBooleanVisibilityConverter}}" 
+                                                                Margin="0,5,0,0">
+                                                        <!-- Required For: Icon Name Pairs -->
+                                                        <ItemsControl ItemsSource="{Binding RequiredForDetails}">
+                                                            <ItemsControl.ItemsPanel>
+                                                                <ItemsPanelTemplate>
+                                                                    <WrapPanel/>
+                                                                </ItemsPanelTemplate>
+                                                            </ItemsControl.ItemsPanel>
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <StackPanel Orientation="Horizontal" Margin="0,0,10,0">
+                                                                        <Image Source="{Binding DisplayIcon}" Width="20" Height="20" Margin="0,0,5,0"/>
+                                                                        <TextBlock Text="{Binding Name}"/>
+                                                                    </StackPanel>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+                                                    </StackPanel>
                                                 </StackPanel>
                                             </StackPanel>
                                         </Border>
@@ -231,22 +236,27 @@
                                                         <Button Content="-" Width="20" Margin="5,0" Click="ManualCombinedDecrementButton_Click"/>
                                                         <Button Content="+" Width="20" Click="ManualCombinedIncrementButton_Click"/>
                                                     </StackPanel>
-                                                    <!-- Required For: Icon Name Pairs -->
-                                                    <ItemsControl ItemsSource="{Binding RequiredForDetails}" Margin="0,5,0,0">
-                                                        <ItemsControl.ItemsPanel>
-                                                            <ItemsPanelTemplate>
-                                                                <WrapPanel/>
-                                                            </ItemsPanelTemplate>
-                                                        </ItemsControl.ItemsPanel>
-                                                        <ItemsControl.ItemTemplate>
-                                                            <DataTemplate>
-                                                                <StackPanel Orientation="Horizontal" Margin="0,0,10,0">
-                                                                    <Image Source="{Binding DisplayIcon}" Width="20" Height="20" Margin="0,0,5,0"/>
-                                                                    <TextBlock Text="{Binding Name}"/>
-                                                                </StackPanel>
-                                                            </DataTemplate>
-                                                        </ItemsControl.ItemTemplate>
-                                                    </ItemsControl>
+                                                    <StackPanel Visibility="{Binding DataContext.ConfigWindow.AppConfig.HideModuleNamesInManualCombinedNeededItems, 
+                                                                                RelativeSource={RelativeSource AncestorType=Window}, 
+                                                                                Converter={StaticResource InverseBooleanVisibilityConverter}}" 
+                                                                Margin="0,5,0,0">
+                                                        <!-- Required For: Icon Name Pairs -->
+                                                        <ItemsControl ItemsSource="{Binding RequiredForDetails}">
+                                                            <ItemsControl.ItemsPanel>
+                                                                <ItemsPanelTemplate>
+                                                                    <WrapPanel/>
+                                                                </ItemsPanelTemplate>
+                                                            </ItemsControl.ItemsPanel>
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <StackPanel Orientation="Horizontal" Margin="0,0,10,0">
+                                                                        <Image Source="{Binding DisplayIcon}" Width="20" Height="20" Margin="0,0,5,0"/>
+                                                                        <TextBlock Text="{Binding Name}"/>
+                                                                    </StackPanel>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+                                                    </StackPanel>
                                                 </StackPanel>
                                             </StackPanel>
                                         </Border>
