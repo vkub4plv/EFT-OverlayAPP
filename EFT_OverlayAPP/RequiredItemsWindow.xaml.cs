@@ -16,6 +16,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using static System.Collections.Specialized.BitVector32;
 
 namespace EFT_OverlayAPP
 {
@@ -24,7 +25,7 @@ namespace EFT_OverlayAPP
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         private Dictionary<string, CombinedRequiredItemEntry> combinedItemDictionary = new Dictionary<string, CombinedRequiredItemEntry>();
         public ObservableCollection<RequiredItemEntry> RequiredItems { get; set; } = new ObservableCollection<RequiredItemEntry>();
-        private ICollectionView RequiredItemsView;
+        public ICollectionView RequiredItemsView;
         public ConfigWindow ConfigWindow { get; set; }
         private bool loadedAsPVE = false;
         private bool loadedManualAsPVE = false;
@@ -39,17 +40,23 @@ namespace EFT_OverlayAPP
             }
         }
 
-        public RequiredItemsWindow(ConfigWindow configWindow)
+        MainWindow MainWindow { get; set; }
+
+        public RequiredItemsWindow(MainWindow mainWindow, ConfigWindow configWindow)
         {
             InitializeComponent();
             DataContext = this;
             ConfigWindow = configWindow;
+            MainWindow = mainWindow;
 
             // Start data initialization
             InitializeData();
 
             // Set the starting tab
             SelectStartingTab(ConfigWindow.AppConfig.RequiredItemsStartingTab);
+
+            ConfigWindow.AppConfig.PropertyChanged += AppConfig_PropertyChanged;
+            MainWindow = mainWindow;
         }
 
         private async void InitializeData()
@@ -250,6 +257,24 @@ namespace EFT_OverlayAPP
             if (selectedCompletion == "Completed Items" && !entry.IsComplete)
                 return false;
 
+            // Filter by completed stations if config option if selected
+            if (ConfigWindow.AppConfig.HideItemsForBuiltStations && entry.GroupType == "Hideout")
+            {
+                // Extract the module name and level from SourceDetail
+                string moduleName = entry.SourceDetail.Split(" Level")[0];
+                int level = int.Parse(entry.SourceDetail.Split("Level")[1].Trim());
+
+                // Find the module with a matching name
+                var matchingModule = ConfigWindow.AppConfig.EffectiveHideoutModuleSettings
+                    .FirstOrDefault(module => module.ModuleName == moduleName);
+
+                // Check if the module exists and its SelectedLevel is >= the extracted level
+                if (matchingModule != null && matchingModule.SelectedLevel >= level)
+                {
+                    return false;
+                }
+            }
+
             return true;
         }
 
@@ -427,7 +452,7 @@ namespace EFT_OverlayAPP
         }
 
         public ObservableCollection<CombinedRequiredItemEntry> CombinedRequiredItems { get; set; } = new ObservableCollection<CombinedRequiredItemEntry>();
-        private ICollectionView CombinedRequiredItemsView;
+        public ICollectionView CombinedRequiredItemsView;
 
         private void LoadCombinedRequiredItems()
         {
@@ -600,7 +625,7 @@ namespace EFT_OverlayAPP
         }
 
         public ObservableCollection<CombinedRequiredItemEntry> ManualCombinedRequiredItems { get; set; } = new ObservableCollection<CombinedRequiredItemEntry>();
-        private ICollectionView ManualCombinedRequiredItemsView;
+        public ICollectionView ManualCombinedRequiredItemsView;
 
         private void LoadManualCombinedRequiredItems()
         {
@@ -918,6 +943,23 @@ namespace EFT_OverlayAPP
             RequiredItemsListView.ItemsSource = RequiredItemsView;
         }
 
+        private async void AppConfig_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(AppConfig.HideItemsForBuiltStations))
+            {
+                if (this.IsVisible)
+                {
+                    RequiredItemsView.Refresh();
+                    CombinedRequiredItemsView.Refresh();
+                    ManualCombinedRequiredItemsView.Refresh();
+                }
+                else
+                {
+                    MainWindow.refreshRequiredItemsWindow = true;
+                }
+            }
+        }
+
         // Implement INotifyPropertyChanged
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged(string name) =>
@@ -927,6 +969,8 @@ namespace EFT_OverlayAPP
         protected override void OnClosed(EventArgs e)
         {
             base.OnClosed(e);
+
+            ConfigWindow.AppConfig.PropertyChanged -= AppConfig_PropertyChanged;
 
             if (RequiredItems != null)
             {

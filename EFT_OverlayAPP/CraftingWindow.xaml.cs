@@ -1463,7 +1463,14 @@ namespace EFT_OverlayAPP
         {
             if (e.PropertyName == nameof(AppConfig.FilterBasedOnHideoutLevels))
             {
-                ItemsView.Refresh();
+                if (this.IsVisible)
+                {
+                    ItemsView.Refresh();
+                }
+                else
+                {
+                    MainWindow.refreshCraftingWindow = true;
+                }
             }
         }
 

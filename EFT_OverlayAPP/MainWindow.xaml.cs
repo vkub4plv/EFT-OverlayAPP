@@ -27,12 +27,15 @@ namespace EFT_OverlayAPP
         public CraftingWindow craftingWindow;
         private WebViewWindow webViewWindow;
         private OthersWindow othersWindow;
-        private RequiredItemsWindow requiredItemsWindow;
+        public RequiredItemsWindow requiredItemsWindow;
         private ConfigWindow configWindow;
         private IntPtr hwnd;
         public ProfileMode LastProfileMode { get; set; }
         public ProfileMode lastVisibleState { get; set; }
         public ProfileMode EffectiveProfileMode { get; set; }
+
+        public bool refreshRequiredItemsWindow = false;
+        public bool refreshCraftingWindow = false;
 
         private DispatcherTimer timer;
         private DispatcherTimer craftsTimer;
@@ -312,7 +315,15 @@ namespace EFT_OverlayAPP
         {
             if (requiredItemsWindow == null)
             {
-                requiredItemsWindow = new RequiredItemsWindow(configWindow);
+                requiredItemsWindow = new RequiredItemsWindow(this, configWindow);
+            }
+
+            if (refreshRequiredItemsWindow)
+            {
+                refreshRequiredItemsWindow = false;
+                requiredItemsWindow.RequiredItemsView.Refresh();
+                requiredItemsWindow.CombinedRequiredItemsView.Refresh();
+                requiredItemsWindow.ManualCombinedRequiredItemsView.Refresh();
             }
 
             if (!requiredItemsWindow.IsVisible)
@@ -338,6 +349,11 @@ namespace EFT_OverlayAPP
             if (configWindow == null)
             {
                 configWindow = new ConfigWindow(this);
+            }
+
+            if (refreshCraftingWindow)
+            {
+                craftingWindow.ItemsView.Refresh();
             }
 
             if (!configWindow.IsVisible)

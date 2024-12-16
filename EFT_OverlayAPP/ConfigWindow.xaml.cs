@@ -176,7 +176,7 @@ namespace EFT_OverlayAPP
                 HideLockedQuestRecipes = true,
                 HideRaidTimerOn10MinutesLeft = true,
                 HideRaidTimerOnRaidEnd = true,
-                HideItemsForBuiltStations = false,
+                HideItemsForBuiltStations = true,
                 HideItemsForCompletedQuests = false,
                 AutoCompleteSubTasksForFoundItems = false,
                 HidePlantItemsMarkers = false,
@@ -701,7 +701,14 @@ namespace EFT_OverlayAPP
                 }
 
                 // Refresh once after all updates
-                MainWindow?.craftingWindow.ItemsView.Refresh();
+                if (MainWindow.craftingWindow.IsVisible)
+                {
+                    MainWindow?.craftingWindow.ItemsView.Refresh();
+                }
+                else
+                {
+                    MainWindow.refreshCraftingWindow = true;
+                }
 
                 logger.Info("Craft module settings loaded successfully.");
             }
@@ -764,7 +771,14 @@ namespace EFT_OverlayAPP
                 }
 
                 // Refresh once after all updates
-                MainWindow?.craftingWindow.ItemsView.Refresh();
+                if (MainWindow.craftingWindow.IsVisible)
+                {
+                    MainWindow?.craftingWindow.ItemsView.Refresh();
+                }
+                else
+                {
+                    MainWindow.refreshCraftingWindow = true;
+                }
 
                 logger.Info("Craft module settings loaded successfully.");
             }
@@ -832,7 +846,14 @@ namespace EFT_OverlayAPP
                 }
 
                 // Refresh once after all updates
-                MainWindow?.craftingWindow.ItemsView.Refresh();
+                if (MainWindow.craftingWindow.IsVisible)
+                {
+                    MainWindow?.craftingWindow.ItemsView.Refresh();
+                }
+                else
+                {
+                    MainWindow.refreshCraftingWindow = true;
+                }
 
                 logger.Info("Craft module settings loaded successfully.");
             }
@@ -900,7 +921,14 @@ namespace EFT_OverlayAPP
                 }
 
                 // Refresh once after all updates
-                MainWindow?.craftingWindow.ItemsView.Refresh();
+                if (MainWindow.craftingWindow.IsVisible)
+                {
+                    MainWindow?.craftingWindow.ItemsView.Refresh();
+                }
+                else
+                {
+                    MainWindow.refreshCraftingWindow = true;
+                }
 
                 logger.Info("Craft module settings loaded successfully.");
             }
@@ -986,7 +1014,24 @@ namespace EFT_OverlayAPP
                 HideoutModulesListView.ItemsSource = null;
                 HideoutModulesListView.ItemsSource = AppConfig.HideoutModuleSettings;
 
-                MainWindow?.craftingWindow.ItemsView.Refresh();
+                if (MainWindow.craftingWindow.IsVisible)
+                {
+                    MainWindow?.craftingWindow.ItemsView.Refresh();
+                }
+                else
+                {
+                    MainWindow.refreshCraftingWindow = true;
+                }
+                if (MainWindow.requiredItemsWindow.IsVisible)
+                {
+                    MainWindow?.requiredItemsWindow.RequiredItemsView.Refresh();
+                    MainWindow?.requiredItemsWindow.CombinedRequiredItemsView.Refresh();
+                    MainWindow?.requiredItemsWindow.ManualCombinedRequiredItemsView.Refresh();
+                }
+                else
+                {
+                    MainWindow.refreshRequiredItemsWindow = true;
+                }
 
                 logger.Info("Hideout modules initialized successfully.");
             }
@@ -1071,7 +1116,24 @@ namespace EFT_OverlayAPP
                 HideoutModulesListView.ItemsSource = null;
                 HideoutModulesListView.ItemsSource = AppConfig.HideoutModuleSettingsPVE;
 
-                MainWindow?.craftingWindow.ItemsView.Refresh();
+                if (MainWindow.craftingWindow.IsVisible)
+                {
+                    MainWindow?.craftingWindow.ItemsView.Refresh();
+                }
+                else
+                {
+                    MainWindow.refreshCraftingWindow = true;
+                }
+                if (MainWindow.requiredItemsWindow.IsVisible)
+                {
+                    MainWindow?.requiredItemsWindow.RequiredItemsView.Refresh();
+                    MainWindow?.requiredItemsWindow.CombinedRequiredItemsView.Refresh();
+                    MainWindow?.requiredItemsWindow.ManualCombinedRequiredItemsView.Refresh();
+                }
+                else
+                {
+                    MainWindow.refreshRequiredItemsWindow = true;
+                }
 
                 logger.Info("Hideout modules initialized successfully.");
             }
@@ -1152,7 +1214,24 @@ namespace EFT_OverlayAPP
                 HideoutModulesListView.ItemsSource = null;
                 HideoutModulesListView.ItemsSource = AppConfig.HideoutModuleSettingsTT;
 
-                MainWindow?.craftingWindow.ItemsView.Refresh();
+                if (MainWindow.craftingWindow.IsVisible)
+                {
+                    MainWindow?.craftingWindow.ItemsView.Refresh();
+                }
+                else
+                {
+                    MainWindow.refreshCraftingWindow = true;
+                }
+                if (MainWindow.requiredItemsWindow.IsVisible)
+                {
+                    MainWindow?.requiredItemsWindow.RequiredItemsView.Refresh();
+                    MainWindow?.requiredItemsWindow.CombinedRequiredItemsView.Refresh();
+                    MainWindow?.requiredItemsWindow.ManualCombinedRequiredItemsView.Refresh();
+                }
+                else
+                {
+                    MainWindow.refreshRequiredItemsWindow = true;
+                }
 
                 logger.Info("Hideout modules initialized successfully.");
             }
@@ -1233,7 +1312,24 @@ namespace EFT_OverlayAPP
                 HideoutModulesListView.ItemsSource = null;
                 HideoutModulesListView.ItemsSource = AppConfig.HideoutModuleSettingsPVETT;
 
-                MainWindow?.craftingWindow.ItemsView.Refresh();
+                if (MainWindow.craftingWindow.IsVisible)
+                {
+                    MainWindow?.craftingWindow.ItemsView.Refresh();
+                }
+                else
+                {
+                    MainWindow.refreshCraftingWindow = true;
+                }
+                if (MainWindow.requiredItemsWindow.IsVisible)
+                {
+                    MainWindow?.requiredItemsWindow.RequiredItemsView.Refresh();
+                    MainWindow?.requiredItemsWindow.CombinedRequiredItemsView.Refresh();
+                    MainWindow?.requiredItemsWindow.ManualCombinedRequiredItemsView.Refresh();
+                }
+                else
+                {
+                    MainWindow.refreshRequiredItemsWindow = true;
+                }
 
                 logger.Info("Hideout modules initialized successfully.");
             }
@@ -1553,7 +1649,24 @@ namespace EFT_OverlayAPP
         {
             if (e.PropertyName == nameof(HideoutModuleSetting.SelectedLevel))
             {
-                MainWindow?.craftingWindow.ItemsView.Refresh();
+                if (MainWindow.craftingWindow.IsVisible)
+                {
+                    MainWindow?.craftingWindow.ItemsView.Refresh();
+                }
+                else
+                {
+                    MainWindow.refreshCraftingWindow = true;
+                }
+                if (MainWindow.requiredItemsWindow.IsVisible)
+                {
+                    MainWindow?.requiredItemsWindow.RequiredItemsView.Refresh();
+                    MainWindow?.requiredItemsWindow.CombinedRequiredItemsView.Refresh();
+                    MainWindow?.requiredItemsWindow.ManualCombinedRequiredItemsView.Refresh();
+                }
+                else
+                {
+                    MainWindow.refreshRequiredItemsWindow = true;
+                }
                 // Debounce the save operation
                 debounceDispatcher.Debounce(() => SaveConfig());
             }
@@ -1578,7 +1691,14 @@ namespace EFT_OverlayAPP
                         if (item.Id == changedItem.CraftId)
                         {
                             item.IsLocked = !isUnlocked;
-                            MainWindow?.craftingWindow.ItemsView.Refresh();
+                            if (MainWindow.craftingWindow.IsVisible)
+                            {
+                                MainWindow?.craftingWindow.ItemsView.Refresh();
+                            }
+                            else
+                            {
+                                MainWindow.refreshCraftingWindow = true;
+                            }
                         }
                     }
                     // Debounce the save operation
