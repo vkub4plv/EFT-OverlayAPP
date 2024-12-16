@@ -816,7 +816,7 @@ namespace EFT_OverlayAPP
                 await ProcessCraftingTTAPIData();
 
                 // Clear existing settings to prevent duplicates
-                AppConfig.CraftModuleSettingsTT.Clear();
+                AppConfig.CraftModuleSettingsPVETT.Clear();
 
                 // Populate AppConfig.CraftModuleSettingsPVETT
                 foreach (var craftModule in craftModules)
@@ -925,6 +925,8 @@ namespace EFT_OverlayAPP
                 HideoutModulesListView.ItemsSource = null;
                 HideoutModulesListView.ItemsSource = AppConfig.HideoutModuleSettings;
 
+                MainWindow?.craftingWindow.ItemsView.Refresh();
+
                 logger.Info("Hideout modules initialized successfully.");
             }
             catch (Exception ex)
@@ -1008,6 +1010,8 @@ namespace EFT_OverlayAPP
                 HideoutModulesListView.ItemsSource = null;
                 HideoutModulesListView.ItemsSource = AppConfig.HideoutModuleSettingsPVE;
 
+                MainWindow?.craftingWindow.ItemsView.Refresh();
+
                 logger.Info("Hideout modules initialized successfully.");
             }
             catch (Exception ex)
@@ -1087,6 +1091,8 @@ namespace EFT_OverlayAPP
                 HideoutModulesListView.ItemsSource = null;
                 HideoutModulesListView.ItemsSource = AppConfig.HideoutModuleSettingsTT;
 
+                MainWindow?.craftingWindow.ItemsView.Refresh();
+
                 logger.Info("Hideout modules initialized successfully.");
             }
             catch (Exception ex)
@@ -1165,6 +1171,8 @@ namespace EFT_OverlayAPP
                 // Refresh the ListView binding
                 HideoutModulesListView.ItemsSource = null;
                 HideoutModulesListView.ItemsSource = AppConfig.HideoutModuleSettingsPVETT;
+
+                MainWindow?.craftingWindow.ItemsView.Refresh();
 
                 logger.Info("Hideout modules initialized successfully.");
             }
