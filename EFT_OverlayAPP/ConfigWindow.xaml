@@ -519,9 +519,9 @@
                         <RowDefinition Height="Auto"/>
                         <!-- Hide Items for Completed Quests (if using TarkovTracker) -->
                         <RowDefinition Height="Auto"/>
-                        <!-- Hide Items for Completed Quests (if using TarkovTracker) -->
+                        <!-- Subtract from Manual Combined Items Needed (if using TarkovTracker) -->
                         <RowDefinition Height="Auto"/>
-                        <!-- Subtract from Manual Combined Items Needed -->
+                        <!-- Hide Items for Completed Quests (if using TarkovTracker) -->
                         <RowDefinition Height="Auto"/>
                         <!-- Reset Profile Required Items -->
                         <RowDefinition Height="*"/>
@@ -566,20 +566,21 @@
                               IsChecked="{Binding HideItemsForCompletedQuests, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                               IsEnabled="{Binding IsTarkovTrackerApiEnabled}"/>
 
+                    <!-- Subtract from Manual Combined Items Needed (if using Tarkov Tracker) -->
+                    <CheckBox x:Name="SubtractFromManualCombinedItemsCheckBox" 
+                              Content="Subtract from manual combined required items needed for already completed quests (Requires Tarkov Tracker)" 
+                              Grid.Row="5" 
+                              Margin="0,0,0,10" 
+                              IsChecked="{Binding SubtractFromManualCombinedItems, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              IsEnabled="{Binding IsTarkovTrackerApiEnabled}"/>
+                    
                     <!-- Hide Items for Completed Quests (if using Tarkov Tracker) -->
                     <CheckBox x:Name="AutoCompleteSubTasksForFoundItemsCheckBox" 
                               Content="Automatically complete sub-tasks after finding items needed for them (Requires Tarkov Tracker)" 
-                              Grid.Row="5" 
+                              Grid.Row="6" 
                               Margin="0,0,0,10" 
                               IsChecked="{Binding AutoCompleteSubTasksForFoundItems, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                               IsEnabled="{Binding IsTarkovTrackerApiEnabled}"/>
-
-                    <!-- Subtract from Manual Combined Items Needed -->
-                    <CheckBox x:Name="SubtractFromManualCombinedItemsCheckBox" 
-                              Content="Subtract from manual combined items needed" 
-                              Grid.Row="6" 
-                              Margin="0,0,0,10" 
-                              IsChecked="{Binding SubtractFromManualCombinedItems, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
                     <!-- Reset Profile Required Items -->
                     <StackPanel Orientation="Horizontal" Grid.Row="7" Margin="0,0,0,10">

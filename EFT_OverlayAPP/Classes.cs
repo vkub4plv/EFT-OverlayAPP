@@ -881,8 +881,14 @@ namespace EFT_OverlayAPP
                     {
                         _isManualCraftSource = true;
                         _isManualHideoutSource = true;
+                        hideItemsForCompletedQuests = false;
+                        subtractFromManualCombinedItems = false;
+                        autoCompleteSubTasksForFoundItems = false;
                         OnPropertyChanged(nameof(IsManualCraftSource));
                         OnPropertyChanged(nameof(IsManualHideoutSource));
+                        OnPropertyChanged(nameof(HideItemsForCompletedQuests));
+                        OnPropertyChanged(nameof(SubtractFromManualCombinedItems));
+                        OnPropertyChanged(nameof(AutoCompleteSubTasksForFoundItems));
                     }
                     isTarkovTrackerApiEnabled = value;
                     OnPropertyChanged(nameof(IsTarkovTrackerApiEnabled));
