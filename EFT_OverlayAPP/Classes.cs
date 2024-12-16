@@ -136,7 +136,16 @@ namespace EFT_OverlayAPP
         public string Station { get; set; } // Crafting station (category)
         public string StationId { get; set; } // Crafting station ID
         public int StationLevel { get; set; } // Crafting station level
-        public bool IsLocked { get; set; } = false; // Whether the item is locked behind a quest
+        private bool isLocked = false;
+        public bool IsLocked
+        {
+            get => isLocked;
+            set
+            {
+                isLocked = value;
+                OnPropertyChanged(nameof(IsLocked));
+            }
+        }
 
         [JsonProperty]
         public TimeSpan CraftTime { get; set; }
@@ -1394,7 +1403,7 @@ namespace EFT_OverlayAPP
 
         // INotifyPropertyChanged implementation
         public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged(string propertyName) =>
+        public void OnPropertyChanged(string propertyName) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
@@ -1474,7 +1483,7 @@ namespace EFT_OverlayAPP
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged(string name) =>
+        public void OnPropertyChanged(string name) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 
@@ -1510,8 +1519,6 @@ namespace EFT_OverlayAPP
 
     public class CraftModuleSetting : INotifyPropertyChanged
     {
-        private bool _isUnlocked;
-
         public string CraftId { get; set; } // Unique identifier for the craft
         public string CraftName { get; set; } // Name of the craft
         public string CraftIconLink { get; set; } // URL to the craft's icon
@@ -1519,6 +1526,7 @@ namespace EFT_OverlayAPP
         public string QuestName { get; set; } // Name of the quest that unlocks the craft
         public string QuestId { get; set; } // Unique identifier for the quest that unlocks the craft
 
+        private bool _isUnlocked;
         public bool IsUnlocked
         {
             get => _isUnlocked;
@@ -1561,7 +1569,7 @@ namespace EFT_OverlayAPP
 
         // INotifyPropertyChanged Implementation
         public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged(string propertyName) =>
+        public void OnPropertyChanged(string propertyName) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 

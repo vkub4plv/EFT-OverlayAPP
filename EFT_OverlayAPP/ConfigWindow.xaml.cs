@@ -662,14 +662,26 @@ namespace EFT_OverlayAPP
             {
                 var craftModules = await DataCache.FetchCraftModuleSettingsAsync();
 
+                // Preserve existing settings
+                var existingSettingsDict = AppConfig.CraftModuleSettings.ToDictionary(cm => cm.CraftId, cm => cm.IsUnlocked);
+
+                // Clear existing settings to prevent duplicates
+                AppConfig.CraftModuleSettings.Clear();
+
                 // Populate AppConfig.CraftModuleSettings
                 foreach (var craftModule in craftModules)
                 {
-                    // Check if the craft already exists in the settings to prevent duplicates
-                    if (!AppConfig.CraftModuleSettings.Any(cm => cm.CraftId == craftModule.CraftId))
-                    {
-                        AppConfig.CraftModuleSettings.Add(craftModule);
-                    }
+                    // Determine the unlocked state based on existing settings
+                    bool isUnlocked = existingSettingsDict.TryGetValue(craftModule.CraftId, out var unlockedValue) && unlockedValue;
+                    craftModule.IsUnlocked = isUnlocked;
+
+                    // Subscribe to PropertyChanged for automatic saving
+                    craftModule.PropertyChanged -= CraftModuleSetting_PropertyChanged;
+
+                    // Subscribe to PropertyChanged for automatic saving
+                    craftModule.PropertyChanged += CraftModuleSetting_PropertyChanged;
+
+                    AppConfig.CraftModuleSettings.Add(craftModule);
                 }
 
                 AppConfig.EffectiveCraftModuleSettings = AppConfig.CraftModuleSettings;
@@ -697,14 +709,26 @@ namespace EFT_OverlayAPP
             {
                 var craftModules = await DataCache.FetchCraftModuleSettingsAsync();
 
+                // Preserve existing settings
+                var existingSettingsDict = AppConfig.CraftModuleSettingsPVE.ToDictionary(cm => cm.CraftId, cm => cm.IsUnlocked);
+
+                // Clear existing settings to prevent duplicates
+                AppConfig.CraftModuleSettingsPVE.Clear();
+
                 // Populate AppConfig.CraftModuleSettingsPVE
                 foreach (var craftModule in craftModules)
                 {
-                    // Check if the craft already exists in the settings to prevent duplicates
-                    if (!AppConfig.CraftModuleSettingsPVE.Any(cm => cm.CraftId == craftModule.CraftId))
-                    {
-                        AppConfig.CraftModuleSettingsPVE.Add(craftModule);
-                    }
+                    // Determine the unlocked state based on existing settings
+                    bool isUnlocked = existingSettingsDict.TryGetValue(craftModule.CraftId, out var unlockedValue) && unlockedValue;
+                    craftModule.IsUnlocked = isUnlocked;
+
+                    // Subscribe to PropertyChanged for automatic saving
+                    craftModule.PropertyChanged -= CraftModuleSetting_PropertyChanged;
+
+                    // Subscribe to PropertyChanged for automatic saving
+                    craftModule.PropertyChanged += CraftModuleSetting_PropertyChanged;
+
+                    AppConfig.CraftModuleSettingsPVE.Add(craftModule);
                 }
 
                 AppConfig.EffectiveCraftModuleSettings = AppConfig.CraftModuleSettingsPVE;
@@ -739,27 +763,24 @@ namespace EFT_OverlayAPP
 
                 await ProcessCraftingTTAPIData();
 
+                // Clear existing settings to prevent duplicates
+                AppConfig.CraftModuleSettingsTT.Clear();
+
                 // Populate AppConfig.CraftModuleSettingsTT
                 foreach (var craftModule in craftModules)
                 {
-                    // Check if the craft already exists in the settings to prevent duplicates
-                    var existingModule = AppConfig.CraftModuleSettingsTT.FirstOrDefault(cm => cm.CraftId == craftModule.CraftId);
-                    if (existingModule == null)
-                    {
-                        craftModule.IsUnlocked = CraftingTTAPIDataList
-                                                    .Where(entry => entry.Id == craftModule.QuestId)
-                                                    .Select(entry => entry.Complete)
-                                                    .FirstOrDefault();
-                        AppConfig.CraftModuleSettingsTT.Add(craftModule);
-                    }
-                    else
-                    {
-                        // Update the existing module's IsUnlocked property based on CraftingTTAPIDataList
-                        existingModule.IsUnlocked = CraftingTTAPIDataList
-                                                    .Where(entry => entry.Id == craftModule.QuestId)
-                                                    .Select(entry => entry.Complete)
-                                                    .FirstOrDefault();
-                    }
+                    craftModule.IsUnlocked = CraftingTTAPIDataList
+                        .Where(entry => entry.Id == craftModule.QuestId)
+                        .Select(entry => entry.Complete)
+                        .FirstOrDefault();
+
+                    // Subscribe to PropertyChanged for automatic saving
+                    craftModule.PropertyChanged -= CraftModuleSetting_PropertyChanged;
+
+                    // Subscribe to PropertyChanged for automatic saving
+                    craftModule.PropertyChanged += CraftModuleSetting_PropertyChanged;
+
+                    AppConfig.CraftModuleSettingsTT.Add(craftModule);
                 }
 
                 AppConfig.EffectiveCraftModuleSettings = AppConfig.CraftModuleSettingsTT;
@@ -794,27 +815,24 @@ namespace EFT_OverlayAPP
 
                 await ProcessCraftingTTAPIData();
 
+                // Clear existing settings to prevent duplicates
+                AppConfig.CraftModuleSettingsTT.Clear();
+
                 // Populate AppConfig.CraftModuleSettingsPVETT
                 foreach (var craftModule in craftModules)
                 {
-                    // Check if the craft already exists in the settings to prevent duplicates
-                    var existingModule = AppConfig.CraftModuleSettingsPVETT.FirstOrDefault(cm => cm.CraftId == craftModule.CraftId);
-                    if (existingModule == null)
-                    {
-                        craftModule.IsUnlocked = CraftingTTAPIDataList
-                                                    .Where(entry => entry.Id == craftModule.QuestId)
-                                                    .Select(entry => entry.Complete)
-                                                    .FirstOrDefault();
-                        AppConfig.CraftModuleSettingsPVETT.Add(craftModule);
-                    }
-                    else
-                    {
-                        // Update the existing module's IsUnlocked property based on CraftingTTAPIDataList
-                        existingModule.IsUnlocked = CraftingTTAPIDataList
-                                                    .Where(entry => entry.Id == craftModule.QuestId)
-                                                    .Select(entry => entry.Complete)
-                                                    .FirstOrDefault();
-                    }
+                    craftModule.IsUnlocked = CraftingTTAPIDataList
+                        .Where(entry => entry.Id == craftModule.QuestId)
+                        .Select(entry => entry.Complete)
+                        .FirstOrDefault();
+
+                    // Subscribe to PropertyChanged for automatic saving
+                    craftModule.PropertyChanged -= CraftModuleSetting_PropertyChanged;
+
+                    // Subscribe to PropertyChanged for automatic saving
+                    craftModule.PropertyChanged += CraftModuleSetting_PropertyChanged;
+
+                    AppConfig.CraftModuleSettingsPVETT.Add(craftModule);
                 }
 
                 AppConfig.EffectiveCraftModuleSettings = AppConfig.CraftModuleSettingsPVETT;
@@ -1352,6 +1370,26 @@ namespace EFT_OverlayAPP
                         {
                             moduleSetting.PropertyChanged -= HideoutModuleSetting_PropertyChanged;
                         }
+
+                        foreach (var item in AppConfig.CraftModuleSettings)
+                        {
+                            item.PropertyChanged -= CraftModuleSetting_PropertyChanged;
+                        }
+
+                        foreach (var item in AppConfig.CraftModuleSettingsPVE)
+                        {
+                            item.PropertyChanged -= CraftModuleSetting_PropertyChanged;
+                        }
+
+                        foreach (var item in AppConfig.CraftModuleSettingsTT)
+                        {
+                            item.PropertyChanged -= CraftModuleSetting_PropertyChanged;
+                        }
+
+                        foreach (var item in AppConfig.CraftModuleSettingsPVETT)
+                        {
+                            item.PropertyChanged -= CraftModuleSetting_PropertyChanged;
+                        }
                     }
 
                     // Delete the config.json file if it exists
@@ -1447,46 +1485,12 @@ namespace EFT_OverlayAPP
 
         private void HideoutModuleSettings_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
-            // Handle additions and removals
-            if (e.NewItems != null)
-            {
-                foreach (HideoutModuleSetting newItem in e.NewItems)
-                {
-                    newItem.PropertyChanged += HideoutModuleSetting_PropertyChanged;
-                }
-            }
-
-            if (e.OldItems != null)
-            {
-                foreach (HideoutModuleSetting oldItem in e.OldItems)
-                {
-                    oldItem.PropertyChanged -= HideoutModuleSetting_PropertyChanged;
-                }
-            }
-
             // Trigger a save
             debounceDispatcher.Debounce(() => SaveConfig());
         }
 
         private void CraftModuleSettings_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
-            // Handle additions/removals if needed, such as subscribing to PropertyChanged events
-            if (e.NewItems != null)
-            {
-                foreach (CraftModuleSetting newItem in e.NewItems)
-                {
-                    newItem.PropertyChanged += CraftModuleSetting_PropertyChanged;
-                }
-            }
-
-            if (e.OldItems != null)
-            {
-                foreach (CraftModuleSetting oldItem in e.OldItems)
-                {
-                    oldItem.PropertyChanged -= CraftModuleSetting_PropertyChanged;
-                }
-            }
-
             // Trigger a save
             debounceDispatcher.Debounce(() => SaveConfig());
         }
@@ -1495,8 +1499,21 @@ namespace EFT_OverlayAPP
         {
             if (e.PropertyName == nameof(CraftModuleSetting.IsUnlocked))
             {
-                // Debounce the save operation
-                debounceDispatcher.Debounce(() => SaveConfig());
+                var changedItem = sender as CraftModuleSetting;
+                if (changedItem != null)
+                {
+                    bool isUnlocked = changedItem.IsUnlocked;
+                    foreach (var item in DataCache.CraftableItems)
+                    {
+                        if (item.Id == changedItem.CraftId)
+                        {
+                            item.IsLocked = !isUnlocked;
+                            MainWindow?.craftingWindow.ItemsView.Refresh();
+                        }
+                    }
+                    // Debounce the save operation
+                    debounceDispatcher.Debounce(() => SaveConfig());
+                }
             }
         }
 
@@ -1729,6 +1746,26 @@ namespace EFT_OverlayAPP
             foreach (var moduleSetting in AppConfig.HideoutModuleSettingsPVETT)
             {
                 moduleSetting.PropertyChanged -= HideoutModuleSetting_PropertyChanged;
+            }
+
+            foreach (var item in AppConfig.CraftModuleSettings)
+            {
+                item.PropertyChanged -= CraftModuleSetting_PropertyChanged;
+            }
+
+            foreach (var item in AppConfig.CraftModuleSettingsPVE)
+            {
+                item.PropertyChanged -= CraftModuleSetting_PropertyChanged;
+            }
+
+            foreach (var item in AppConfig.CraftModuleSettingsTT)
+            {
+                item.PropertyChanged -= CraftModuleSetting_PropertyChanged;
+            }
+
+            foreach (var item in AppConfig.CraftModuleSettingsPVETT)
+            {
+                item.PropertyChanged -= CraftModuleSetting_PropertyChanged;
             }
 
             AppConfig.HideoutModuleSettings.CollectionChanged -= HideoutModuleSettings_CollectionChanged;

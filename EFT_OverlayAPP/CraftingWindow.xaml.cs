@@ -89,6 +89,7 @@ namespace EFT_OverlayAPP
             // Subscribe to property changes to update the UI
             foreach (var item in DataCache.CraftableItems)
             {
+                item.PropertyChanged -= CraftableItem_PropertyChanged;
                 item.PropertyChanged += CraftableItem_PropertyChanged;
 
                 // If the craft is in progress or ready, update the display
@@ -120,6 +121,7 @@ namespace EFT_OverlayAPP
                 // Re-initialize ActiveCrafts from DataCache
                 foreach (var item in DataCache.CraftableItems)
                 {
+                    item.PropertyChanged -= CraftableItem_PropertyChanged;
                     item.PropertyChanged += CraftableItem_PropertyChanged;
 
                     if (item.CraftStatus == CraftStatus.InProgress || item.CraftStatus == CraftStatus.Ready)
@@ -1459,9 +1461,9 @@ namespace EFT_OverlayAPP
         }
         private async void AppConfig_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(AppConfig.FilterBasedOnHideoutLevels) || e.PropertyName == nameof(AppConfig.EffectiveHideoutModuleSettings))
+            if (e.PropertyName == nameof(AppConfig.FilterBasedOnHideoutLevels))
             {
-                SetupItemsView();
+                ItemsView.Refresh();
             }
         }
 

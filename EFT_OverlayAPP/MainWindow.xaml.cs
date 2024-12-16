@@ -24,7 +24,7 @@ namespace EFT_OverlayAPP
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         public ObservableCollection<CraftTimerDisplayItem> ActiveCraftTimers { get; set; } = new ObservableCollection<CraftTimerDisplayItem>();
-        private CraftingWindow craftingWindow;
+        public CraftingWindow craftingWindow;
         private WebViewWindow webViewWindow;
         private OthersWindow othersWindow;
         private RequiredItemsWindow requiredItemsWindow;
@@ -877,6 +877,14 @@ namespace EFT_OverlayAPP
             }
 
                 LastProfileMode = EffectiveProfileMode;
+        }
+
+        public void CraftingWindowDataReload()
+        {
+            if (craftingWindow != null)
+            {
+                craftingWindow.ReloadData();
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
