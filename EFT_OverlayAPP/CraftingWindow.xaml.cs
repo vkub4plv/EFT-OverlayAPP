@@ -73,6 +73,9 @@ namespace EFT_OverlayAPP
             FavoriteItems.CollectionChanged += FavoriteItems_CollectionChanged;
             ActiveCrafts.CollectionChanged += ActiveCrafts_CollectionChanged;
 
+            // Subscribe to ConfigWindow.AppConfig PropertyChanged event
+            ConfigWindow.AppConfig.PropertyChanged += AppConfig_PropertyChanged;
+
             // Subscribe to the DataLoaded event
             DataCache.DataLoaded += OnDataLoaded;
 
@@ -346,7 +349,17 @@ namespace EFT_OverlayAPP
                 matchesUnlock = true;
             }
 
-            return matchesSearch && matchesCategory && matchesUnlock;
+            bool matchesStationLevel;
+            if (ConfigWindow.AppConfig.FilterBasedOnHideoutLevels)
+            {
+                matchesStationLevel = ConfigWindow.AppConfig.EffectiveHideoutModuleSettings.Any(entry => (entry.Id == craftableItem.StationId) && (entry.SelectedLevel >= craftableItem.StationLevel));
+            }
+            else
+            {
+                matchesStationLevel = true;
+            }
+
+            return matchesSearch && matchesCategory && matchesUnlock && matchesStationLevel;
         }
 
         private bool FavoritesFilter(object item)
@@ -1443,6 +1456,13 @@ namespace EFT_OverlayAPP
             PopulateActiveCraftsCategoryFilter();
             PopulateLogsCategoryFilter();
             PopulateStatsCategoryFilter();
+        }
+        private async void AppConfig_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(AppConfig.FilterBasedOnHideoutLevels) || e.PropertyName == nameof(AppConfig.EffectiveHideoutModuleSettings))
+            {
+                SetupItemsView();
+            }
         }
 
         protected override void OnClosed(EventArgs e)

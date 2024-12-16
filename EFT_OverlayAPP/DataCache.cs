@@ -90,6 +90,8 @@ namespace EFT_OverlayAPP
                     {
                         Id = craft.Id,
                         Station = NormalizeStationName(craft.Station?.Name),
+                        StationId = craft.Station.Id,
+                        StationLevel = craft?.Level ?? 1,
                         IsLocked = shouldBeLocked,
                         CraftTime = TimeSpan.FromSeconds(craft.Duration * (1 - speedReduction) ?? 0),
                         RewardItems = craft.RewardItems.Select(rewardItem => new RewardItemDetail
