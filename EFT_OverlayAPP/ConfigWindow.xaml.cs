@@ -850,16 +850,6 @@ namespace EFT_OverlayAPP
             }
         }
 
-        // Event Handler for PropertyChanged events in HideoutModuleSettings
-        private void HideoutModuleSetting_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(HideoutModuleSetting.SelectedLevel))
-            {
-                // Debounce the save operation
-                debounceDispatcher.Debounce(() => SaveConfig());
-            }
-        }
-
         private async Task InitializeHideoutModulesAsync()
         {
             if (!isLoaded)
@@ -1487,6 +1477,17 @@ namespace EFT_OverlayAPP
         {
             // Trigger a save
             debounceDispatcher.Debounce(() => SaveConfig());
+        }
+
+        // Event Handler for PropertyChanged events in HideoutModuleSettings
+        private void HideoutModuleSetting_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(HideoutModuleSetting.SelectedLevel))
+            {
+                MainWindow?.craftingWindow.ItemsView.Refresh();
+                // Debounce the save operation
+                debounceDispatcher.Debounce(() => SaveConfig());
+            }
         }
 
         private void CraftModuleSettings_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
