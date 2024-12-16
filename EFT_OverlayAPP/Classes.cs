@@ -99,6 +99,7 @@ namespace EFT_OverlayAPP
     public class Craft
     {
         public string Id { get; set; }
+        public int Level { get; set; }
         public Station Station { get; set; }
         public int? Duration { get; set; }
         public List<RewardItem> RewardItems { get; set; }
@@ -106,6 +107,7 @@ namespace EFT_OverlayAPP
 
     public class Station
     {
+        public string Id { get; set; }
         public string Name { get; set; }
     }
 
@@ -132,6 +134,8 @@ namespace EFT_OverlayAPP
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         public string Id { get; set; } // Unique identifier
         public string Station { get; set; } // Crafting station (category)
+        public string StationId { get; set; } // Crafting station ID
+        public int StationLevel { get; set; } // Crafting station level
         public bool IsLocked { get; set; } = false; // Whether the item is locked behind a quest
 
         [JsonProperty]
@@ -1267,6 +1271,21 @@ namespace EFT_OverlayAPP
             }
         }
 
+        // Add the following property for Effective Hideout Module Settings
+        private ObservableCollection<HideoutModuleSetting> _effectiveHideoutModuleSettings;
+        public ObservableCollection<HideoutModuleSetting> EffectiveHideoutModuleSettings
+        {
+            get => _effectiveHideoutModuleSettings;
+            set
+            {
+                if (_effectiveHideoutModuleSettings != value)
+                {
+                    _effectiveHideoutModuleSettings = value;
+                    OnPropertyChanged(nameof(EffectiveHideoutModuleSettings));
+                }
+            }
+        }
+
         // Collection for Craft Module Settings
         private ObservableCollection<CraftModuleSetting> _craftModuleSettings;
         public ObservableCollection<CraftModuleSetting> CraftModuleSettings
@@ -1369,6 +1388,7 @@ namespace EFT_OverlayAPP
             _craftModuleSettingsTT = new ObservableCollection<CraftModuleSetting>();
             _craftModuleSettingsPVETT = new ObservableCollection<CraftModuleSetting>();
             _effectiveCraftModuleSettings = new ObservableCollection<CraftModuleSetting>();
+            _effectiveHideoutModuleSettings = new ObservableCollection<HideoutModuleSetting>();
             _keybinds = new ObservableCollection<KeybindEntry>();
         }
 
@@ -1603,7 +1623,9 @@ namespace EFT_OverlayAPP
                 query = @"{
                     crafts {
                         id
+                        level
                         station {
+                            id
                             name
                         }
                         duration
