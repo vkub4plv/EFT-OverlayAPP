@@ -1152,6 +1152,20 @@ namespace EFT_OverlayAPP
                     MainWindow.refreshRequiredItemsWindow = true;
                 }
             }
+            if (e.PropertyName == nameof(AppConfig.EffectiveProfileMode) && ConfigWindow.AppConfig.IsTarkovTrackerApiEnabled)
+            {
+                await ConfigWindow.UpdateCraftingTTAPIData();
+                if (this.IsVisible)
+                {
+                    RequiredItemsView.Refresh();
+                    CombinedRequiredItemsView.Refresh();
+                    ManualCombinedRequiredItemsView.Refresh();
+                }
+                else
+                {
+                    MainWindow.refreshRequiredItemsWindow = true;
+                }
+            }
         }
 
         // Implement INotifyPropertyChanged
