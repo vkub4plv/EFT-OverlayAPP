@@ -1070,7 +1070,9 @@ namespace EFT_OverlayAPP
 
         private async void AppConfig_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(AppConfig.HideItemsForBuiltStations) || e.PropertyName == nameof(AppConfig.HidePlantItems))
+            if (e.PropertyName == nameof(AppConfig.HidePlantItems) || e.PropertyName == nameof(AppConfig.SubtractPlantItems) || e.PropertyName == nameof(AppConfig.HideItemsForBuiltStations)
+                || e.PropertyName == nameof(AppConfig.SubtractFromManualCombinedItemsForBuiltStations)
+                || e.PropertyName == nameof(AppConfig.HideItemsForCompletedQuests) || e.PropertyName == nameof(AppConfig.SubtractFromManualCombinedItemsForCompletedQuests))
             {
                 if (this.IsVisible)
                 {
