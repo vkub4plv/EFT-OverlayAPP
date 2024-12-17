@@ -707,6 +707,7 @@ namespace EFT_OverlayAPP
                     },
                     QuantityNeeded = g.Sum(e => e.QuantityNeeded),
                     QuantityOwned = 0, // Start with zero; user adjusts manually
+                    SourceEntries = g.ToList(), // Store the original entries
                     IsFoundInRaid = g.Key.IsFoundInRaid,
                     RequiredForDetails = g.Select(e => new SourceDetail
                     {
@@ -733,6 +734,36 @@ namespace EFT_OverlayAPP
             ApplyManualCombinedRequiredItemsSorting();
         }
 
+        private bool IsManualSourceEntryVisible(RequiredItemEntry entry)
+        {
+            // If we need to subtract items from built stations
+            if (ConfigWindow.AppConfig.SubtractFromManualCombinedItemsForBuiltStations && entry.GroupType == "Hideout")
+            {
+                string moduleName = entry.SourceDetail.Split(" Level")[0];
+                int level = int.Parse(entry.SourceDetail.Split("Level")[1].Trim());
+
+                var matchingModule = ConfigWindow.AppConfig.EffectiveHideoutModuleSettings
+                    .FirstOrDefault(module => module.ModuleName == moduleName);
+
+                if (matchingModule != null && matchingModule.SelectedLevel >= level)
+                {
+                    // This source is considered "built" and thus should not contribute
+                    return false;
+                }
+            }
+
+            // If we need to subtract plant items
+            if (ConfigWindow.AppConfig.SubtractPlantItems)
+            {
+                if (entry.Item.Name == "WI-FI Camera" || entry.Item.Name == "MS2000 Marker")
+                {
+                    // This is a plant item, do not count it
+                    return false;
+                }
+            }
+
+            return true;
+        }
 
         private void PopulateManualCombinedFilters()
         {
@@ -755,26 +786,54 @@ namespace EFT_OverlayAPP
 
         private bool ManualCombinedRequiredItemsFilter(object obj)
         {
-            var entry = obj as CombinedRequiredItemEntry;
-            if (entry == null) return false;
+            var combinedEntry = obj as CombinedRequiredItemEntry;
+            if (combinedEntry == null) return false;
 
             // Filter by search text
             string searchText = ManualCombinedSearchTextBox.Text?.ToLower() ?? string.Empty;
             if (!string.IsNullOrEmpty(searchText))
             {
-                if (!entry.Item.Name.ToLower().Contains(searchText))
+                if (!combinedEntry.Item.Name.ToLower().Contains(searchText))
                     return false;
             }
 
+            // Recalculate based on visible entries
+            int totalNeeded = 0;
+            int totalOwned = 0;
+            bool anyVisible = false;
+
+            foreach (var sourceEntry in combinedEntry.SourceEntries)
+            {
+                if (IsManualSourceEntryVisible(sourceEntry))
+                {
+                    anyVisible = true;
+                    totalNeeded += sourceEntry.QuantityNeeded;
+                    totalOwned += sourceEntry.QuantityOwned;
+                }
+            }
+
+            // If no sources remain visible, hide the entire combined item
+            if (!anyVisible)
+            {
+                return false;
+            }
+
+            // Update the combined entry to show only the remaining visible requirements
+            combinedEntry.QuantityNeeded = totalNeeded;
+            combinedEntry.QuantityOwned = totalOwned;
+
             // Filter by completion status
             string selectedCompletion = ManualCombinedCompletionFilterComboBox.SelectedItem as string ?? "All";
-            if (selectedCompletion == "Remaining Items" && entry.IsComplete)
+            bool isComplete = combinedEntry.QuantityOwned >= combinedEntry.QuantityNeeded;
+
+            if (selectedCompletion == "Remaining Items" && isComplete)
                 return false;
-            if (selectedCompletion == "Completed Items" && !entry.IsComplete)
+            if (selectedCompletion == "Completed Items" && !isComplete)
                 return false;
 
             return true;
         }
+
 
         private void ManualCombinedSearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
