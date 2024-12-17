@@ -478,8 +478,6 @@ namespace EFT_OverlayAPP
                             Name = g.Key.Name,
                             IconLink = g.Key.IconLink
                         },
-                        QuantityNeeded = g.Sum(e => e.QuantityNeeded),
-                        QuantityOwned = g.Sum(e => e.QuantityOwned),
                         SourceEntries = g.ToList(),
                         IsFoundInRaid = g.Key.IsFoundInRaid,
                         RequiredForDetails = g.Select(e => new SourceDetail
@@ -606,32 +604,27 @@ namespace EFT_OverlayAPP
                     return false;
             }
 
-            // Recalculate visible quantities
-            int totalNeeded = 0;
-            int totalOwned = 0;
-            bool anyVisible = false;
+            var visibleSources = combinedEntry.SourceEntries
+                    .Where(e => IsSourceEntryVisible(e))
+                    .ToList();
 
-            foreach (var sourceEntry in combinedEntry.SourceEntries)
-            {
-                if (IsSourceEntryVisible(sourceEntry))
-                {
-                    anyVisible = true;
-                    totalNeeded += sourceEntry.QuantityNeeded;
-                    totalOwned += sourceEntry.QuantityOwned;
-                }
-            }
-
-            // If no sources are visible after applying hide logic, hide this combined item
-            if (!anyVisible)
+            if (visibleSources.Count == 0)
             {
                 return false;
             }
 
-            // Update the combined entry with recalculated visible quantities
+            int totalNeeded = visibleSources.Sum(e => e.QuantityNeeded);
+            int totalOwned = visibleSources.Sum(e => e.QuantityOwned);
+
             combinedEntry.QuantityNeeded = totalNeeded;
             combinedEntry.QuantityOwned = totalOwned;
 
-            // Completion status filter (based on recalculated totals)
+            // Update RequiredForDetails for only visible sources
+            combinedEntry.RequiredForDetails = visibleSources
+                .Select(e => new SourceDetail { Icon = e.SourceIcon, Name = e.SourceDetail })
+                .Distinct()
+                .ToList();
+
             string selectedCompletion = CombinedCompletionFilterComboBox.SelectedItem as string ?? "All";
             bool isComplete = combinedEntry.QuantityOwned >= combinedEntry.QuantityNeeded;
 
@@ -705,8 +698,6 @@ namespace EFT_OverlayAPP
                         Name = g.Key.Name,
                         IconLink = g.Key.IconLink
                     },
-                    QuantityNeeded = g.Sum(e => e.QuantityNeeded),
-                    QuantityOwned = 0, // Start with zero; user adjusts manually
                     SourceEntries = g.ToList(), // Store the original entries
                     IsFoundInRaid = g.Key.IsFoundInRaid,
                     RequiredForDetails = g.Select(e => new SourceDetail
@@ -736,7 +727,7 @@ namespace EFT_OverlayAPP
 
         private bool IsManualSourceEntryVisible(RequiredItemEntry entry)
         {
-            // If we need to subtract items from built stations
+            // If subtracting items from built stations
             if (ConfigWindow.AppConfig.SubtractFromManualCombinedItemsForBuiltStations && entry.GroupType == "Hideout")
             {
                 string moduleName = entry.SourceDetail.Split(" Level")[0];
@@ -747,17 +738,17 @@ namespace EFT_OverlayAPP
 
                 if (matchingModule != null && matchingModule.SelectedLevel >= level)
                 {
-                    // This source is considered "built" and thus should not contribute
+                    // Hide this source
                     return false;
                 }
             }
 
-            // If we need to subtract plant items
+            // If subtracting plant items
             if (ConfigWindow.AppConfig.SubtractPlantItems)
             {
                 if (entry.Item.Name == "WI-FI Camera" || entry.Item.Name == "MS2000 Marker")
                 {
-                    // This is a plant item, do not count it
+                    // Hide this source
                     return false;
                 }
             }
@@ -797,32 +788,47 @@ namespace EFT_OverlayAPP
                     return false;
             }
 
-            // Recalculate based on visible entries
+            // Store old needed before recalculation
+            int oldNeeded = combinedEntry.QuantityNeeded;
+            int oldOwned = combinedEntry.QuantityOwned;
+
             int totalNeeded = 0;
-            int totalOwned = 0;
+            int totalOwned = combinedEntry.QuantityOwned; // Start with current owned
             bool anyVisible = false;
 
-            foreach (var sourceEntry in combinedEntry.SourceEntries)
-            {
-                if (IsManualSourceEntryVisible(sourceEntry))
-                {
-                    anyVisible = true;
-                    totalNeeded += sourceEntry.QuantityNeeded;
-                    totalOwned += sourceEntry.QuantityOwned;
-                }
-            }
+            // Determine which sources are visible and sum their needed amounts
+            var visibleSources = combinedEntry.SourceEntries
+                .Where(e => IsManualSourceEntryVisible(e))
+                .ToList();
 
-            // If no sources remain visible, hide the entire combined item
-            if (!anyVisible)
+            if (visibleSources.Count == 0)
             {
+                // No visible sources: hide this item
                 return false;
             }
 
-            // Update the combined entry to show only the remaining visible requirements
+            // Sum needed from visible sources
+            totalNeeded = visibleSources.Sum(e => e.QuantityNeeded);
+
+            // Update RequiredForDetails to only show visible requirements
+            combinedEntry.RequiredForDetails = visibleSources
+                .Select(e => new SourceDetail { Icon = e.SourceIcon, Name = e.SourceDetail })
+                .Distinct()
+                .ToList();
+
+            // If we reduced needed due to newly hidden sources
+            int diff = oldNeeded - totalNeeded;
+            if (diff > 0)
+            {
+                // Reduce owned by diff, but not below 0
+                totalOwned = Math.Max(0, totalOwned - diff);
+            }
+
+            // Update the combined entry with recalculated values
             combinedEntry.QuantityNeeded = totalNeeded;
             combinedEntry.QuantityOwned = totalOwned;
 
-            // Filter by completion status
+            // Completion status filter
             string selectedCompletion = ManualCombinedCompletionFilterComboBox.SelectedItem as string ?? "All";
             bool isComplete = combinedEntry.QuantityOwned >= combinedEntry.QuantityNeeded;
 
