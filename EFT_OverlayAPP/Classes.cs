@@ -388,6 +388,10 @@ namespace EFT_OverlayAPP
     public class CombinedRequiredItemEntry : INotifyPropertyChanged
     {
         public Item Item { get; set; }
+
+        // New property to hold the original required items that make up this combined entry
+        public List<RequiredItemEntry> SourceEntries { get; set; } = new List<RequiredItemEntry>();
+
         private int quantityNeeded;
         public int QuantityNeeded
         {

@@ -480,6 +480,7 @@ namespace EFT_OverlayAPP
                         },
                         QuantityNeeded = g.Sum(e => e.QuantityNeeded),
                         QuantityOwned = g.Sum(e => e.QuantityOwned),
+                        SourceEntries = g.ToList(),
                         IsFoundInRaid = g.Key.IsFoundInRaid,
                         RequiredForDetails = g.Select(e => new SourceDetail
                         {
@@ -517,6 +518,36 @@ namespace EFT_OverlayAPP
             // Apply initial sorting
             ApplyCombinedRequiredItemsSorting();
         }
+
+        private bool IsSourceEntryVisible(RequiredItemEntry entry)
+        {
+            // Hide if station is built
+            if (ConfigWindow.AppConfig.HideItemsForBuiltStations && entry.GroupType == "Hideout")
+            {
+                string moduleName = entry.SourceDetail.Split(" Level")[0];
+                int level = int.Parse(entry.SourceDetail.Split("Level")[1].Trim());
+
+                var matchingModule = ConfigWindow.AppConfig.EffectiveHideoutModuleSettings
+                    .FirstOrDefault(module => module.ModuleName == moduleName);
+
+                if (matchingModule != null && matchingModule.SelectedLevel >= level)
+                {
+                    return false;
+                }
+            }
+
+            // Hide if plant items are to be hidden
+            if (ConfigWindow.AppConfig.HidePlantItems)
+            {
+                if (entry.Item.Name == "WI-FI Camera" || entry.Item.Name == "MS2000 Marker")
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
 
         private void RequiredItemEntry_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
@@ -564,22 +595,49 @@ namespace EFT_OverlayAPP
 
         private bool CombinedRequiredItemsFilter(object obj)
         {
-            var entry = obj as CombinedRequiredItemEntry;
-            if (entry == null) return false;
+            var combinedEntry = obj as CombinedRequiredItemEntry;
+            if (combinedEntry == null) return false;
 
-            // Filter by search text
+            // Search text filter
             string searchText = CombinedSearchTextBox.Text?.ToLower() ?? string.Empty;
             if (!string.IsNullOrEmpty(searchText))
             {
-                if (!entry.Item.Name.ToLower().Contains(searchText))
+                if (!combinedEntry.Item.Name.ToLower().Contains(searchText))
                     return false;
             }
 
-            // Filter by completion status
-            string selectedCompletion = CombinedCompletionFilterComboBox.SelectedItem as string ?? "All";
-            if (selectedCompletion == "Remaining Items" && entry.IsComplete)
+            // Recalculate visible quantities
+            int totalNeeded = 0;
+            int totalOwned = 0;
+            bool anyVisible = false;
+
+            foreach (var sourceEntry in combinedEntry.SourceEntries)
+            {
+                if (IsSourceEntryVisible(sourceEntry))
+                {
+                    anyVisible = true;
+                    totalNeeded += sourceEntry.QuantityNeeded;
+                    totalOwned += sourceEntry.QuantityOwned;
+                }
+            }
+
+            // If no sources are visible after applying hide logic, hide this combined item
+            if (!anyVisible)
+            {
                 return false;
-            if (selectedCompletion == "Completed Items" && !entry.IsComplete)
+            }
+
+            // Update the combined entry with recalculated visible quantities
+            combinedEntry.QuantityNeeded = totalNeeded;
+            combinedEntry.QuantityOwned = totalOwned;
+
+            // Completion status filter (based on recalculated totals)
+            string selectedCompletion = CombinedCompletionFilterComboBox.SelectedItem as string ?? "All";
+            bool isComplete = combinedEntry.QuantityOwned >= combinedEntry.QuantityNeeded;
+
+            if (selectedCompletion == "Remaining Items" && isComplete)
+                return false;
+            if (selectedCompletion == "Completed Items" && !isComplete)
                 return false;
 
             return true;
