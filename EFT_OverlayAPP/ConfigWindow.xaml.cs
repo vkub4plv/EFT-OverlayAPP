@@ -34,8 +34,8 @@ namespace EFT_OverlayAPP
         private bool CurentApiKeyValid = false;
         private bool isLoaded { get; set; } = false;
         // Declare a class-level property to store the processed list
-        private static List<ProcessedLevel> HideoutTTAPIDataList { get; set; }
-        private static List<TaskProgress> CraftingTTAPIDataList { get; set; }
+        private List<ProcessedLevel> HideoutTTAPIDataList { get; set; }
+        public List<TaskProgress> CraftingTTAPIDataList { get; set; }
         public ConfigWindow(MainWindow mainWindow)
         {
             InitializeComponent();
@@ -1893,7 +1893,7 @@ namespace EFT_OverlayAPP
             }
         }
 
-        private async Task ProcessCraftingTTAPIData()
+        public async Task ProcessCraftingTTAPIData()
         {
             if (CurentApiKeyValid)
             {
@@ -1903,6 +1903,26 @@ namespace EFT_OverlayAPP
             else
             {
                 logger.Error("API Key invalid. Cannot process Tarkov Tracker API data without a valid API key.");
+            }
+        }
+
+        public async Task UpdateCraftingTTAPIData()
+        {
+            if (!CurentApiKeyValid)
+            {
+                logger.Error("Cannot load TT craft modules because API key is invalid.");
+                return;
+            }
+            await ProcessCraftingTTAPIData();
+            if (MainWindow.requiredItemsWindow.IsVisible)
+            {
+                MainWindow.requiredItemsWindow.RequiredItemsView.Refresh();
+                MainWindow.requiredItemsWindow.CombinedRequiredItemsView.Refresh();
+                MainWindow.requiredItemsWindow.ManualCombinedRequiredItemsView.Refresh();
+            }
+            else
+            {
+                MainWindow.refreshRequiredItemsWindow = true;
             }
         }
 

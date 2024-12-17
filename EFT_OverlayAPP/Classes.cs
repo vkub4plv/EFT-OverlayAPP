@@ -472,6 +472,7 @@ namespace EFT_OverlayAPP
         }
         public string QuantityOwnedNeeded => $"{QuantityOwned} / {QuantityNeeded}";
         public bool IsFoundInRaid { get; set; }
+        public string SourceId { get; set; }
         public string SourceIcon { get; set; }
         public string SourceName { get; set; }
         public string SourceDetail { get; set; }

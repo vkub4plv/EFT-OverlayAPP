@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using NLog;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -95,13 +96,19 @@ namespace EFT_OverlayAPP
                 ApplyCombinedRequiredItemsSorting();
                 ApplyManualCombinedRequiredItemsSorting();
             }
-            else
+
+            // If Tarkov Tracker is enabled and HideItemsForCompletedQuests or SubtractFromManualCombinedItemsForCompletedQuests is true,
+            // ensure quest completion data is fetched before filtering.
+            if (ConfigWindow.AppConfig.IsTarkovTrackerApiEnabled &&
+                (ConfigWindow.AppConfig.HideItemsForCompletedQuests || ConfigWindow.AppConfig.SubtractFromManualCombinedItemsForCompletedQuests))
             {
-                // Data already loaded, refresh views
-                RequiredItemsView?.Refresh();
-                CombinedRequiredItemsView?.Refresh();
-                ManualCombinedRequiredItemsView?.Refresh();
+                await ConfigWindow.UpdateCraftingTTAPIData();
             }
+
+            // Refresh views after possibly loading quest data
+            RequiredItemsView?.Refresh();
+            CombinedRequiredItemsView?.Refresh();
+            ManualCombinedRequiredItemsView?.Refresh();
 
             // Hide loading indicator
             IsRequiredDataLoading = false;
@@ -131,6 +138,7 @@ namespace EFT_OverlayAPP
                                 QuantityNeeded = objective.Count,
                                 QuantityOwned = 0,
                                 IsFoundInRaid = objective.FoundInRaid,
+                                SourceId = quest.Id,
                                 SourceIcon = quest.Trader.ImageLink,
                                 SourceName = quest.Trader.Name,
                                 SourceDetail = quest.Name,
@@ -148,6 +156,7 @@ namespace EFT_OverlayAPP
                                     QuantityNeeded = objective.Count,
                                     QuantityOwned = 0,
                                     IsFoundInRaid = objective.FoundInRaid,
+                                    SourceId = quest.Id,
                                     SourceIcon = quest.Trader.ImageLink,
                                     SourceName = quest.Trader.Name,
                                     SourceDetail = quest.Name,
@@ -171,6 +180,7 @@ namespace EFT_OverlayAPP
                                 QuantityNeeded = objective.Count,
                                 QuantityOwned = 0,
                                 IsFoundInRaid = objective.FoundInRaid,
+                                SourceId = quest.Id,
                                 SourceIcon = quest.Trader.ImageLink,
                                 SourceName = quest.Trader.Name,
                                 SourceDetail = quest.Name,
@@ -196,6 +206,7 @@ namespace EFT_OverlayAPP
                             QuantityNeeded = req.Count,
                             QuantityOwned = 0,
                             IsFoundInRaid = false,
+                            SourceId = station.Id,
                             SourceIcon = station.ImageLink,
                             SourceName = station.Name,
                             SourceDetail = $"{station.Name} Level {level.Level}",
@@ -280,6 +291,20 @@ namespace EFT_OverlayAPP
                 if (entry.Item.Name == "WI-FI Camera" || entry.Item.Name == "MS2000 Marker")
                 {
                     return false;
+                }
+            }
+
+            // Filter by completed quests if config option is selected
+            if (ConfigWindow.AppConfig.HideItemsForCompletedQuests && entry.GroupType == "Quests")
+            {
+                // Check if the quest is completed
+                if (ConfigWindow.CraftingTTAPIDataList != null)
+                {
+                    var matchingQuest = ConfigWindow.CraftingTTAPIDataList.FirstOrDefault(q => (q.Id == entry.SourceId) && q.Complete);
+                    if (matchingQuest != null)
+                    {
+                        return false;
+                    }
                 }
             }
 
@@ -543,9 +568,22 @@ namespace EFT_OverlayAPP
                 }
             }
 
+            // Hide if items for completed quests and it's a quest item
+            if (ConfigWindow.AppConfig.HideItemsForCompletedQuests && entry.GroupType == "Quests")
+            {
+                if (ConfigWindow.CraftingTTAPIDataList != null)
+                {
+                    var matchingQuest = ConfigWindow.CraftingTTAPIDataList
+                        .FirstOrDefault(q => q.Id == entry.SourceId && q.Complete);
+                    if (matchingQuest != null)
+                    {
+                        return false;
+                    }
+                }
+            }
+
             return true;
         }
-
 
         private void RequiredItemEntry_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
@@ -727,7 +765,7 @@ namespace EFT_OverlayAPP
 
         private bool IsManualSourceEntryVisible(RequiredItemEntry entry)
         {
-            // If subtracting items from built stations
+            // Subtract for built stations
             if (ConfigWindow.AppConfig.SubtractFromManualCombinedItemsForBuiltStations && entry.GroupType == "Hideout")
             {
                 string moduleName = entry.SourceDetail.Split(" Level")[0];
@@ -738,18 +776,30 @@ namespace EFT_OverlayAPP
 
                 if (matchingModule != null && matchingModule.SelectedLevel >= level)
                 {
-                    // Hide this source
                     return false;
                 }
             }
 
-            // If subtracting plant items
+            // Subtract plant items
             if (ConfigWindow.AppConfig.SubtractPlantItems)
             {
                 if (entry.Item.Name == "WI-FI Camera" || entry.Item.Name == "MS2000 Marker")
                 {
-                    // Hide this source
                     return false;
+                }
+            }
+
+            // Subtract for completed quests if enabled
+            if (ConfigWindow.AppConfig.SubtractFromManualCombinedItemsForCompletedQuests && entry.GroupType == "Quests")
+            {
+                if (ConfigWindow.CraftingTTAPIDataList != null)
+                {
+                    var matchingQuest = ConfigWindow.CraftingTTAPIDataList
+                        .FirstOrDefault(q => q.Id == entry.SourceId && q.Complete);
+                    if (matchingQuest != null)
+                    {
+                        return false;
+                    }
                 }
             }
 
@@ -1076,10 +1126,21 @@ namespace EFT_OverlayAPP
 
         private async void AppConfig_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(AppConfig.HidePlantItems) || e.PropertyName == nameof(AppConfig.SubtractPlantItems) || e.PropertyName == nameof(AppConfig.HideItemsForBuiltStations)
-                || e.PropertyName == nameof(AppConfig.SubtractFromManualCombinedItemsForBuiltStations)
-                || e.PropertyName == nameof(AppConfig.HideItemsForCompletedQuests) || e.PropertyName == nameof(AppConfig.SubtractFromManualCombinedItemsForCompletedQuests))
+            if (e.PropertyName == nameof(AppConfig.HidePlantItems) ||
+                e.PropertyName == nameof(AppConfig.SubtractPlantItems) ||
+                e.PropertyName == nameof(AppConfig.HideItemsForBuiltStations) ||
+                e.PropertyName == nameof(AppConfig.SubtractFromManualCombinedItemsForBuiltStations) ||
+                e.PropertyName == nameof(AppConfig.HideItemsForCompletedQuests) ||
+                e.PropertyName == nameof(AppConfig.SubtractFromManualCombinedItemsForCompletedQuests))
             {
+                // If quests completion filters changed and API is enabled, refetch data
+                if ((e.PropertyName == nameof(AppConfig.HideItemsForCompletedQuests) ||
+                     e.PropertyName == nameof(AppConfig.SubtractFromManualCombinedItemsForCompletedQuests)) &&
+                     ConfigWindow.AppConfig.IsTarkovTrackerApiEnabled)
+                {
+                    await ConfigWindow.UpdateCraftingTTAPIData();
+                }
+
                 if (this.IsVisible)
                 {
                     RequiredItemsView.Refresh();
