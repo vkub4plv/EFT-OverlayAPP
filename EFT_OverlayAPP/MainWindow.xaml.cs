@@ -338,6 +338,7 @@ namespace EFT_OverlayAPP
                 {
                     requiredItemsWindow.Show();
                     requiredItemsWindow.ReloadData();
+                    lastVisibleState = EffectiveProfileMode;
                 }
                 else
                 {
