@@ -580,11 +580,6 @@
                                       IsChecked="{Binding SubtractFromManualCombinedItemsForCompletedQuests, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                       IsEnabled="{Binding IsTarkovTrackerApiEnabled}"/>
                     
-                            <!-- Hide Items for Completed Quests (if using Tarkov Tracker) -->
-                            <CheckBox x:Name="AutoCompleteSubTasksForFoundItemsCheckBox" 
-                                      Content="Automatically complete sub-tasks after finding items needed for them (Requires Tarkov Tracker)" 
-                                      IsChecked="{Binding AutoCompleteSubTasksForFoundItems, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                      IsEnabled="{Binding IsTarkovTrackerApiEnabled}"/>
                         </StackPanel>
                     </GroupBox>
 

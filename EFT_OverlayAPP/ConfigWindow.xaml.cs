@@ -178,7 +178,6 @@ namespace EFT_OverlayAPP
                 HideRaidTimerOnRaidEnd = true,
                 HideItemsForBuiltStations = true,
                 HideItemsForCompletedQuests = false,
-                AutoCompleteSubTasksForFoundItems = false,
                 HidePlantItems = false,
                 SubtractPlantItems = false,
                 HideModuleNamesInCombinedNeededItems = false,

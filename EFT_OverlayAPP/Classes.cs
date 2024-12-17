@@ -889,13 +889,11 @@ namespace EFT_OverlayAPP
                         hideItemsForCompletedQuests = false;
                         subtractFromManualCombinedItemsForCompletedQuests = false;
                         subtractFromManualCombinedItemsForBuiltStations = false;
-                        autoCompleteSubTasksForFoundItems = false;
                         OnPropertyChanged(nameof(IsManualCraftSource));
                         OnPropertyChanged(nameof(IsManualHideoutSource));
                         OnPropertyChanged(nameof(HideItemsForCompletedQuests));
                         OnPropertyChanged(nameof(SubtractFromManualCombinedItemsForCompletedQuests));
                         OnPropertyChanged(nameof(SubtractFromManualCombinedItemsForBuiltStations));
-                        OnPropertyChanged(nameof(AutoCompleteSubTasksForFoundItems));
                     }
                     isTarkovTrackerApiEnabled = value;
                     OnPropertyChanged(nameof(IsTarkovTrackerApiEnabled));
@@ -1187,20 +1185,6 @@ namespace EFT_OverlayAPP
                 {
                     hideItemsForCompletedQuests = value;
                     OnPropertyChanged(nameof(HideItemsForCompletedQuests));
-                }
-            }
-        }
-
-        private bool autoCompleteSubTasksForFoundItems;
-        public bool AutoCompleteSubTasksForFoundItems
-        {
-            get => autoCompleteSubTasksForFoundItems;
-            set
-            {
-                if (autoCompleteSubTasksForFoundItems != value)
-                {
-                    autoCompleteSubTasksForFoundItems = value;
-                    OnPropertyChanged(nameof(AutoCompleteSubTasksForFoundItems));
                 }
             }
         }
