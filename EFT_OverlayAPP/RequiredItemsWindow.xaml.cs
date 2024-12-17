@@ -129,7 +129,7 @@ namespace EFT_OverlayAPP
                             // Multiple items can fulfill the objective
                             var combinedEntry = new RequiredItemEntry
                             {
-                                Id = objective.Id,
+                                Id = $"{quest.Id}_{objective.Id}_combined",
                                 Item = new Item
                                 {
                                     Name = $"{quest.Name} - Multiple Items",
@@ -151,7 +151,7 @@ namespace EFT_OverlayAPP
                             {
                                 var entry = new RequiredItemEntry
                                 {
-                                    Id = item.Id,
+                                    Id = $"{quest.Id}_{objective.Id}_{item.Id}",
                                     Item = item,
                                     QuantityNeeded = objective.Count,
                                     QuantityOwned = 0,
@@ -175,7 +175,7 @@ namespace EFT_OverlayAPP
                             var item = objective.Items.First();
                             var entry = new RequiredItemEntry
                             {
-                                Id = item.Id,
+                                Id = $"{quest.Id}_{objective.Id}_{item.Id}",
                                 Item = item,
                                 QuantityNeeded = objective.Count,
                                 QuantityOwned = 0,
