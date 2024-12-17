@@ -301,6 +301,12 @@ namespace EFT_OverlayAPP
                 craftingWindow = new CraftingWindow(this, configWindow);
             }
 
+            if (refreshCraftingWindow)
+            {
+                refreshCraftingWindow = false;
+                craftingWindow.ItemsView.Refresh();
+            }
+
             if (!craftingWindow.IsVisible)
             {
                 craftingWindow.Show();
@@ -349,11 +355,6 @@ namespace EFT_OverlayAPP
             if (configWindow == null)
             {
                 configWindow = new ConfigWindow(this);
-            }
-
-            if (refreshCraftingWindow)
-            {
-                craftingWindow.ItemsView.Refresh();
             }
 
             if (!configWindow.IsVisible)
