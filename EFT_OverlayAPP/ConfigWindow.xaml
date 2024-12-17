@@ -544,13 +544,13 @@
 
                             <!-- Hide Plant Items -->
                             <CheckBox x:Name="HidePlantItemsCheckBox" 
-                                      Content="Hide plant items (WI-FI Camera and MS2000 Marker)" 
+                                      Content="Hide plant items (WI-FI Camera, MS2000 Marker, Signal Jammer and Radio repeater)" 
                                       Margin="0,0,0,10" 
                                       IsChecked="{Binding HidePlantItems, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
                             <!-- Subtract Plant Items - from Manual Combined Items Needed -->
                             <CheckBox x:Name="SubtractPlantItemsCheckBox" 
-                                      Content="Subtract plant items (WI-FI Camera and MS2000 Marker) from Manual Combined Items Needed" 
+                                      Content="Subtract plant items (WI-FI Camera, MS2000 Marker, Signal Jammer and Radio repeater) from the manual tab" 
                                       Margin="0,0,0,10" 
                                       IsChecked="{Binding SubtractPlantItems, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
@@ -562,7 +562,7 @@
 
                             <!-- Subtract from Manual Combined Items Needed for built Hideout Stations -->
                             <CheckBox x:Name="SubtractFromManualCombinedItemsForBuiltStationsCheckBox" 
-                                      Content="Subtract from manual combined required items needed for stations that have already been built" 
+                                      Content="Subtract items needed for stations that have already been built from the manual tab" 
                                       Margin="0,0,0,10" 
                                       IsChecked="{Binding SubtractFromManualCombinedItemsForBuiltStations, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 

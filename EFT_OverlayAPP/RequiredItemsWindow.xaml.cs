@@ -285,10 +285,10 @@ namespace EFT_OverlayAPP
                 }
             }
 
-            // Filter by plant items (WI-FI Camera and MS2000 Marker) if config option is selected
+            // Filter by plant items (WI-FI Camera, MS2000 Marker, Signal Jammer and Radio repeater) if config option is selected
             if (ConfigWindow.AppConfig.HidePlantItems)
             {
-                if (entry.Item.Name == "WI-FI Camera" || entry.Item.Name == "MS2000 Marker")
+                if (entry.Item.Name == "WI-FI Camera" || entry.Item.Name == "MS2000 Marker" || entry.Item.Name == "Signal Jammer" || entry.Item.Name == "Radio repeater")
                 {
                     return false;
                 }
@@ -562,7 +562,7 @@ namespace EFT_OverlayAPP
             // Hide if plant items are to be hidden
             if (ConfigWindow.AppConfig.HidePlantItems)
             {
-                if (entry.Item.Name == "WI-FI Camera" || entry.Item.Name == "MS2000 Marker")
+                if (entry.Item.Name == "WI-FI Camera" || entry.Item.Name == "MS2000 Marker" || entry.Item.Name == "Signal Jammer" || entry.Item.Name == "Radio repeater")
                 {
                     return false;
                 }
@@ -783,7 +783,7 @@ namespace EFT_OverlayAPP
             // Subtract plant items
             if (ConfigWindow.AppConfig.SubtractPlantItems)
             {
-                if (entry.Item.Name == "WI-FI Camera" || entry.Item.Name == "MS2000 Marker")
+                if (entry.Item.Name == "WI-FI Camera" || entry.Item.Name == "MS2000 Marker" || entry.Item.Name == "Signal Jammer" || entry.Item.Name == "Radio repeater")
                 {
                     return false;
                 }

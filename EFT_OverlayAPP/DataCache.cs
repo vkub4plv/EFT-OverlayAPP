@@ -451,12 +451,43 @@ namespace EFT_OverlayAPP
                                 Items = new List<Item>()
                             };
 
-                            objective.Items.Add(new Item
+
+                            if (objectiveInfo.Description.ToLower().Contains("signal") && objectiveInfo.Description.ToLower().Contains("jammer"))
                             {
-                                Id = "5991b51486f77447b112d44f",
-                                Name = "MS2000 Marker",
-                                IconLink = "https://assets.tarkov.dev/5991b51486f77447b112d44f-icon.webp"
-                            });
+                                objective.Items.Add(new Item
+                                {
+                                    Id = "5ac78a9b86f7741cca0bbd8d",
+                                    Name = "Signal Jammer",
+                                    IconLink = "https://assets.tarkov.dev/5ac78a9b86f7741cca0bbd8d-icon.webp"
+                                });
+                            }
+                            else if (objectiveInfo.Description.ToLower().Contains("radio") && objectiveInfo.Description.ToLower().Contains("repeater"))
+                            {
+                                objective.Items.Add(new Item
+                                {
+                                    Id = "63a0b2eabea67a6d93009e52",
+                                    Name = "Radio repeater",
+                                    IconLink = "https://assets.tarkov.dev/63a0b2eabea67a6d93009e52-icon.webp"
+                                });
+                            }
+                            else if (objectiveInfo.Description.ToLower().Contains("ms2000") && objectiveInfo.Description.ToLower().Contains("marker"))
+                            {
+                                objective.Items.Add(new Item
+                                {
+                                    Id = "5991b51486f77447b112d44f",
+                                    Name = "MS2000 Marker",
+                                    IconLink = "https://assets.tarkov.dev/5991b51486f77447b112d44f-icon.webp"
+                                });
+                            }
+                            else
+                            {
+                                objective.Items.Add(new Item
+                                {
+                                    Id = "5991b51486f77447b112d44f",
+                                    Name = "MS2000 Marker",
+                                    IconLink = "https://assets.tarkov.dev/5991b51486f77447b112d44f-icon.webp"
+                                });
+                            }
 
                             quest.Objectives.Add(objective);
                         }
