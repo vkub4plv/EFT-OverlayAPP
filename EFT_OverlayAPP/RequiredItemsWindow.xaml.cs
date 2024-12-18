@@ -1058,12 +1058,15 @@ namespace EFT_OverlayAPP
             }
         }
 
-        public async void ReloadData()
+        public async void ReloadData(bool discard = false)
         {
             try
             {
-                SaveQuantities();
-                SaveManualCombinedQuantities();
+                if (!discard)
+                {
+                    SaveQuantities();
+                    SaveManualCombinedQuantities();
+                }
 
                 // Show loading indicator
                 IsRequiredDataLoading = true;

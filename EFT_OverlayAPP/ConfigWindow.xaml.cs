@@ -603,6 +603,7 @@ namespace EFT_OverlayAPP
             {
                 File.Delete("manual_combined_quantities.json");
             }
+            MainWindow.requiredItemsWindow.ReloadData(discard: true);
             debounceDispatcher.Debounce(() => SaveConfig());
             MessageBox.Show("PVP profile required items have been reset.", "Reset Complete", MessageBoxButton.OK, MessageBoxImage.Information);
         }
@@ -619,6 +620,7 @@ namespace EFT_OverlayAPP
             {
                 File.Delete("manual_combined_quantities_pve.json");
             }
+            MainWindow.requiredItemsWindow.ReloadData(discard: true);
             debounceDispatcher.Debounce(() => SaveConfig());
             MessageBox.Show("PVE profile required items have been reset.", "Reset Complete", MessageBoxButton.OK, MessageBoxImage.Information);
         }
@@ -633,6 +635,7 @@ namespace EFT_OverlayAPP
             {
                 File.Delete("craftInstancesData.json");
             }
+            MainWindow.craftingWindow.ReloadData();
             debounceDispatcher.Debounce(() => SaveConfig());
             MessageBox.Show("PVP crafting data has been reset.", "Reset Complete", MessageBoxButton.OK, MessageBoxImage.Information);
         }
@@ -647,6 +650,7 @@ namespace EFT_OverlayAPP
             {
                 File.Delete("craftInstancesDataPVE.json");
             }
+            MainWindow.craftingWindow.ReloadData();
             debounceDispatcher.Debounce(() => SaveConfig());
             MessageBox.Show("PVE crafting data has been reset.", "Reset Complete", MessageBoxButton.OK, MessageBoxImage.Information);
         }
