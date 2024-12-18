@@ -2594,6 +2594,34 @@ namespace EFT_OverlayAPP
             }
         }
 
+        private bool isRequiredDataLoading = false;
+        public bool IsRequiredDataLoading
+        {
+            get => isRequiredDataLoading;
+            set
+            {
+                if (isRequiredDataLoading != value)
+                {
+                    isRequiredDataLoading = value;
+                    OnPropertyChanged(nameof(IsRequiredDataLoading));
+                }
+            }
+        }
+
+        private bool isLoading = false;
+        public bool IsLoading
+        {
+            get => isLoading;
+            set
+            {
+                if (isLoading != value)
+                {
+                    isLoading = value;
+                    OnPropertyChanged(nameof(IsLoading));
+                }
+            }
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected void OnPropertyChanged(string propertyName)

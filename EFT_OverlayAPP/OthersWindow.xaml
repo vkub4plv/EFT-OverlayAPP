@@ -29,7 +29,9 @@
                     Foreground="White"
                     BorderBrush="Gray"
                     BorderThickness="1"
-                    Opacity="0.8">
+                    Opacity="0.8"
+                    IsEnabled="{Binding IsLoading,
+                                        Converter={StaticResource InverseBooleanConverter}}" >
                 <Button.Visibility>
                     <MultiBinding Converter="{StaticResource AdvancedOtherWindowButtonsVisibilityConverter}">
                         <Binding Path = "IsInRaid" />
@@ -49,7 +51,9 @@
                     Foreground="White"
                     BorderBrush="Gray"
                     BorderThickness="1"
-                    Opacity="0.8">
+                    Opacity="0.8"
+                    IsEnabled="{Binding IsRequiredDataLoading,
+                                        Converter={StaticResource InverseBooleanConverter}}" >
                 <Button.Visibility>
                     <MultiBinding Converter="{StaticResource AdvancedOtherWindowButtonsVisibilityConverter}">
                         <Binding Path="IsInRaid" />

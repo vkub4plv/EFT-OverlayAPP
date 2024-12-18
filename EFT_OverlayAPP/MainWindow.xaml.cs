@@ -26,8 +26,8 @@ namespace EFT_OverlayAPP
         public ObservableCollection<CraftTimerDisplayItem> ActiveCraftTimers { get; set; } = new ObservableCollection<CraftTimerDisplayItem>();
         public CraftingWindow craftingWindow;
         private WebViewWindow webViewWindow;
-        private OthersWindow othersWindow;
         public RequiredItemsWindow requiredItemsWindow;
+        private OthersWindow othersWindow;
         private ConfigWindow configWindow;
         private IntPtr hwnd;
         public ProfileMode LastProfileMode { get; set; }
@@ -154,10 +154,6 @@ namespace EFT_OverlayAPP
             // Create and show the WebView window
             webViewWindow = new WebViewWindow(this, configWindow, gameStateManager);
 
-            // Show the OthersWindow
-            othersWindow = new OthersWindow(this, gameStateManager.GameState, configWindow);
-            othersWindow.Show();
-
             // Register the global hotkeys
             source = HwndSource.FromHwnd(hwnd);
             source.AddHook(HwndHook);
@@ -166,6 +162,13 @@ namespace EFT_OverlayAPP
             craftingWindow = new CraftingWindow(this, configWindow);
             craftingWindow.Activate();
             craftingWindow.RefreshAllViews();
+
+            requiredItemsWindow = new RequiredItemsWindow(this, configWindow);
+            requiredItemsWindow.Activate();
+
+            // Show the OthersWindow
+            othersWindow = new OthersWindow(this, gameStateManager.GameState, configWindow);
+            othersWindow.Show();
 
             HideCraftingUIWhenInRaid = configWindow.AppConfig.HideCraftingUIWhenInRaid;
             configWindow.AppConfig.PropertyChanged += (sender, args) =>
@@ -1027,11 +1030,17 @@ namespace EFT_OverlayAPP
                             handled = true;
                             break;
                         case "Open Crafting Window":
-                            OpenCraftingWindow();
+                            if (craftingWindow != null && !craftingWindow.IsLoading)
+                            {
+                                OpenCraftingWindow();
+                            }
                             handled = true;
                             break;
                         case "Open Required Items Window":
-                            OpenRequiredItemsWindow();
+                            if (requiredItemsWindow != null && !requiredItemsWindow.IsRequiredDataLoading)
+                            {
+                                OpenRequiredItemsWindow();
+                            }
                             handled = true;
                             break;
                         case "Open Config Window":

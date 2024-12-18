@@ -34,7 +34,9 @@ namespace EFT_OverlayAPP
                 Main = mainWindow,
                 IsInRaid = gameState.IsInRaid,
                 HideOtherWindowButtonsWhenInRaid = configWindow.AppConfig.HideOtherWindowButtonsWhenInRaid,
-                ManualOtherWindowButtonsVisibilityOverride = mainWindow.ManualOtherWindowButtonsVisibilityOverride
+                ManualOtherWindowButtonsVisibilityOverride = mainWindow.ManualOtherWindowButtonsVisibilityOverride,
+                IsRequiredDataLoading = mainWindow.requiredItemsWindow.IsRequiredDataLoading,
+                IsLoading = mainWindow.craftingWindow.IsLoading
             };
             this.DataContext = dataBinding; // Set DataContext
             this.Owner = mainWindow;
@@ -52,6 +54,22 @@ namespace EFT_OverlayAPP
                 if (args.PropertyName == nameof(mainWindow.ManualOtherWindowButtonsVisibilityOverride))
                 {
                     dataBinding.ManualOtherWindowButtonsVisibilityOverride = mainWindow.ManualOtherWindowButtonsVisibilityOverride;
+                }
+            };
+
+            mainWindow.requiredItemsWindow.PropertyChanged += (sender, args) =>
+            {
+                if (args.PropertyName == nameof(mainWindow.requiredItemsWindow.IsRequiredDataLoading))
+                {
+                    dataBinding.IsRequiredDataLoading = mainWindow.requiredItemsWindow.IsRequiredDataLoading;
+                }
+            };
+
+            mainWindow.craftingWindow.PropertyChanged += (sender, args) =>
+            {
+                if (args.PropertyName == nameof(mainWindow.craftingWindow.IsLoading))
+                {
+                    dataBinding.IsLoading = mainWindow.craftingWindow.IsLoading;
                 }
             };
 

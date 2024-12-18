@@ -146,8 +146,6 @@ namespace EFT_OverlayAPP
                     ReloadData();
                 }
                 IsLoading = false;
-
-                isInitialized = true; // Set initialization flag
             });
         }
 
