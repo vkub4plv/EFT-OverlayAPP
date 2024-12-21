@@ -30,6 +30,8 @@
     <None Remove="StationIcons\Nutrition Unit.png" />
     <None Remove="StationIcons\Water Collector.png" />
     <None Remove="StationIcons\Workbench.png" />
+    <None Remove="tessdata\Bender-Bold.traineddata" />
+    <None Remove="tessdata\Bender.traineddata" />
     <None Remove="tessdata\eng.traineddata" />
   </ItemGroup>
 
@@ -67,6 +69,12 @@
     <Content Include="StationIcons\Workbench.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="tessdata\Bender-Bold.traineddata">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tessdata\Bender.traineddata">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="tessdata\eng.traineddata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -88,28 +96,28 @@
 
   <ItemGroup>
     <Resource Include="FIR.png">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Fonts\Jovanny Lemonad - Bender-BlackItalic.otf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Fonts\Jovanny Lemonad - Bender-Bold.otf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Fonts\Jovanny Lemonad - Bender-BoldItalic.otf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Fonts\Jovanny Lemonad - Bender-Italic.otf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Fonts\Jovanny Lemonad - Bender-Light.otf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Fonts\Jovanny Lemonad - Bender-LightItalic.otf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Fonts\Jovanny Lemonad - Bender.otf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>
 
