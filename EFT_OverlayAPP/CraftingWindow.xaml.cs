@@ -599,7 +599,7 @@ namespace EFT_OverlayAPP
                     if (craftInstance != null)
                     {
                         craftInstance.Status = CraftInstanceStatus.Completed;
-                        craftInstance.CompletedTime = DateTime.Now;
+                        craftInstance.CompletedTime = craftInstance.StartTime.Add(craftInstance.CraftableItem.CraftTime);
                     }
 
                     // Notify the main window to update the display
