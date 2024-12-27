@@ -37,7 +37,8 @@ namespace EFT_OverlayAPP
             "Intelligence Center",
             "Booze Generator",
             "Bitcoin Farm",
-            "Water Collector"
+            "Water Collector",
+            "Christmas Tree"
         };
 
         // Cached data collections
