@@ -175,7 +175,7 @@
                     </Grid.RowDefinitions>
 
                     <!-- Monitor Selection -->
-                    <GroupBox Header="Monitor Selection" Grid.Row="0" Margin="0,0,0,10">
+                    <GroupBox Header="Monitor Selection" Grid.Row="0" Margin="0,0,0,10" Visibility="Collapsed"> <!-- Hidden until implementation -->
                         <StackPanel Orientation="Horizontal" Margin="10">
                             <TextBlock Text="Select Monitor:" VerticalAlignment="Center" Margin="0,0,10,0"/>
                             <ComboBox x:Name="MonitorSelectionComboBox" Width="200" 
@@ -187,7 +187,7 @@
                     </GroupBox>
 
                     <!-- Resolution -->
-                    <GroupBox Header="Screen Resolution" Grid.Row="1" Margin="0,0,0,10">
+                    <GroupBox Header="Screen Resolution" Grid.Row="1" Margin="0,0,0,10" Visibility="Collapsed"> <!-- Hidden until implementation -->
                         <StackPanel Margin="10">
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                                 <TextBlock Text="Detected Resolution:" VerticalAlignment="Center" Margin="0,0,10,0"/>
@@ -208,7 +208,7 @@
                     </GroupBox>
 
                     <!-- Overlay Items Positions -->
-                    <GroupBox Header="Overlay Items Positions" Grid.Row="2" Margin="0,0,0,10">
+                    <GroupBox Header="Overlay Items Positions" Grid.Row="2" Margin="0,0,0,10" Visibility="Collapsed"> <!-- Hidden until implementation -->
                         <StackPanel Margin="10">
                             <Button Content="Unlock/Save Positions" Width="150" Click="UnlockSavePositionsButton_Click" Margin="0,0,0,5"/>
                             <Button Content="Reset Positions to Default" Width="200" Click="ResetPositionsButton_Click"/>
