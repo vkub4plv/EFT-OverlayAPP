@@ -428,7 +428,6 @@ namespace EFT_OverlayAPP
 
         private void CraftsTimer_Tick(object sender, EventArgs e)
         {
-            logger.Info("CraftsTimer_Tick invoked.");
             foreach (var displayItem in ActiveCraftTimers)
             {
                 displayItem.CraftItem.UpdateRemainingTime();
