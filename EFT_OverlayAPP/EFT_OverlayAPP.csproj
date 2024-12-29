@@ -19,58 +19,58 @@
     <None Remove="Fonts\Jovanny Lemonad - Bender-Light.otf" />
     <None Remove="Fonts\Jovanny Lemonad - Bender-LightItalic.otf" />
     <None Remove="Fonts\Jovanny Lemonad - Bender.otf" />
-    <None Remove="StationIcons\Bitcoin Farm.png" />
-    <None Remove="StationIcons\Booze Generator.png" />
-    <None Remove="StationIcons\Christmas Tree.png" />
-    <None Remove="StationIcons\Cultist Circle.png" />
-    <None Remove="StationIcons\default.png" />
-    <None Remove="StationIcons\Gear Rack.png" />
-    <None Remove="StationIcons\Intelligence Center.png" />
-    <None Remove="StationIcons\Lavatory.png" />
-    <None Remove="StationIcons\Medstation.png" />
-    <None Remove="StationIcons\Nutrition Unit.png" />
-    <None Remove="StationIcons\Water Collector.png" />
-    <None Remove="StationIcons\Workbench.png" />
+    <None Remove="Icons\StationIcons\Bitcoin Farm.png" />
+    <None Remove="Icons\StationIcons\Booze Generator.png" />
+    <None Remove="Icons\StationIcons\Christmas Tree.png" />
+    <None Remove="Icons\StationIcons\Cultist Circle.png" />
+    <None Remove="Icons\StationIcons\default.png" />
+    <None Remove="Icons\StationIcons\Gear Rack.png" />
+    <None Remove="Icons\StationIcons\Intelligence Center.png" />
+    <None Remove="Icons\StationIcons\Lavatory.png" />
+    <None Remove="Icons\StationIcons\Medstation.png" />
+    <None Remove="Icons\StationIcons\Nutrition Unit.png" />
+    <None Remove="Icons\StationIcons\Water Collector.png" />
+    <None Remove="Icons\StationIcons\Workbench.png" />
     <None Remove="tessdata\Bender-Bold.traineddata" />
     <None Remove="tessdata\Bender.traineddata" />
     <None Remove="tessdata\eng.traineddata" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="StationIcons\Bitcoin Farm.png">
+    <Content Include="Icons\StationIcons\Bitcoin Farm.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="StationIcons\Booze Generator.png">
+    <Content Include="Icons\StationIcons\Booze Generator.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="StationIcons\Christmas Tree.png">
+    <Content Include="Icons\StationIcons\Christmas Tree.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="StationIcons\Cultist Circle.png">
+    <Content Include="Icons\StationIcons\Cultist Circle.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="StationIcons\default.png">
+    <Content Include="Icons\StationIcons\default.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="StationIcons\Gear Rack.png">
+    <Content Include="Icons\StationIcons\Gear Rack.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="StationIcons\Intelligence Center.png">
+    <Content Include="Icons\StationIcons\Intelligence Center.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="StationIcons\Lavatory.png">
+    <Content Include="Icons\StationIcons\Lavatory.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="StationIcons\Medstation.png">
+    <Content Include="Icons\StationIcons\Medstation.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="StationIcons\Nutrition Unit.png">
+    <Content Include="Icons\StationIcons\Nutrition Unit.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="StationIcons\Water Collector.png">
+    <Content Include="Icons\StationIcons\Water Collector.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="StationIcons\Workbench.png">
+    <Content Include="Icons\StationIcons\Workbench.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="tessdata\Bender-Bold.traineddata">
@@ -99,7 +99,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="FIR.png">
+    <Resource Include="Icons\FIR.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Fonts\Jovanny Lemonad - Bender-BlackItalic.otf">

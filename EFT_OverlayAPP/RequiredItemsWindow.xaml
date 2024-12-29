@@ -52,7 +52,7 @@
                                                     <!-- Item Name and FIR Icon -->
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock Text="{Binding Item.Name}" FontWeight="Bold"/>
-                                                        <Image Source="pack://application:,,,/FIR.png"
+                                                        <Image Source="{StaticResource FIRImage}"
                                                            Width="16" Height="16" Margin="5,0,0,0"
                                                            Visibility="{Binding IsFoundInRaid, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                                                     </StackPanel>
@@ -149,7 +149,7 @@
                                                     <!-- Item Name and FIR Icon -->
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock Text="{Binding Item.Name}" FontWeight="Bold"/>
-                                                        <Image Source="pack://application:,,,/FIR.png"
+                                                        <Image Source="{StaticResource FIRImage}"
                                                            Width="16" Height="16" Margin="5,0,0,0"
                                                            Visibility="{Binding IsFoundInRaid, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                                                     </StackPanel>
@@ -225,7 +225,7 @@
                                                     <!-- Item Name and FIR Icon -->
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock Text="{Binding Item.Name}" FontWeight="Bold"/>
-                                                        <Image Source="pack://application:,,,/FIR.png"
+                                                        <Image Source="{StaticResource FIRImage}"
                                                            Width="16" Height="16" Margin="5,0,0,0"
                                                            Visibility="{Binding IsFoundInRaid, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                                                     </StackPanel>

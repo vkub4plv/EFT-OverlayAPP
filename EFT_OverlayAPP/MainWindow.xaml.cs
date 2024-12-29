@@ -674,7 +674,7 @@ namespace EFT_OverlayAPP
                     if (displayItem == null)
                     {
                         // Load the station icon
-                        var iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "StationIcons", $"{item.Station}.png");
+                        var iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Icons", "StationIcons", $"{item.Station}.png");
                         ImageSource icon = null;
                         if (File.Exists(iconPath))
                         {
@@ -683,7 +683,7 @@ namespace EFT_OverlayAPP
                         else
                         {
                             // Handle missing icon - use a default icon
-                            var defaultIconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "StationIcons", "default.png");
+                            var defaultIconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Icons", "StationIcons", "default.png");
                             if (File.Exists(defaultIconPath))
                             {
                                 icon = new BitmapImage(new Uri(defaultIconPath));

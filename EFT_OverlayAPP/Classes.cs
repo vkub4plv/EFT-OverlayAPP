@@ -518,7 +518,7 @@ namespace EFT_OverlayAPP
                             ? "Cultist Circle.png"
                             : "Gear Rack.png";
 
-                        string localIconPath = Path.Combine(baseDir, "StationIcons", iconFileName);
+                        string localIconPath = Path.Combine(baseDir, "Icons", "StationIcons", iconFileName);
                         if (File.Exists(localIconPath))
                         {
                             _displaySourceIcon = new BitmapImage(new Uri(localIconPath, UriKind.Absolute));
@@ -526,7 +526,7 @@ namespace EFT_OverlayAPP
                         else
                         {
                             // Fallback to a default icon if missing
-                            string defaultIconPath = Path.Combine(baseDir, "StationIcons", "default.png");
+                            string defaultIconPath = Path.Combine(baseDir, "Icons", "StationIcons", "default.png");
                             if (File.Exists(defaultIconPath))
                             {
                                 _displaySourceIcon = new BitmapImage(new Uri(defaultIconPath, UriKind.Absolute));
@@ -546,7 +546,7 @@ namespace EFT_OverlayAPP
                             {
                                 // If failed to load from URL, fallback to default
                                 string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-                                string defaultIconPath = Path.Combine(baseDir, "StationIcons", "default.png");
+                                string defaultIconPath = Path.Combine(baseDir, "Icons", "StationIcons", "default.png");
                                 if (File.Exists(defaultIconPath))
                                 {
                                     _displaySourceIcon = new BitmapImage(new Uri(defaultIconPath, UriKind.Absolute));
@@ -557,7 +557,7 @@ namespace EFT_OverlayAPP
                         {
                             // If SourceIcon is empty, fallback to default
                             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-                            string defaultIconPath = Path.Combine(baseDir, "StationIcons", "default.png");
+                            string defaultIconPath = Path.Combine(baseDir, "Icons", "StationIcons", "default.png");
                             if (File.Exists(defaultIconPath))
                             {
                                 _displaySourceIcon = new BitmapImage(new Uri(defaultIconPath, UriKind.Absolute));
@@ -596,7 +596,7 @@ namespace EFT_OverlayAPP
                             ? "Cultist Circle.png"
                             : "Gear Rack.png";
 
-                        string localIconPath = Path.Combine(baseDir, "StationIcons", iconFileName);
+                        string localIconPath = Path.Combine(baseDir, "Icons", "StationIcons", iconFileName);
                         if (File.Exists(localIconPath))
                         {
                             _displayIcon = new BitmapImage(new Uri(localIconPath, UriKind.Absolute));
@@ -604,7 +604,7 @@ namespace EFT_OverlayAPP
                         else
                         {
                             // Fallback to default if missing
-                            string defaultIconPath = Path.Combine(baseDir, "StationIcons", "default.png");
+                            string defaultIconPath = Path.Combine(baseDir, "Icons", "StationIcons", "default.png");
                             if (File.Exists(defaultIconPath))
                             {
                                 _displayIcon = new BitmapImage(new Uri(defaultIconPath, UriKind.Absolute));
@@ -624,7 +624,7 @@ namespace EFT_OverlayAPP
                             {
                                 // If failed, fallback to default
                                 string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-                                string defaultIconPath = Path.Combine(baseDir, "StationIcons", "default.png");
+                                string defaultIconPath = Path.Combine(baseDir, "Icons", "StationIcons", "default.png");
                                 if (File.Exists(defaultIconPath))
                                 {
                                     _displayIcon = new BitmapImage(new Uri(defaultIconPath, UriKind.Absolute));
@@ -635,7 +635,7 @@ namespace EFT_OverlayAPP
                         {
                             // If no icon URL, use default
                             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-                            string defaultIconPath = Path.Combine(baseDir, "StationIcons", "default.png");
+                            string defaultIconPath = Path.Combine(baseDir, "Icons", "StationIcons", "default.png");
                             if (File.Exists(defaultIconPath))
                             {
                                 _displayIcon = new BitmapImage(new Uri(defaultIconPath, UriKind.Absolute));
@@ -1494,7 +1494,7 @@ namespace EFT_OverlayAPP
                     string iconFileName = ModuleName.Equals("Cultist Circle", StringComparison.OrdinalIgnoreCase)
                         ? "Cultist Circle.png"
                         : "Gear Rack.png";
-                    string localIconPath = Path.Combine(baseDir, "StationIcons", iconFileName);
+                    string localIconPath = Path.Combine(baseDir, "Icons", "StationIcons", iconFileName);
                     if (File.Exists(localIconPath))
                     {
                         _stationIcon = new BitmapImage(new Uri(localIconPath, UriKind.Absolute));
@@ -1502,7 +1502,7 @@ namespace EFT_OverlayAPP
                     else
                     {
                         // If icon doesn't exist locally, consider loading a default fallback
-                        string defaultIconPath = Path.Combine(baseDir, "StationIcons", "default.png");
+                        string defaultIconPath = Path.Combine(baseDir, "Icons", "StationIcons", "default.png");
                         if (File.Exists(defaultIconPath))
                         {
                             _stationIcon = new BitmapImage(new Uri(defaultIconPath, UriKind.Absolute));
@@ -1519,7 +1519,7 @@ namespace EFT_OverlayAPP
                     {
                         // If StationImageLink is empty, fallback to a default icon
                         string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-                        string defaultIconPath = Path.Combine(baseDir, "StationIcons", "default.png");
+                        string defaultIconPath = Path.Combine(baseDir, "Icons", "StationIcons", "default.png");
                         if (File.Exists(defaultIconPath))
                         {
                             _stationIcon = new BitmapImage(new Uri(defaultIconPath, UriKind.Absolute));

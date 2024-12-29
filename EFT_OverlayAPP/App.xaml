@@ -23,5 +23,6 @@
         <local:InverseProfileModeToBoolConverter x:Key="InverseProfileModeToBoolConverter"/>
         <local:AdvancedOtherWindowButtonsVisibilityConverter x:Key="AdvancedOtherWindowButtonsVisibilityConverter"/>
         <local:AdvancedCraftingUIVisibilityConverter x:Key="AdvancedCraftingUIVisibilityConverter"/>
+        <BitmapImage x:Key="FIRImage" UriSource="pack://application:,,,/Icons/FIR.png" />
     </Application.Resources>
 </Application>

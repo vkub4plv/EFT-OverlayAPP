@@ -100,7 +100,7 @@ namespace EFT_OverlayAPP
 
     public class StationNameToIconConverter : IValueConverter
     {
-        public string IconFolderPath { get; set; } = "StationIcons";
+        public string IconFolderPath { get; set; } = "Icons/StationIcons";
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
