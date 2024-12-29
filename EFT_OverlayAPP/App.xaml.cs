@@ -32,6 +32,13 @@ namespace EFT_OverlayAPP
             {
                 logger.Error(ex, "An error occurred while loading data from Tarkov.dev API.");
                 MessageBox.Show("Failed to load application data. Check logs for details.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                if (ex is AggregateException aggregateEx)
+                {
+                    foreach (var innerEx in aggregateEx.InnerExceptions)
+                    {
+                        logger.Error(innerEx, "Inner exception:");
+                    }
+                }
             }
 
             // Show the main window
