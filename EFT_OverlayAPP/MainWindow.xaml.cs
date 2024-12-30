@@ -88,8 +88,8 @@ namespace EFT_OverlayAPP
         public bool IsEditingKeybind { get; set; }
 
         // Hotkey IDs
-        private const int HOTKEY_ID_RAID_TIMER = 9001; // Unique ID for Raid Timer OCR hotkey
-        private const int HOTKEY_ID_CRAFTING_WINDOW = 9002; // Unique ID for CraftingWindow hotkey
+        private const int HOTKEY_ID_RAID_TIMER = 9001;
+        private const int HOTKEY_ID_CRAFTING_WINDOW = 9002;
         private const int HOTKEY_ID_REQUIRED_ITEMS_WINDOW = 9003;
         private const int HOTKEY_ID_CONFIG_WINDOW = 9004;
         private const int HOTKEY_ID_MINIMAP_VISIBILITY = 9005;
@@ -294,7 +294,7 @@ namespace EFT_OverlayAPP
             UnregisterHotKey(hwnd, HOTKEY_ID_CRAFTING_TIMERS_VISIBILITY);
             UnregisterHotKey(hwnd, HOTKEY_ID_OTHERBUTTONS_WINDOW);
             UnregisterHotKey(hwnd, HOTKEY_ID_TOGGLE_RAID_TIMER);
-    }
+        }
 
         // Method to open the CraftingWindow
         public void OpenCraftingWindow()
@@ -957,8 +957,6 @@ namespace EFT_OverlayAPP
 
         private (uint modifiers, uint virtualKey) ParseKeybind(string keybind)
         {
-            // Example assumes a format: "Ctrl+Shift+T" or "Alt+F1"
-            // You can implement a more robust parser here.
             uint mods = 0;
             uint vk = 0;
             var parts = keybind.Split('+');
