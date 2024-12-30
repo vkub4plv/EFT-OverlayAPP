@@ -37,51 +37,6 @@ namespace EFT_OverlayAPP
             this.logFilePath = logFilePath;
         }
 
-        public void Start()
-        {
-            if (isMonitoring)
-                return;
-
-            try
-            {
-                if (!File.Exists(logFilePath))
-                {
-                    logger.Warn($"Log file does not exist: {logFilePath}");
-                }
-                else
-                {
-                    lastFileSize = new FileInfo(logFilePath).Length;
-                }
-
-                // Initialize FileSystemWatcher
-                fileWatcher = new FileSystemWatcher
-                {
-                    Path = Path.GetDirectoryName(logFilePath),
-                    Filter = Path.GetFileName(logFilePath),
-                    NotifyFilter = NotifyFilters.Size | NotifyFilters.LastWrite | NotifyFilters.FileName
-                };
-
-                fileWatcher.Changed += OnLogFileChanged;
-                fileWatcher.Renamed += OnLogFileRenamed;
-                fileWatcher.Created += OnLogFileCreated;
-                fileWatcher.Deleted += OnLogFileDeleted;
-                fileWatcher.Error += OnFileWatcherError;
-
-                fileWatcher.EnableRaisingEvents = true;
-
-                // Start polling
-                Task.Run(() => PollLogFileAsync(cancellationTokenSource.Token));
-
-                isMonitoring = true;
-                logger.Info($"Started monitoring log file: {logFilePath}");
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, $"Failed to start LogMonitor for {logFilePath}");
-                ExceptionOccurred?.Invoke(this, new ExceptionEventArgs(ex, "Starting LogMonitor"));
-            }
-        }
-
         public async void Start(bool processExistingEntries = false)
         {
             if (isMonitoring)
