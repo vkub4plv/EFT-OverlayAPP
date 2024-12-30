@@ -575,7 +575,10 @@ namespace EFT_OverlayAPP
             logger.Info($"Starting timer for craft: Item ID {item.Id}, Station {item.Station}");
             // If a timer already exists for this item, don't create a new one
             if (craftTimers.ContainsKey(item))
+            {
+                logger.Info($"Timer already exists for craft: Item ID {item.Id}, Station {item.Station}");
                 return;
+            }
 
             DispatcherTimer timer = new DispatcherTimer();
             timer.Interval = TimeSpan.FromSeconds(1);
