@@ -346,7 +346,7 @@ namespace EFT_OverlayAPP
                     // Check if the craft should now be marked as Ready
                     if (item.CraftStatus == CraftStatus.InProgress && item.CraftStartTime.HasValue)
                     {
-                        var elapsed = DateTime.Now - item.CraftStartTime.Value; // Use UtcNow
+                        var elapsed = DateTime.Now - item.CraftStartTime.Value;
                         if (elapsed >= item.CraftTime)
                         {
                             // Craft has completed while the app was closed
