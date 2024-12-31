@@ -2294,6 +2294,8 @@ namespace EFT_OverlayAPP
         // Events to notify other parts of the application
         public event EventHandler TokenValidated;
         public event EventHandler TokenInvalid;
+        public event EventHandler TokenInvalidWP;
+        public event EventHandler TokenInvalidGP;
         public event EventHandler ProgressRetrieved;
 
         public TarkovTrackerService(AppConfig config)
@@ -2336,16 +2338,28 @@ namespace EFT_OverlayAPP
             try
             {
                 var response = await apiClient.TestToken($"Bearer {currentToken}");
-                if (response.Permissions.Contains("WP")) // Assuming "WP" is a valid permission
+                if (response.Permissions.Contains("GP") & response.Permissions.Contains("WP"))
                 {
                     TokenValidated?.Invoke(this, EventArgs.Empty);
                     logger.Info("API token validated successfully.");
                     return true;
                 }
+                else if (response.Permissions.Contains("GP") && !response.Permissions.Contains("WP"))
+                {
+                    TokenInvalidWP?.Invoke(this, EventArgs.Empty);
+                    logger.Warn("API token does not have required WP (Write Progression) permissions.");
+                    return false;
+                }
+                else if (response.Permissions.Contains("WP") && !response.Permissions.Contains("GP"))
+                {
+                    TokenInvalidGP?.Invoke(this, EventArgs.Empty);
+                    logger.Warn("API token does not have required GP (Get Progression) permissions.");
+                    return false;
+                }
                 else
                 {
                     TokenInvalid?.Invoke(this, EventArgs.Empty);
-                    logger.Warn("API token does not have required permissions.");
+                    logger.Warn("API token does not have required WP (Write Progression) and GP (Get Progression) permissions.");
                     return false;
                 }
             }

@@ -81,6 +81,8 @@ namespace EFT_OverlayAPP
             // Subscribe to events
             tarkovTrackerService.TokenValidated += TarkovTrackerService_TokenValidated;
             tarkovTrackerService.TokenInvalid += TarkovTrackerService_TokenInvalid;
+            tarkovTrackerService.TokenInvalidWP += TarkovTrackerService_TokenInvalidWP;
+            tarkovTrackerService.TokenInvalidGP += TarkovTrackerService_TokenInvalidGP;
             tarkovTrackerService.ProgressRetrieved += TarkovTrackerService_ProgressRetrieved;
 
             // Validate the token on startup
@@ -1504,6 +1506,8 @@ namespace EFT_OverlayAPP
                         AppConfig.Keybinds.CollectionChanged -= Keybinds_CollectionChanged;
                         tarkovTrackerService.TokenValidated -= TarkovTrackerService_TokenValidated;
                         tarkovTrackerService.TokenInvalid -= TarkovTrackerService_TokenInvalid;
+                        tarkovTrackerService.TokenInvalidWP -= TarkovTrackerService_TokenInvalidWP;
+                        tarkovTrackerService.TokenInvalidGP -= TarkovTrackerService_TokenInvalidGP;
                         tarkovTrackerService.ProgressRetrieved -= TarkovTrackerService_ProgressRetrieved;
 
                         AppConfig.HideoutModuleSettingsTT.CollectionChanged -= HideoutModuleSettings_CollectionChanged;
@@ -1590,6 +1594,8 @@ namespace EFT_OverlayAPP
                     AppConfig.Keybinds.CollectionChanged += Keybinds_CollectionChanged;
                     tarkovTrackerService.TokenValidated += TarkovTrackerService_TokenValidated;
                     tarkovTrackerService.TokenInvalid += TarkovTrackerService_TokenInvalid;
+                    tarkovTrackerService.TokenInvalidWP += TarkovTrackerService_TokenInvalidWP;
+                    tarkovTrackerService.TokenInvalidGP += TarkovTrackerService_TokenInvalidGP;
                     tarkovTrackerService.ProgressRetrieved += TarkovTrackerService_ProgressRetrieved;
 
                     AppConfig.HideoutModuleSettingsTT.CollectionChanged += HideoutModuleSettings_CollectionChanged;
@@ -1866,6 +1872,18 @@ namespace EFT_OverlayAPP
             MessageBox.Show("Your Tarkov Tracker API token is invalid. Please update it in the settings.", "Invalid Token", MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
+        private void TarkovTrackerService_TokenInvalidWP(object sender, EventArgs e)
+        {
+            // Handle invalid WP token events
+            MessageBox.Show("Your Tarkov Tracker API token is missing the Write Progression permission. Please update it in the Tarkov Tracker settings.", "Invalid Token", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+
+        private void TarkovTrackerService_TokenInvalidGP(object sender, EventArgs e)
+        {
+            // Handle invalid GP token events
+            MessageBox.Show("Your Tarkov Tracker API token is missing the Get Progression permission. Please update it in the Tarkov Tracker settings.", "Invalid Token", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+
         private void TarkovTrackerService_TokenValidated(object sender, EventArgs e)
         {
             // Handle successful token validation
@@ -1991,6 +2009,8 @@ namespace EFT_OverlayAPP
             AppConfig.Keybinds.CollectionChanged -= Keybinds_CollectionChanged;
             tarkovTrackerService.TokenValidated -= TarkovTrackerService_TokenValidated;
             tarkovTrackerService.TokenInvalid -= TarkovTrackerService_TokenInvalid;
+            tarkovTrackerService.TokenInvalidWP -= TarkovTrackerService_TokenInvalidWP;
+            tarkovTrackerService.TokenInvalidGP -= TarkovTrackerService_TokenInvalidGP;
             tarkovTrackerService.ProgressRetrieved -= TarkovTrackerService_ProgressRetrieved;
 
             AppConfig.HideoutModuleSettingsTT.CollectionChanged -= HideoutModuleSettings_CollectionChanged;
