@@ -18,6 +18,9 @@ using System.Windows.Media.Imaging;
 using Microsoft.Win32;
 using NLog;
 using System.Windows.Controls;
+using System.Windows.Forms;
+using MessageBox = System.Windows.MessageBox;
+using Application = System.Windows.Application;
 
 namespace EFT_OverlayAPP
 {
@@ -138,6 +141,10 @@ namespace EFT_OverlayAPP
 
             IsRaidTimerVisible = false; // Initialize to false
 
+            // Subscribe to the display settings change event
+            this.SizeChanged += MainWindow_SizeChanged;
+            this.LocationChanged += Window_LocationChanged;
+            SystemEvents.DisplaySettingsChanged += SystemEvents_DisplaySettingsChanged;
             UpdateCanvases();
         }
 
@@ -245,6 +252,9 @@ namespace EFT_OverlayAPP
             source.RemoveHook(HwndHook);
             UnregisterHotKeys();
 
+            // Unsubscribe from a Display Settings Changed
+            SystemEvents.DisplaySettingsChanged -= SystemEvents_DisplaySettingsChanged;
+
             // Close the ConfigWindow if open
             if (configWindow != null)
             {
@@ -301,6 +311,8 @@ namespace EFT_OverlayAPP
         private const uint MOD_SHIFT = 0x0004;
         private const uint MOD_WIN = 0x0008;
         private const int WM_HOTKEY = 0x0312;
+        // DPI constant
+        private const int WM_DPICHANGED = 0x02E0;
 
         private void UnregisterHotKeys()
         {
@@ -1087,6 +1099,11 @@ namespace EFT_OverlayAPP
                     }
                 }
             }
+            if (msg == WM_DPICHANGED)
+            {
+                logger.Info("DPI changed");
+                debounceDispatcher.Debounce(() => UpdateCanvases());
+            }
             return IntPtr.Zero;
         }
 
@@ -1104,7 +1121,6 @@ namespace EFT_OverlayAPP
 
         private void ToggleMinimapVisibility()
         {
-            UpdateCanvases();
             if (webViewWindow != null)
             {
                 if (webViewWindow.IsVisible)
@@ -1240,6 +1256,25 @@ namespace EFT_OverlayAPP
                     }
                 }
             }
+        }
+
+        private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            logger.Info("Window size changed");
+            debounceDispatcher.Debounce(() => UpdateCanvases());
+        }
+
+        private void SystemEvents_DisplaySettingsChanged(object sender, EventArgs e)
+        {
+            logger.Info("Display settings changed");
+            debounceDispatcher.Debounce(() => UpdateCanvases());
+        }
+
+        private void Window_LocationChanged(object sender, EventArgs e)
+        {
+            var screen = System.Windows.Forms.Screen.FromHandle(new System.Windows.Interop.WindowInteropHelper(this).Handle);
+            logger.Info($"Window moved to monitor: {screen.DeviceName}");
+            debounceDispatcher.Debounce(() => UpdateCanvases());
         }
     }
 }
