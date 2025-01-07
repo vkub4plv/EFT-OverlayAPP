@@ -25,6 +25,7 @@ namespace EFT_OverlayAPP
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         public ObservableCollection<CraftTimerDisplayItem> ActiveCraftTimers { get; set; } = new ObservableCollection<CraftTimerDisplayItem>();
+        private DebounceDispatcher debounceDispatcher = new DebounceDispatcher(100); // 0.1 second debounce
         public CraftingWindow craftingWindow;
         private WebViewWindow webViewWindow;
         public RequiredItemsWindow requiredItemsWindow;
@@ -131,7 +132,7 @@ namespace EFT_OverlayAPP
 
             IsRaidTimerVisible = false; // Initialize to false
 
-            UpdateCanvases();
+            UpdateCanvases(allAtOnce: true);
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -182,7 +183,7 @@ namespace EFT_OverlayAPP
                 }
             };
 
-            UpdateCanvases();
+            UpdateCanvases(allAtOnce: true);
         }
 
         private void MainWindow_Closed(object sender, EventArgs e)
@@ -237,6 +238,13 @@ namespace EFT_OverlayAPP
             // Unregister the hotkeys
             source.RemoveHook(HwndHook);
             UnregisterHotKeys();
+
+            // Close the ConfigWindow if open
+            if (configWindow != null)
+            {
+                configWindow.Close();
+                configWindow = null;
+            }
         }
 
         private async void StartLoadingRequiredItemsData()
@@ -716,6 +724,7 @@ namespace EFT_OverlayAPP
                         };
                     }
                 }
+                debounceDispatcher.Debounce(() => UpdateCanvases(craftingTimers: true));
             });
         }
 
@@ -1089,7 +1098,7 @@ namespace EFT_OverlayAPP
 
         private void ToggleMinimapVisibility()
         {
-            UpdateCanvases();
+            UpdateCanvases(allAtOnce: true);
             if (webViewWindow != null)
             {
                 if (webViewWindow.IsVisible)
@@ -1142,7 +1151,7 @@ namespace EFT_OverlayAPP
             OnPropertyChanged(nameof(ManualOtherWindowButtonsVisibilityOverride));
         }
 
-        private void UpdateCanvases()
+        private void UpdateCanvases(bool craftingTimers = false, bool raidTimer = false, bool Buttons = false, bool Minimap = false, bool allAtOnce = false)
         {
             double BaseWidth = 2560;
             double BaseHeight = 1440;
@@ -1153,10 +1162,29 @@ namespace EFT_OverlayAPP
             double targetWidth = ActualHeight * targetAspect;
             double scaleFactorY = ActualHeight / BaseHeight;
 
-            //UpdateRaidTimerCanvas();
-            UpdateCraftingTimersCanvas(BaseWidth, BaseHeight, targetWidth, scaleFactorY);
-            //othersWindow.UpdateButtonsCanvas();
-            //webViewWindow.UpdateMinimapCanvas();
+            if (craftingTimers)
+            {
+                UpdateCraftingTimersCanvas(BaseWidth, BaseHeight, targetWidth, scaleFactorY);
+            }
+            if (raidTimer)
+            {
+                UpdateRaidTimerCanvas(BaseWidth, BaseHeight, targetWidth, scaleFactorY);
+            }
+            if (Buttons)
+            {
+                //othersWindow.UpdateButtonsCanvas(BaseWidth, BaseHeight, targetWidth, scaleFactorY);
+            }
+            if (Minimap)
+            {
+                //webViewWindow.UpdateMinimapCanvas(BaseWidth, BaseHeight, targetWidth, scaleFactorY);
+            }
+            if (allAtOnce)
+            {
+                UpdateCraftingTimersCanvas(BaseWidth, BaseHeight, targetWidth, scaleFactorY);
+                UpdateRaidTimerCanvas(BaseWidth, BaseHeight, targetWidth, scaleFactorY);
+                //othersWindow.UpdateButtonsCanvas(BaseWidth, BaseHeight, targetWidth, scaleFactorY);
+                //webViewWindow.UpdateMinimapCanvas(BaseWidth, BaseHeight, targetWidth, scaleFactorY);
+            }
 
         }
 
@@ -1188,6 +1216,11 @@ namespace EFT_OverlayAPP
                     }
                 }
             }
+        }
+
+        private void UpdateRaidTimerCanvas(double BaseWidth, double BaseHeight, double targetWidth, double scaleFactorY)
+        {
+
         }
     }
 }
