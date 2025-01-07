@@ -1148,34 +1148,30 @@ namespace EFT_OverlayAPP
             double BaseHeight = 1440;
 
             //double windowAspect = ActualWidth / ActualHeight;
-            //double targetAspect = BaseWidth / BaseHeight;
+            double targetAspect = BaseWidth / BaseHeight;
 
-            double scaleFactorX = ActualWidth / BaseWidth;
+            double targetWidth = ActualHeight * targetAspect;
             double scaleFactorY = ActualHeight / BaseHeight;
 
             //UpdateRaidTimerCanvas();
-            UpdateCraftingTimersCanvas(BaseWidth, BaseHeight, scaleFactorX, scaleFactorY);
+            UpdateCraftingTimersCanvas(BaseWidth, BaseHeight, targetWidth, scaleFactorY);
             //othersWindow.UpdateButtonsCanvas();
             //webViewWindow.UpdateMinimapCanvas();
 
         }
 
-        private void UpdateRaidTimerCanvas(double BaseWidth, double BaseHeight, double scaleFactorX, double scaleFactorY)
+        private void UpdateCraftingTimersCanvas(double BaseWidth, double BaseHeight, double targetWidth, double scaleFactorY)
         {
-
-        }
-
-        private void UpdateCraftingTimersCanvas(double BaseWidth, double BaseHeight, double scaleFactorX, double scaleFactorY)
-        {
-            if (ActualWidth < BaseWidth)
+            if (ActualWidth > targetWidth)
             {
-                CraftingTimersCanvas.Width = ActualWidth;
+                CraftingTimersCanvas.Width = targetWidth;
             }
             else
             {
-                CraftingTimersCanvas.Width = BaseWidth;
+                CraftingTimersCanvas.Width = ActualWidth;
             }
             CraftingTimersCanvas.Height = ActualHeight;
+            double scaleFactorX = CraftingTimersCanvas.Width / BaseWidth;
 
             foreach (var child in CraftingTimersCanvas.Children)
             {
@@ -1183,22 +1179,10 @@ namespace EFT_OverlayAPP
                 {
                     if (element.Name.Equals("CraftTimersControl"))
                     {
-                        double baseLeft;
-                        double baseBottom;
-                        if (ActualWidth < BaseWidth)
-                        {
-                            baseLeft = ((ActualWidth / 2) - (CraftTimersControl.ActualWidth / 2)) - (365 * scaleFactorX);
-                            CraftTimersControl.RenderTransform = new ScaleTransform(scaleFactorX, scaleFactorX);
-                            CraftTimersControl.RenderTransformOrigin = new System.Windows.Point(0.5, 1);
-                            baseBottom = 10 * scaleFactorY;
-                        }
-                        else
-                        {
-                            baseLeft = ((BaseWidth / 2) - (CraftTimersControl.ActualWidth / 2)) - 365;
-                            CraftTimersControl.RenderTransform = new ScaleTransform(1.0, 1.0);
-                            CraftTimersControl.RenderTransformOrigin = new System.Windows.Point(0.5, 0.5);
-                            baseBottom = 10;
-                        }
+                        double baseLeft = ((CraftingTimersCanvas.Width / 2) - (CraftTimersControl.ActualWidth / 2)) - (365 * scaleFactorX);
+                        CraftTimersControl.RenderTransform = new ScaleTransform(scaleFactorX, scaleFactorX);
+                        CraftTimersControl.RenderTransformOrigin = new System.Windows.Point(0.5, 1);
+                        double baseBottom = 10 * scaleFactorY;
                         Canvas.SetLeft(CraftTimersControl, baseLeft);
                         Canvas.SetBottom(CraftTimersControl, baseBottom);
                     }
