@@ -43,6 +43,12 @@ namespace EFT_OverlayAPP
         private DispatcherTimer craftsTimer;
         private TimeSpan remainingTime;
 
+        // Raid Timer Coordinates and Size
+        private double raidTimerWidth = 0;
+        private double raidTimerHeight = 0;
+        private double raidTimerRight = 0;
+        private double raidTimerTop = 0;
+
         private bool IsRaidTimerRunning = false;
 
         private bool isRaidTimerVisible;
@@ -132,7 +138,7 @@ namespace EFT_OverlayAPP
 
             IsRaidTimerVisible = false; // Initialize to false
 
-            UpdateCanvases(allAtOnce: true);
+            UpdateCanvases();
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -183,7 +189,7 @@ namespace EFT_OverlayAPP
                 }
             };
 
-            UpdateCanvases(allAtOnce: true);
+            UpdateCanvases();
         }
 
         private void MainWindow_Closed(object sender, EventArgs e)
@@ -527,11 +533,11 @@ namespace EFT_OverlayAPP
         {
             double dpiScale = GetDpiScaleFactor();
 
-            // Define the area to capture (adjust these values)
-            int width = (int)(185 * dpiScale); // Adjust width as needed
-            int height = (int)(70 * dpiScale); // Adjust height as needed
-            int left = (int)(2370 * dpiScale); // Adjust left as needed
-            int top = (int)(7 * dpiScale); // Adjust top as needed
+            // Define the area to capture
+            int width = (int)(raidTimerWidth * dpiScale);
+            int height = (int)(raidTimerHeight * dpiScale);
+            int left = (int)((ActualWidth - width - raidTimerRight) * dpiScale);
+            int top = (int)(raidTimerTop * dpiScale);
 
             Rectangle captureArea = new Rectangle(left, top, width, height);
             Bitmap bitmap = new Bitmap(captureArea.Width, captureArea.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
@@ -724,7 +730,7 @@ namespace EFT_OverlayAPP
                         };
                     }
                 }
-                debounceDispatcher.Debounce(() => UpdateCanvases(craftingTimers: true));
+                debounceDispatcher.Debounce(() => UpdateCanvases());
             });
         }
 
@@ -1098,7 +1104,7 @@ namespace EFT_OverlayAPP
 
         private void ToggleMinimapVisibility()
         {
-            UpdateCanvases(allAtOnce: true);
+            UpdateCanvases();
             if (webViewWindow != null)
             {
                 if (webViewWindow.IsVisible)
@@ -1151,7 +1157,7 @@ namespace EFT_OverlayAPP
             OnPropertyChanged(nameof(ManualOtherWindowButtonsVisibilityOverride));
         }
 
-        private void UpdateCanvases(bool craftingTimers = false, bool raidTimer = false, bool Buttons = false, bool Minimap = false, bool allAtOnce = false)
+        private void UpdateCanvases()
         {
             double BaseWidth = 2560;
             double BaseHeight = 1440;
@@ -1162,45 +1168,29 @@ namespace EFT_OverlayAPP
             double targetWidth = ActualHeight * targetAspect;
             double scaleFactorY = ActualHeight / BaseHeight;
 
-            if (craftingTimers)
-            {
-                UpdateCraftingTimersCanvas(BaseWidth, BaseHeight, targetWidth, scaleFactorY);
-            }
-            if (raidTimer)
-            {
-                UpdateRaidTimerCanvas(BaseWidth, BaseHeight, targetWidth, scaleFactorY);
-            }
-            if (Buttons)
-            {
-                //othersWindow.UpdateButtonsCanvas(BaseWidth, BaseHeight, targetWidth, scaleFactorY);
-            }
-            if (Minimap)
-            {
-                //webViewWindow.UpdateMinimapCanvas(BaseWidth, BaseHeight, targetWidth, scaleFactorY);
-            }
-            if (allAtOnce)
-            {
-                UpdateCraftingTimersCanvas(BaseWidth, BaseHeight, targetWidth, scaleFactorY);
-                UpdateRaidTimerCanvas(BaseWidth, BaseHeight, targetWidth, scaleFactorY);
-                //othersWindow.UpdateButtonsCanvas(BaseWidth, BaseHeight, targetWidth, scaleFactorY);
-                //webViewWindow.UpdateMinimapCanvas(BaseWidth, BaseHeight, targetWidth, scaleFactorY);
-            }
-
-        }
-
-        private void UpdateCraftingTimersCanvas(double BaseWidth, double BaseHeight, double targetWidth, double scaleFactorY)
-        {
             if (ActualWidth > targetWidth)
             {
                 CraftingTimersCanvas.Width = targetWidth;
+                RaidTimerCanvas.Width = targetWidth;
             }
             else
             {
                 CraftingTimersCanvas.Width = ActualWidth;
+                RaidTimerCanvas.Width = ActualWidth;
             }
             CraftingTimersCanvas.Height = ActualHeight;
+            RaidTimerCanvas.Height = ActualHeight;
             double scaleFactorX = CraftingTimersCanvas.Width / BaseWidth;
 
+            UpdateCraftingTimersCanvas(BaseWidth, BaseHeight, targetWidth, scaleFactorX, scaleFactorY);
+            UpdateRaidTimerCanvas(BaseWidth, BaseHeight, targetWidth, scaleFactorX, scaleFactorY);
+            //othersWindow.UpdateButtonsCanvas(BaseWidth, BaseHeight, targetWidth, scaleFactorY);
+            //webViewWindow.UpdateMinimapCanvas(BaseWidth, BaseHeight, targetWidth, scaleFactorY);
+
+        }
+
+        private void UpdateCraftingTimersCanvas(double BaseWidth, double BaseHeight, double targetWidth, double scaleFactorX, double scaleFactorY)
+        {
             foreach (var child in CraftingTimersCanvas.Children)
             {
                 if (child is FrameworkElement element)
@@ -1218,9 +1208,38 @@ namespace EFT_OverlayAPP
             }
         }
 
-        private void UpdateRaidTimerCanvas(double BaseWidth, double BaseHeight, double targetWidth, double scaleFactorY)
+        private void UpdateRaidTimerCanvas(double BaseWidth, double BaseHeight, double targetWidth, double scaleFactorX, double scaleFactorY)
         {
+            foreach (var child in RaidTimerCanvas.Children)
+            {
+                if (child is FrameworkElement element)
+                {
+                    if (element.Name.Equals("RaidTimerBorder"))
+                    {
+                        RaidTimerBorder.RenderTransform = new ScaleTransform(scaleFactorX, scaleFactorX);
+                        RaidTimerBorder.RenderTransformOrigin = new System.Windows.Point(1, 0);
+                        if (ActualWidth > targetWidth)
+                        {
+                            Canvas.SetRight(RaidTimerBorder, (5 * scaleFactorX) - ((ActualWidth - targetWidth) / 2));
+                        }
+                        else
+                        {
+                            Canvas.SetRight(RaidTimerBorder, (5 * scaleFactorX));
+                        }
+                        Canvas.SetTop(RaidTimerBorder, (5 * scaleFactorX));
 
+                        // Scale the Timer Text Block -> the game doesn't do it
+                        //TimerTextBlock.RenderTransform = new ScaleTransform(scaleFactorX, scaleFactorX);
+                        //TimerTextBlock.RenderTransformOrigin = new System.Windows.Point(0.5, 0.5);
+                        //TimerTextBlock.Margin = new Thickness(22 * scaleFactorX, 0, 0, 0);
+
+                        raidTimerWidth = (187 * scaleFactorX);
+                        raidTimerHeight = (74 * scaleFactorX);
+                        raidTimerRight = (5 * scaleFactorX);
+                        raidTimerTop = (5 * scaleFactorX);
+                    }
+                }
+            }
         }
     }
 }

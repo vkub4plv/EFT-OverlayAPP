@@ -73,19 +73,19 @@
         </DataTemplate>
     </Window.Resources>
     <Grid>
-        <Border Background="#55000000"
-                HorizontalAlignment="Right"
-                VerticalAlignment="Top"
-                Width="186"
+        <Canvas x:Name="RaidTimerCanvas" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Border x:Name="RaidTimerBorder"
+                Background="#55000000"
+                Width="187"
                 Height="73.5"
-                Margin="0,5,5,0"
                 Visibility="{Binding IsRaidTimerVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
-            <TextBlock Style="{StaticResource Clock}"
+                <TextBlock Style="{StaticResource Clock}"
                        x:Name="TimerTextBlock"
                        Text="8:88:88"
                        Margin="22,0,0,0">
-            </TextBlock>
-        </Border>
+                </TextBlock>
+            </Border>
+        </Canvas>
         <Grid HorizontalAlignment="Right" VerticalAlignment="Top" Margin="100,83.5,5,100" Visibility="Hidden">
             <Grid.RowDefinitions>
                 <RowDefinition Height="1*"/>
