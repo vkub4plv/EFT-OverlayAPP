@@ -17,6 +17,7 @@ using System.Collections.ObjectModel;
 using System.Windows.Media.Imaging;
 using Microsoft.Win32;
 using NLog;
+using System.Windows.Controls;
 
 namespace EFT_OverlayAPP
 {
@@ -129,6 +130,8 @@ namespace EFT_OverlayAPP
             StartLoadingRequiredItemsData();
 
             IsRaidTimerVisible = false; // Initialize to false
+
+            UpdateCanvases();
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -178,6 +181,8 @@ namespace EFT_OverlayAPP
                     HideCraftingUIWhenInRaid = configWindow.AppConfig.HideCraftingUIWhenInRaid;
                 }
             };
+
+            UpdateCanvases();
         }
 
         private void MainWindow_Closed(object sender, EventArgs e)
@@ -346,7 +351,7 @@ namespace EFT_OverlayAPP
                 else
                 {
                     requiredItemsWindow.Show();
-                }    
+                }
             }
             else
             {
@@ -821,7 +826,7 @@ namespace EFT_OverlayAPP
                 // Hide the raid timer when not in raid and the config option is enabled
                 if (!IsInRaid && configWindow.AppConfig.HideRaidTimerOnRaidEnd)
                 {
-                    IsRaidTimerVisible = false; 
+                    IsRaidTimerVisible = false;
                 }
 
             });
@@ -874,7 +879,7 @@ namespace EFT_OverlayAPP
             configWindow.ChangeCurrentProfileModeTextBlock_Text(EffectiveProfileMode);
             configWindow.DetermineListContent(EffectiveProfileMode);
 
-            if(requiredItemsWindow != null && requiredItemsWindow.IsVisible)
+            if (requiredItemsWindow != null && requiredItemsWindow.IsVisible)
             {
                 lastVisibleState = EffectiveProfileMode;
             }
@@ -896,7 +901,7 @@ namespace EFT_OverlayAPP
                 craftingWindow.ReloadData();
             }
 
-                LastProfileMode = EffectiveProfileMode;
+            LastProfileMode = EffectiveProfileMode;
         }
 
         public void CraftingWindowDataReload()
@@ -1084,6 +1089,7 @@ namespace EFT_OverlayAPP
 
         private void ToggleMinimapVisibility()
         {
+            UpdateCanvases();
             if (webViewWindow != null)
             {
                 if (webViewWindow.IsVisible)
@@ -1134,6 +1140,67 @@ namespace EFT_OverlayAPP
         {
             ManualOtherWindowButtonsVisibilityOverride = !ManualOtherWindowButtonsVisibilityOverride;
             OnPropertyChanged(nameof(ManualOtherWindowButtonsVisibilityOverride));
+        }
+
+        private void UpdateCanvases()
+        {
+            double BaseWidth = 2560;
+            double BaseHeight = 1440;
+
+            //double windowAspect = ActualWidth / ActualHeight;
+            //double targetAspect = BaseWidth / BaseHeight;
+
+            double scaleFactorX = ActualWidth / BaseWidth;
+            double scaleFactorY = ActualHeight / BaseHeight;
+
+            //UpdateRaidTimerCanvas();
+            UpdateCraftingTimersCanvas(BaseWidth, BaseHeight, scaleFactorX, scaleFactorY);
+            //othersWindow.UpdateButtonsCanvas();
+            //webViewWindow.UpdateMinimapCanvas();
+
+        }
+
+        private void UpdateRaidTimerCanvas(double BaseWidth, double BaseHeight, double scaleFactorX, double scaleFactorY)
+        {
+
+        }
+
+        private void UpdateCraftingTimersCanvas(double BaseWidth, double BaseHeight, double scaleFactorX, double scaleFactorY)
+        {
+            if (ActualWidth <= BaseWidth)
+            {
+                CraftingTimersCanvas.Width = ActualWidth;
+            }
+            else
+            {
+                CraftingTimersCanvas.Width = BaseWidth;
+            }
+            CraftingTimersCanvas.Height = ActualHeight;
+            //CraftingTimersCanvas.RenderTransform = new ScaleTransform(scaleFactor, scaleFactor);
+
+            foreach (var child in CraftingTimersCanvas.Children)
+            {
+                if (child is FrameworkElement element)
+                {
+                    if (element.Name.Equals("CraftTimersControl"))
+                    {
+                        double baseLeft;
+                        if (ActualWidth <= BaseWidth)
+                        {
+                            baseLeft = ((ActualWidth / 2) - (CraftTimersControl.ActualWidth / 2));
+                        }
+                        else
+                        {
+                            baseLeft = ((BaseWidth / 2) - (CraftTimersControl.ActualWidth / 2));
+                        }
+                        Canvas.SetLeft(CraftTimersControl, baseLeft);
+                        Canvas.SetBottom(CraftTimersControl, 10);
+
+                        //Canvas.SetRight(CraftTimersControl, 0);
+                        //Canvas.SetBottom(CraftTimersControl, 0);
+                    }
+                }
+            }
         }
     }
 }

@@ -175,34 +175,33 @@
             <!-- Optional: Define ItemsPanel if you want to customize the layout -->
         </ItemsControl>
         <!-- Craft Timers Overlay -->
-        <ItemsControl x:Name="CraftTimersControl"
-                      HorizontalAlignment="Center"
-                      VerticalAlignment="Bottom"
-                      Margin="0,0,730,10"
-                      ItemsSource="{Binding ActiveCraftTimers}">
-            <ItemsControl.Visibility>
-                <MultiBinding Converter="{StaticResource AdvancedCraftingUIVisibilityConverter}">
-                    <Binding Path="IsInRaid" />
-                    <Binding Path="HideCraftingUIWhenInRaid" />
-                    <Binding Path="ManualCraftingUIVisibilityOverride" />
-                </MultiBinding>
-            </ItemsControl.Visibility>
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <StackPanel Orientation="Horizontal"/>
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel Orientation="Vertical" Margin="10,0">
-                        <Image Source="{Binding StationIcon}" Width="50" Height="50"/>
-                        <TextBlock Text="{Binding RemainingTime, Converter={StaticResource TimeSpanToStringConverter}}"
-                                   Foreground="{Binding RemainingTime, Converter={StaticResource RemainingTimeToColorConverter}}"
-                                   HorizontalAlignment="Center"/>
-                    </StackPanel>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+        <Canvas x:Name="CraftingTimersCanvas" Opacity="0.1" Background="Magenta" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <ItemsControl x:Name="CraftTimersControl"
+                            ItemsSource="{Binding ActiveCraftTimers}">
+                <ItemsControl.Visibility>
+                    <MultiBinding Converter="{StaticResource AdvancedCraftingUIVisibilityConverter}">
+                        <Binding Path="IsInRaid" />
+                        <Binding Path="HideCraftingUIWhenInRaid" />
+                        <Binding Path="ManualCraftingUIVisibilityOverride" />
+                    </MultiBinding>
+                </ItemsControl.Visibility>
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Vertical" Margin="10,0">
+                            <Image Source="{Binding StationIcon}" Width="50" Height="50"/>
+                            <TextBlock Text="{Binding RemainingTime, Converter={StaticResource TimeSpanToStringConverter}}"
+                           Foreground="{Binding RemainingTime, Converter={StaticResource RemainingTimeToColorConverter}}"
+                           HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Canvas>
         <!-- <Grid HorizontalAlignment="Right" VerticalAlignment="Center">
             <StackPanel>
                 <TextBlock Foreground ="White" Text="{Binding IsMatching, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BooleanToStringConverter}, ConverterParameter='Matching...,Not Matching'}" />
