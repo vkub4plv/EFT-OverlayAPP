@@ -1167,7 +1167,7 @@ namespace EFT_OverlayAPP
 
         private void UpdateCraftingTimersCanvas(double BaseWidth, double BaseHeight, double scaleFactorX, double scaleFactorY)
         {
-            if (ActualWidth <= BaseWidth)
+            if (ActualWidth < BaseWidth)
             {
                 CraftingTimersCanvas.Width = ActualWidth;
             }
@@ -1176,7 +1176,6 @@ namespace EFT_OverlayAPP
                 CraftingTimersCanvas.Width = BaseWidth;
             }
             CraftingTimersCanvas.Height = ActualHeight;
-            //CraftingTimersCanvas.RenderTransform = new ScaleTransform(scaleFactor, scaleFactor);
 
             foreach (var child in CraftingTimersCanvas.Children)
             {
@@ -1185,19 +1184,23 @@ namespace EFT_OverlayAPP
                     if (element.Name.Equals("CraftTimersControl"))
                     {
                         double baseLeft;
-                        if (ActualWidth <= BaseWidth)
+                        double baseBottom;
+                        if (ActualWidth < BaseWidth)
                         {
-                            baseLeft = ((ActualWidth / 2) - (CraftTimersControl.ActualWidth / 2));
+                            baseLeft = ((ActualWidth / 2) - (CraftTimersControl.ActualWidth / 2)) - (365 * scaleFactorX);
+                            CraftTimersControl.RenderTransform = new ScaleTransform(scaleFactorX, scaleFactorX);
+                            CraftTimersControl.RenderTransformOrigin = new System.Windows.Point(0.5, 1);
+                            baseBottom = 10 * scaleFactorY;
                         }
                         else
                         {
-                            baseLeft = ((BaseWidth / 2) - (CraftTimersControl.ActualWidth / 2));
+                            baseLeft = ((BaseWidth / 2) - (CraftTimersControl.ActualWidth / 2)) - 365;
+                            CraftTimersControl.RenderTransform = new ScaleTransform(1.0, 1.0);
+                            CraftTimersControl.RenderTransformOrigin = new System.Windows.Point(0.5, 0.5);
+                            baseBottom = 10;
                         }
                         Canvas.SetLeft(CraftTimersControl, baseLeft);
-                        Canvas.SetBottom(CraftTimersControl, 10);
-
-                        //Canvas.SetRight(CraftTimersControl, 0);
-                        //Canvas.SetBottom(CraftTimersControl, 0);
+                        Canvas.SetBottom(CraftTimersControl, baseBottom);
                     }
                 }
             }

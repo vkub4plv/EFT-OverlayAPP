@@ -175,7 +175,7 @@
             <!-- Optional: Define ItemsPanel if you want to customize the layout -->
         </ItemsControl>
         <!-- Craft Timers Overlay -->
-        <Canvas x:Name="CraftingTimersCanvas" Opacity="0.1" Background="Magenta" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <Canvas x:Name="CraftingTimersCanvas" Opacity="0.2" Background="DarkKhaki" HorizontalAlignment="Center" VerticalAlignment="Center">
             <ItemsControl x:Name="CraftTimersControl"
                             ItemsSource="{Binding ActiveCraftTimers}">
                 <ItemsControl.Visibility>
