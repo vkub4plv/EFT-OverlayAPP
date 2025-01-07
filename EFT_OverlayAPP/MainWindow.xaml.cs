@@ -633,6 +633,7 @@ namespace EFT_OverlayAPP
                     Dispatcher.Invoke(() =>
                     {
                         UpdateTimerText();
+                        debounceDispatcher.Debounce(() => UpdateCanvases());
                         IsRaidTimerVisible = true; // Show the timer after OCR
                     });
                 }
@@ -1173,7 +1174,7 @@ namespace EFT_OverlayAPP
             OnPropertyChanged(nameof(ManualOtherWindowButtonsVisibilityOverride));
         }
 
-        private void UpdateCanvases()
+        public void UpdateCanvases()
         {
             double BaseWidth = 2560;
             double BaseHeight = 1440;
@@ -1188,20 +1189,35 @@ namespace EFT_OverlayAPP
             {
                 CraftingTimersCanvas.Width = targetWidth;
                 RaidTimerCanvas.Width = targetWidth;
+                if (othersWindow != null)
+                {
+                    othersWindow.ButtonsCanvas.Width = targetWidth;
+                }
             }
             else
             {
                 CraftingTimersCanvas.Width = ActualWidth;
                 RaidTimerCanvas.Width = ActualWidth;
+                if (othersWindow != null)
+                {
+                    othersWindow.ButtonsCanvas.Width = ActualWidth;
+                }
             }
             CraftingTimersCanvas.Height = ActualHeight;
             RaidTimerCanvas.Height = ActualHeight;
+            if (othersWindow != null)
+            {
+                othersWindow.ButtonsCanvas.Height = ActualHeight;
+            }
             double scaleFactorX = CraftingTimersCanvas.Width / BaseWidth;
 
             UpdateCraftingTimersCanvas(BaseWidth, BaseHeight, targetWidth, scaleFactorX, scaleFactorY);
             UpdateRaidTimerCanvas(BaseWidth, BaseHeight, targetWidth, scaleFactorX, scaleFactorY);
-            //othersWindow.UpdateButtonsCanvas(BaseWidth, BaseHeight, targetWidth, scaleFactorY);
-            //webViewWindow.UpdateMinimapCanvas(BaseWidth, BaseHeight, targetWidth, scaleFactorY);
+            if (othersWindow != null)
+            {
+                othersWindow.UpdateButtonsCanvas(BaseWidth, BaseHeight, targetWidth, scaleFactorX, scaleFactorY);
+            }
+            //webViewWindow.UpdateMinimapCanvas(BaseWidth, BaseHeight, targetWidth, scaleFactorX, scaleFactorY);
 
         }
 

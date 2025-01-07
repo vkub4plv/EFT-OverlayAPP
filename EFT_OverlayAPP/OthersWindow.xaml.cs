@@ -84,32 +84,7 @@ namespace EFT_OverlayAPP
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            // Position the window at the specified coordinates
-            this.Left = 1670;
-            this.Top = 15;
-
-            // Adjust for DPI scaling
-            AdjustForDpi();
-
-            // Set the window size to fit the content
-            this.Width = (OpenCraftingWindowButton.Width + OpenRequiredItemsWindowButton.Width + OpenConfigWindowButton.Width + 10); // 5 * 2 = 10 is the margin between buttons
-            this.Height = OpenCraftingWindowButton.Height;
-        }
-
-        private void AdjustForDpi()
-        {
-            PresentationSource source = PresentationSource.FromVisual(this);
-            if (source != null)
-            {
-                double dpiX = source.CompositionTarget.TransformToDevice.M11;
-                double dpiY = source.CompositionTarget.TransformToDevice.M22;
-
-                this.Left *= dpiX;
-                this.Top *= dpiY;
-
-                this.Width *= dpiX;
-                this.Height *= dpiY;
-            }
+            mainWindow.UpdateCanvases();
         }
 
         private void OpenCraftingWindowButton_Click(object sender, RoutedEventArgs e)
@@ -125,6 +100,47 @@ namespace EFT_OverlayAPP
         private void OpenConfigWindowButton_Click(object sender, RoutedEventArgs e)
         {
             mainWindow.OpenConfigWindow();
+        }
+
+        public void UpdateButtonsCanvas(double BaseWidth, double BaseHeight, double targetWidth, double scaleFactorX, double scaleFactorY)
+        {
+            this.Width = ButtonsCanvas.Width;
+            this.Height = ButtonsCanvas.Height;
+            this.Top = 0;
+            this.Left = ((mainWindow.ActualWidth - ButtonsCanvas.Width) / 2);
+
+            foreach (var child in ButtonsCanvas.Children)
+            {
+                if (child is FrameworkElement element)
+                {
+                    if (element.Name.Equals("OpenCraftingWindowButton"))
+                    {
+                        OpenCraftingWindowButton.RenderTransform = new ScaleTransform(scaleFactorX, scaleFactorX);
+                        OpenCraftingWindowButton.RenderTransformOrigin = new System.Windows.Point(0.5, 0);
+
+                        Canvas.SetLeft(OpenCraftingWindowButton, (1670 * scaleFactorX));
+                        Canvas.SetTop(OpenCraftingWindowButton, (15 * scaleFactorY));
+                    }
+
+                    if (element.Name.Equals("OpenRequiredItemsWindowButton"))
+                    {
+                        OpenRequiredItemsWindowButton.RenderTransform = new ScaleTransform(scaleFactorX, scaleFactorX);
+                        OpenRequiredItemsWindowButton.RenderTransformOrigin = new System.Windows.Point(0.5, 0);
+
+                        Canvas.SetLeft(OpenRequiredItemsWindowButton, ((1670 + OpenCraftingWindowButton.ActualWidth + 5) * scaleFactorX));
+                        Canvas.SetTop(OpenRequiredItemsWindowButton, (15 * scaleFactorY));
+                    }
+
+                    if (element.Name.Equals("OpenConfigWindowButton"))
+                    {
+                        OpenConfigWindowButton.RenderTransform = new ScaleTransform(scaleFactorX, scaleFactorX);
+                        OpenConfigWindowButton.RenderTransformOrigin = new System.Windows.Point(0.5, 0);
+
+                        Canvas.SetLeft(OpenConfigWindowButton, ((1670 + OpenCraftingWindowButton.ActualWidth + OpenRequiredItemsWindowButton.ActualWidth + 10) * scaleFactorX));
+                        Canvas.SetTop(OpenConfigWindowButton, (15 * scaleFactorY));
+                    }
+                }
+            }
         }
     }
 }

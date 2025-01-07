@@ -17,14 +17,13 @@
         Loaded="Window_Loaded"
         >
     <Grid>
-        <StackPanel Orientation="Horizontal">
+        <Canvas x:Name="ButtonsCanvas" HorizontalAlignment="Center" VerticalAlignment="Center">
             <!-- Open Crafting Window Button -->
             <Button x:Name="OpenCraftingWindowButton"
                     Content="Crafting"
                     Width="100"
                     Height="30"
                     Click="OpenCraftingWindowButton_Click"
-                    Margin="0,0,5,0"
                     Background="#55000000"
                     Foreground="White"
                     BorderBrush="Gray"
@@ -37,7 +36,7 @@
                         <Binding Path = "IsInRaid" />
                         <Binding Path = "HideOtherWindowButtonsWhenInRaid" />
                         <Binding Path = "ManualOtherWindowButtonsVisibilityOverride" />
-                </MultiBinding>
+                    </MultiBinding>
                 </Button.Visibility>
             </Button>
             <!-- Open Required Items Window Button -->
@@ -46,7 +45,6 @@
                     Width="100"
                     Height="30"
                     Click="OpenRequiredItemsWindowButton_Click"
-                    Margin="0,0,5,0"
                     Background="#55000000"
                     Foreground="White"
                     BorderBrush="Gray"
@@ -81,6 +79,6 @@
                     </MultiBinding>
                 </Button.Visibility>
             </Button>
-        </StackPanel>
+        </Canvas>
     </Grid>
 </Window>
