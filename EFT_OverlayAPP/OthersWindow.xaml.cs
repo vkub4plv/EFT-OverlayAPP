@@ -118,7 +118,7 @@ namespace EFT_OverlayAPP
                         OpenCraftingWindowButton.RenderTransform = new ScaleTransform(scaleFactorX, scaleFactorX);
                         OpenCraftingWindowButton.RenderTransformOrigin = new System.Windows.Point(0.5, 0);
 
-                        Canvas.SetLeft(OpenCraftingWindowButton, (1670 * scaleFactorX));
+                        Canvas.SetLeft(OpenCraftingWindowButton, (1900 * scaleFactorX));
                         Canvas.SetTop(OpenCraftingWindowButton, (15 * scaleFactorY));
                     }
 
@@ -127,7 +127,7 @@ namespace EFT_OverlayAPP
                         OpenRequiredItemsWindowButton.RenderTransform = new ScaleTransform(scaleFactorX, scaleFactorX);
                         OpenRequiredItemsWindowButton.RenderTransformOrigin = new System.Windows.Point(0.5, 0);
 
-                        Canvas.SetLeft(OpenRequiredItemsWindowButton, ((1670 + OpenCraftingWindowButton.ActualWidth + 5) * scaleFactorX));
+                        Canvas.SetLeft(OpenRequiredItemsWindowButton, ((1900 + OpenCraftingWindowButton.ActualWidth + 5) * scaleFactorX));
                         Canvas.SetTop(OpenRequiredItemsWindowButton, (15 * scaleFactorY));
                     }
 
@@ -136,7 +136,7 @@ namespace EFT_OverlayAPP
                         OpenConfigWindowButton.RenderTransform = new ScaleTransform(scaleFactorX, scaleFactorX);
                         OpenConfigWindowButton.RenderTransformOrigin = new System.Windows.Point(0.5, 0);
 
-                        Canvas.SetLeft(OpenConfigWindowButton, ((1670 + OpenCraftingWindowButton.ActualWidth + OpenRequiredItemsWindowButton.ActualWidth + 10) * scaleFactorX));
+                        Canvas.SetLeft(OpenConfigWindowButton, ((1900 + OpenCraftingWindowButton.ActualWidth + OpenRequiredItemsWindowButton.ActualWidth + 10) * scaleFactorX));
                         Canvas.SetTop(OpenConfigWindowButton, (15 * scaleFactorY));
                     }
                 }
