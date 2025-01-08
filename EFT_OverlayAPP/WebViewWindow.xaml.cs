@@ -2,6 +2,9 @@
 using System;
 using System.ComponentModel;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Media;
 using System.Windows.Media.Animation;
 
 namespace EFT_OverlayAPP
@@ -11,25 +14,31 @@ namespace EFT_OverlayAPP
         private GameState gameState;
         private ConfigWindow configWindow;
         private GameStateManager gameStateManager;
+        private MainWindow mainWindow;
         private double originalTop; // To store the original Top position
         private double originalLeft; // To store the original Left position
         private double originalWidth; // Original Width
         private double originalHeight; // Original Height
+        private double wvTargetWidth = 0;
+        private double wvTargetHeight = 0;
+        private double wvNewLeft = 0;
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        private DebounceDispatcher debounceDispatcher = new DebounceDispatcher(100); // 0.1 second debounce
 
-        public WebViewWindow(Window owner, ConfigWindow configWindow, GameStateManager gameStateManager)
+        public WebViewWindow(MainWindow mainWindow, ConfigWindow configWindow, GameStateManager gameStateManager)
         {
             InitializeComponent();
             this.gameState = gameStateManager.GameState;
             this.configWindow = configWindow;
             this.gameStateManager = gameStateManager;
             this.Loaded += WebViewWindow_Loaded;
+            this.mainWindow = mainWindow;
 
             // Set the owner
-            this.Owner = owner;
+            this.Owner = mainWindow;
 
             // Calculate position relative to owner
-            var ownerPosition = owner.PointToScreen(new Point(0, 0));
+            var ownerPosition = mainWindow.PointToScreen(new Point(0, 0));
             this.Left = ownerPosition.X;
             this.Top = ownerPosition.Y;
             this.Width = 720;
@@ -73,6 +82,8 @@ namespace EFT_OverlayAPP
             // Set zoom level if needed
             BrowserControl.CoreWebView2.Settings.IsZoomControlEnabled = false;
             BrowserControl.ZoomFactor = 0.8; // Adjust as necessary
+
+            mainWindow.UpdateCanvases();
         }
 
         private void GameState_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -120,12 +131,12 @@ namespace EFT_OverlayAPP
 
         private void MoveWindowDown()
         {
-            double screenHeight = SystemParameters.PrimaryScreenHeight;
-            double targetWidth = 470;
-            double targetHeight = 200;
-            double newTop = screenHeight - targetHeight; // Position at the bottom
-            double newLeft = 270; // Set left offset to 440
+            debounceDispatcher.Debounce(() => mainWindow.UpdateCanvases());
 
+            double targetWidth = wvTargetWidth;
+            double targetHeight = wvTargetHeight;
+            double newTop = mainWindow.ActualHeight - targetHeight;
+            double newLeft = wvNewLeft;
 
             // Animate Width
             DoubleAnimation widthAnimation = new DoubleAnimation
@@ -214,6 +225,19 @@ namespace EFT_OverlayAPP
 
             if (gameState != null)
                 gameState.PropertyChanged -= GameState_PropertyChanged;
+        }
+
+        public void UpdateMinimapCanvas(double BaseWidth, double BaseHeight, double targetWidth, double scaleFactorX, double scaleFactorY)
+        {
+            this.Width = 720 * scaleFactorX;
+            this.Height = 405 * scaleFactorX;
+            originalWidth = 720 * scaleFactorX;
+            originalHeight = 405 * scaleFactorX;
+            BrowserControl.Width = this.ActualWidth;
+            BrowserControl.Height = this.ActualHeight;
+            wvTargetWidth = 470 * scaleFactorX;
+            wvTargetHeight = 200 * scaleFactorX;
+            wvNewLeft = 275 * scaleFactorX;
         }
     }
 }

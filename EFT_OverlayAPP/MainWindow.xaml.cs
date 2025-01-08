@@ -1217,8 +1217,10 @@ namespace EFT_OverlayAPP
             {
                 othersWindow.UpdateButtonsCanvas(BaseWidth, BaseHeight, targetWidth, scaleFactorX, scaleFactorY);
             }
-            //webViewWindow.UpdateMinimapCanvas(BaseWidth, BaseHeight, targetWidth, scaleFactorX, scaleFactorY);
-
+            if (webViewWindow != null)
+            {
+                webViewWindow.UpdateMinimapCanvas(BaseWidth, BaseHeight, targetWidth, scaleFactorX, scaleFactorY);
+            }
         }
 
         private void UpdateCraftingTimersCanvas(double BaseWidth, double BaseHeight, double targetWidth, double scaleFactorX, double scaleFactorY)
