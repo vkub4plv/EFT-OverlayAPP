@@ -131,6 +131,7 @@ namespace EFT_OverlayAPP
 
         private void MoveWindowDown()
         {
+            return;
             debounceDispatcher.Debounce(() => mainWindow.UpdateCanvases());
 
             double targetWidth = wvTargetWidth;
@@ -175,6 +176,7 @@ namespace EFT_OverlayAPP
 
         private void ResetWindowPosition()
         {
+            return;
             // Animate Width back to original
             DoubleAnimation widthAnimation = new DoubleAnimation
             {
