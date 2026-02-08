@@ -85,3 +85,11 @@ Possible future enhancements include:
 - Integration with additional tools (e.g., **Rat Scanner**)  
 - Further interface improvements  
 - Expanded customization options  
+
+## Screenshots
+
+![Minimap + Timer](screenshots/Minimap_Timer.png)
+![Buttons + Windows + Craft Timers](screenshots/Buttons_Windows_CraftTimers.png)
+![Crafting Window](screenshots/Crafting_All.png)
+![Required Items Window](screenshots/RequiredItems_All.png)
+![Config Window](screenshots/Config_General.png)
